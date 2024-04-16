@@ -1,0 +1,272 @@
+#!/usr/bin/bash
+
+# set -x
+
+# NP=4
+# BLOCK_X=180
+# BLOCK_Y=110
+NP=120
+BLOCK_X=30
+BLOCK_Y=22
+#  NP=6
+#  BLOCK_X=180
+#  BLOCK_Y=73
+#  NP=6
+#  BLOCK_X=60
+#  BLOCK_Y=218
+# NP=8
+# BLOCK_X=180
+# BLOCK_Y=55
+#NP=160
+#BLOCK_X=180
+#BLOCK_Y=288
+# BLOCK_X=450
+# BLOCK_Y=116
+#  NP=40
+#  BLOCK_X=45
+#  BLOCK_Y=44
+# NP=48
+# BLOCK_X=45
+# BLOCK_Y=37
+#NP=1024
+#BLOCK_X=113
+#BLOCK_Y=72
+#10km
+#NP=128
+#BLOCK_X=450
+#BLOCK_Y=144
+#NP=2048
+#BLOCK_X=113
+#BLOCK_Y=36
+# NP=1560
+# BLOCK_X=90
+# BLOCK_Y=60
+#NP=2340
+#BLOCK_X=60
+#BLOCK_Y=60
+#NP=11520
+#BLOCK_X=45
+#BLOCK_Y=16
+#NP=5880
+#BLOCK_X=120
+#BLOCK_Y=40
+# 5km
+#NP=28000
+#BLOCK_X=72
+#BLOCK_Y=14
+
+#419 KUNSHAN IAP_GPU TAISHAN OCEANLIGHT
+# MACHINE="IAP_GPU"
+MACHINE="OCEANLIGHT"
+
+#LICOM_RES="5km"
+LICOM_RES="100km"
+#LICOM_RES="10km"
+
+LICOM_ENABLE_TEST_TIME="undef"
+LICOM_ENABLE_TEST_TIME="define"
+
+LICOM_ENABLE_GPTL="define"
+LICOM_ENABLE_GPTL="undef"
+
+LICOM_ENABLE_FORTRAN_COMPILER="LICOM_ENABLE_FORTRAN_COMPILER_INTEL"
+LICOM_ENABLE_FORTRAN_COMPILER="LICOM_ENABLE_FORTRAN_COMPILER_GNU"
+
+LICOM_ENABLE_VERSION="LICOM_ENABLE_CUDA"
+LICOM_ENABLE_VERSION="LICOM_ENABLE_HIP"
+LICOM_ENABLE_VERSION="LICOM_ENABLE_CPP"
+LICOM_ENABLE_VERSION="LICOM_ENABLE_FORTRAN"
+LICOM_ENABLE_VERSION="LICOM_ENABLE_KOKKOS"
+
+# Default log dir
+cd ../logfile
+LOG_DIR=$PWD
+
+# Custom log dir
+# LOG_DIR="/home/wjl/workspace/licom/licom3-kokkos-20231124/logfile"
+
+CUR_DATE=$(date +'%Y%m%d-%H%M%S')
+
+
+if [ ! -d "${LOG_DIR}/${LICOM_RES}" ]; then
+    mkdir "${LOG_DIR}/${LICOM_RES}"
+fi
+
+LICOM_GPTL_OUT_FILE="${LOG_DIR}/${LICOM_RES}/${CUR_DATE}-${MACHINE}-gptl.out"
+
+cd ../run/
+
+rm -f ocn.log
+rm -f licom3-kokkos
+
+./../scripts/cp-${LICOM_RES}-data
+
+cd -
+
+cd ../build
+
+echo Current machine:
+if [ "${MACHINE}" == "IAP_GPU" ]; then
+  echo "IAP GPU"
+
+  KOKKOS_SRC=$(cd ../kokkos/kokkos-4.1.00-athread ; pwd)
+
+  cmake	.. \
+      -D CMAKE_C_COMPILER="gcc" \
+      -D CMAKE_CXX_COMPILER="${KOKKOS_SRC}/bin/nvcc_wrapper" \
+      -D CMAKE_Fortran_COMPILER="ifort" \
+      -D Kokkos_ENABLE_CUDA_CONSTEXPR=on \
+      -D Kokkos_ENABLE_CUDA_LAMBDA=on \
+      -D Kokkos_ENABLE_CUDA=on \
+      -D Kokkos_ARCH_VOLTA70=on \
+      -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=off \
+      -D Kokkos_ENABLE_PROFILING_LOAD_PRINT=Off \
+      -D Kokkos_ENABLE_COMPILER_WARNINGS=off \
+      -D Kokkos_ENABLE_DEBUG=off \
+      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=on \
+      -D Kokkos_ENABLE_SERIAL=on \
+      -D NUM_PROCE=${NP} \
+      -D LICOM_RES=${LICOM_RES} \
+      -D MACHINE=${MACHINE} \
+      -D LICOM_ENABLE_TEST_TIME=${LICOM_ENABLE_TEST_TIME} \
+      -D LICOM_ENABLE_GPTL=${LICOM_ENABLE_GPTL} \
+      -D LICOM_ENABLE_FORTRAN_COMPILER=${LICOM_ENABLE_FORTRAN_COMPILER} \
+      -D LICOM_ENABLE_VERSION=${LICOM_ENABLE_VERSION} \
+      -D CUR_DATE=${CUR_DATE} \
+      -D BLOCK_X=${BLOCK_X} \
+      -D BLOCK_Y=${BLOCK_Y} \
+      -D LOG_DIR=${LOG_DIR}
+
+      #-D CMAKE_CXX_COMPILER="g++" \
+      #-D CMAKE_CXX_COMPILER="${KOKKOS_SRC}/bin/nvcc_wrapper" \
+elif [ "${MACHINE}" == "419" ]; then
+    echo "419"
+
+    module purge
+
+    module load compiler/intel/2017.5.239
+    module load mathlib/netcdf/4.4.1/intel
+    module load mpi/hpcx/2.7.4/intel-2017.5.239
+    module load compiler/rocm/dtk/22.10.1
+
+    module list
+
+    cmake	.. \
+        -D Kokkos_ENABLE_SERIAL=On \
+        -D Kokkos_ENABLE_HIP=off \
+        -D Kokkos_ARCH_VEGA906=off\
+        -D Kokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS=off \
+        -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=off \
+        -D Kokkos_ENABLE_DEBUG=off \
+        -D Kokkos_ENABLE_LARGE_MEM_TESTS=off \
+        -D Kokkos_ENABLE_COMPILER_WARNINGS=off \
+        -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=off \
+        -D CMAKE_C_COMPILER="hipcc" \
+        -D CMAKE_CXX_COMPILER="hipcc" \
+        -D CMAKE_Fortran_COMPILER="mpif90"\
+        -D NUM_PROCE=${NP} \
+        -D LICOM_RES=${LICOM_RES} \
+        -D MACHINE=${MACHINE} \
+        -D LICOM_ENABLE_TEST_TIME=${LICOM_ENABLE_TEST_TIME} \
+        -D LICOM_ENABLE_GPTL=${LICOM_ENABLE_GPTL} \
+        -D LICOM_ENABLE_FORTRAN_COMPILER=${LICOM_ENABLE_FORTRAN_COMPILER} \
+        -D LICOM_ENABLE_VERSION=${LICOM_ENABLE_VERSION} \
+        -D CUR_DATE=${CUR_DATE} \
+        -D BLOCK_X=${BLOCK_X} \
+        -D BLOCK_Y=${BLOCK_Y} \
+        -D LOG_DIR=${LOG_DIR}
+
+    cp ../scripts/dcu_bind ../run/.
+
+elif [ "${MACHINE}" == "KUNSHAN" ]; then
+    echo "kun shan"
+
+elif [ "${MACHINE}" == "TAISHAN" ]; then
+  echo "tai shan"
+  module purge
+  module use /workspace/public/software/modules
+  module load compilers/gcc/kunpenggcc/9.3.1/gcc9.3.1
+  module load mpi/openmpi/4.0.1_kunpenggcc9.3.1
+
+  module load libs/hdf5/1.12.0/kunpenggcc9.3.1_hmpi1.1.1
+  module load libs/netcdf/netcdf_c_4.7.4_fortran_4.5.3/kunpenggcc9.3.1_hmpi1.1.1
+
+  module list
+
+  export LD_LIBRARY_PATH=/workspace/public/software/compilers/gcc/kunpenggcc/9.3.1/gcc-9.3.1-2021.03-aarch64-linux/lib64/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/workspace/public/software/compilers/gcc/kunpenggcc/9.3.1/gcc-9.3.1-2021.03-aarch64-linux/lib/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/workspace/public/software/mpi/openmpi/4.0.1_kunpenggcc9.3.1/lib:$LD_LIBRARY_PATH
+
+  export LD_LIBRARY_PATH=/workspace/public/software/compilers/gcc/kunpenggcc/9.3.1/gcc-9.3.1-2021.03-aarch64-linux/libexec/gcc/aarch64-linux-gnu/9.3.1:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/workspace/public/software/compilers/gcc/kunpenggcc/9.3.1/gcc-9.3.1-2021.03-aarch64-linux/aarch64-linux-gnu/lib/ldscripts:$LD_LIBRARY_PATH
+
+  export GPTL_PATH=/workspace/home/migration/chengqian/wjl/GPTL/8.1.1
+  export PATH=$GPTL_PATH/bin:$PATH
+  export CPATH=$GPTL_PATH/include:$CPATH
+  export LIBRARY_PATH=$GPTL_PATH/bin:$LIBRARY_PATH
+  export LD_LIBRARY_PATH=$GPTL_PATH/lib:$LD_LIBRARY_PATH
+
+  cmake	.. \
+      -D CMAKE_C_COMPILER="gcc" \
+      -D CMAKE_Fortran_COMPILER="mpif90" \
+      -D CMAKE_CXX_COMPILER="g++" \
+      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=On \
+      -D Kokkos_ENABLE_OPENMP=On \
+      -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=Off \
+      -D Kokkos_ENABLE_PROFILING_LOAD_PRINT=off \
+      -D Kokkos_ENABLE_COMPILER_WARNINGS=off \
+      -D Kokkos_ENABLE_DEBUG=off \
+      -D NUM_PROCE=${NP} \
+      -D LICOM_RES=${LICOM_RES} \
+      -D MACHINE=${MACHINE} \
+      -D LICOM_ENABLE_TEST_TIME=${LICOM_ENABLE_TEST_TIME} \
+      -D LICOM_ENABLE_GPTL=${LICOM_ENABLE_GPTL} \
+      -D LICOM_ENABLE_FORTRAN_COMPILER=${LICOM_ENABLE_FORTRAN_COMPILER} \
+      -D LICOM_ENABLE_VERSION=${LICOM_ENABLE_VERSION} \
+      -D CUR_DATE=${CUR_DATE} \
+      -D BLOCK_X=${BLOCK_X} \
+      -D BLOCK_Y=${BLOCK_Y} \
+      -D LOG_DIR=${LOG_DIR}
+elif [ "${MACHINE}" == "OCEANLIGHT" ]; then
+  echo "Ocean Light"
+  /usr/sw/cmake-3.23.0-rc3-linux-x86_64/bin/cmake .. \
+      -D CMAKE_C_COMPILER="mpicc" \
+      -D CMAKE_Fortran_COMPILER="mpif90" \
+      -D CMAKE_CXX_COMPILER="swg++" \
+      -D Kokkos_ENABLE_COMPILER_WARNINGS=off \
+      -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=off \
+      -D Kokkos_ENABLE_DEBUG=Off \
+      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=on \
+      -D Kokkos_ENABLE_SERIAL=on \
+      -D Kokkos_ENABLE_ATHREAD=on \
+      -D Kokkos_ATHREAD_FUNCTOR_DIR="/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src" \
+      -D NUM_PROCE=${NP} \
+      -D LICOM_RES=${LICOM_RES} \
+      -D MACHINE=${MACHINE} \
+      -D LICOM_ENABLE_TEST_TIME=${LICOM_ENABLE_TEST_TIME} \
+      -D LICOM_ENABLE_GPTL=${LICOM_ENABLE_GPTL} \
+      -D LICOM_ENABLE_FORTRAN_COMPILER=${LICOM_ENABLE_FORTRAN_COMPILER} \
+      -D LICOM_ENABLE_VERSION=${LICOM_ENABLE_VERSION} \
+      -D CUR_DATE=${CUR_DATE} \
+      -D BLOCK_X=${BLOCK_X} \
+      -D BLOCK_Y=${BLOCK_Y} \
+      -D LOG_DIR=${LOG_DIR}
+fi
+
+  #cmake	.. \
+      #-D CMAKE_CXX_COMPILER="swg++" \
+      #-D CMAKE_CXX_COMPILER="sw_64sw6a-sunway-linux-gnu-c++" \
+# make
+make -j
+#make VERBOSE=1 -j 12
+#make VERBOSE=1
+# make VERBOSE=1 -j
+chmod 777 ../scripts/run
+
+if [ "${MACHINE}" == "IAP_GPU" ]; then
+    rm -rf ../scripts/submit
+else
+    chmod 777 ../scripts/submit
+fi
+
+cp ./bin/licom3-kokkos ../run/.

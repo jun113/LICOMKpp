@@ -1,0 +1,23 @@
+#!/usr/bin/bash
+
+CUR_DIR=$(pwd)
+echo "Current dir:"
+echo $CUR_DIR
+
+if [ ! -d "${CUR_DIR}/../build" ]; then
+    exit
+else
+    cd ../build
+    echo rm build dir:
+    pwd
+    rm -rf *
+fi
+
+if [ ! -d "${CUR_DIR}/../run" ]; then
+    exit
+else
+    cd ../run
+    echo rm run dir:
+    pwd
+    rm -rf *
+fi

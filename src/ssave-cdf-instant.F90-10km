@@ -1,0 +1,376 @@
+!  CVS: $Id: ssave-cdf.F90,v 1.1.1.1 2004/04/29 06:22:39 lhl Exp $
+!     =================
+      subroutine SSAVEINS
+#include <def-undef.h>
+!     =================
+!     output in NETcdf format
+!     written by liu hai long 2001 jun
+use param_mod
+use pconst_mod
+use dyn_mod
+use tracer_mod
+use forc_mod
+use work_mod
+use buf_mod, only:t_cpl,s_cpl,u_cpl,v_cpl,dhdx,dhdy,qheat      
+use domain
+use gather_scatter
+use distribution
+use msg_mod
+use blocks
+!use mct_mod
+!use esmf
+!use seq_flds_mod
+!use seq_cdata_mod
+!use seq_infodata_mod
+!use seq_timemgr_mod
+
+  implicit none
+
+
+      logical       :: write_restart     ! restart now
+      character (len=18) :: fname
+      integer :: klevel, iiday, nwmf
+      integer(kind(1))   :: curr_ymd     ! Current date YYYYMMDD
+!
+         number_day = iday +1 !LPF 20120816
+         !number_month = month
+      !if (mod(number_month,12)==0) then
+         if ( number_day  > imd ) then
+           if (mod(number_month,12)==0) then
+            !DO LPF 20200401
+            iyfm=int(number_month/12)+1
+            !iyfm=iyfm+1 !20200401
+            !number_month=1
+            number_month=number_month+1
+            !DO LPF 20200401 
+            number_day=1
+           else
+             number_day = 1
+             number_month = number_month + 1
+           !if (mod(number_month,12)==0) then
+           ! iyfm=iyfm+1
+           end if
+         end if
+         nwmf= iyfm
+         !DO LPF 20200401
+         !mon0=number_month
+         mon0=number_month-(iyfm-1)*12
+         !DO LPF 20200401
+         !mon0 = mod(number_month-1,12) + 1
+         !mon0=number_month
+         iiday = nnmonth(mon0) + iday + 1+ (nwmf-1)*365
+
+!
+     write_restart = .false.
+     if ( rest_freq < 0) then
+        if (number_day == 1) write_restart = .true.
+     else if ( mod(iiday-1,rest_freq) == 0  ) then
+        write_restart = .true.
+     end if
+     if(mytid==0) write(*,*)'in instant,iday=,imd=,mon0=, nwmf=, rest_freq= ',iday,imd,mon0,nwmf,rest_freq
+     if(mytid==0) write(*,*)'in instant,write_restart', write_restart
+!
+!    if ( mod(iday,rest_freq) == 0 .or. iday == imd .or. iday == 10 .or. iday ==20) then
+!    if ( mod(iday,rest_freq) == 0 .or. iday == 1 ) then
+!    if ( mod(iiday,rest_freq) == 1  ) then
+     if ( write_restart  ) then
+!
+         fname(1:8)='fort.22.'
+         fname(13:13)='-'
+         fname(16:16)='-'
+         write(fname(14:15),'(i2.2)')mon0
+         write(fname(9:12),'(i4.4)')nwmf
+         write(fname(17:18),'(i2.2)') number_day
+ 
+!        if ( number_day ==1 .and. mon0 < 12) then
+!            write(fname(14:15),'(i2.2)')mon0+1
+!        end if
+!
+!        if ( number_day ==1 .and. mon0 == 12) then
+!            write(fname(14:15),'(i2.2)')mon0-11
+!            write(fname(9:12),'(i4.4)')nwmf+1
+!        end if
+
+       if ( mytid == 0 ) then
+         open (17, file="rpointer.ocn", form='formatted')
+         write(17,'(a18)') fname
+         close(17)
+         write(*,*)'fname=',fname
+         open(22,file=trim(out_dir)//fname,form='unformatted')
+       end if
+
+       if ( mytid == 50 ) then
+         fname(1:8)='fort.23.'
+         open(23,file=trim(out_dir)//fname,form='unformatted')
+       end if
+       if ( mytid == 20 ) then
+         fname(1:8)='fort.24.'
+         open(24,file=trim(out_dir)//fname,form='unformatted')
+       end if
+       if ( mytid == 30 ) then
+         fname(1:8)='fort.25.'
+         open(25,file=trim(out_dir)//fname,form='unformatted')
+       end if
+       if ( mytid == 40 ) then
+         fname(1:8)='fort.26.'
+         open(26,file=trim(out_dir)//fname,form='unformatted')
+       end if
+       if ( mytid == 0 ) then
+         fname(1:8)='fort.27.'
+         open(27,file=trim(out_dir)//fname,form='unformatted')
+       end if
+!
+       allocate(buffer(imt_global,jmt_global))
+       where (vit(:,:,1,:) < 0.5D0) h0 = 0.0_r8
+       call gather_global(buffer, h0, master_task,distrb_clinic)
+!
+       if (mytid==0) then
+          WRITE (22)buffer
+       end if
+!
+      where (viv < 0.5D0) u = 0.0_r8
+      call MPI_gather(u(:,:,:,1),imt*jmt*km,MPI_PR,buffer3d,imt*jmt*km,MPI_PR,master_task,mpi_comm_ocn,ierr)
+
+      where (viv < 0.5D0) v = 0.0_r8
+      call MPI_gather(v(:,:,:,1),imt*jmt*km,MPI_PR,buffer3d,imt*jmt*km,MPI_PR,master_task+50,mpi_comm_ocn,ierr)
+
+      where (vit < 0.5D0) at(:,:,:,1,:) = 0.0_r8
+      call MPI_gather(at(:,:,:,1,1),imt*jmt*km,MPI_PR,buffer3d,imt*jmt*km,MPI_PR,master_task+20,mpi_comm_ocn,ierr)
+
+      where (vit < 0.5D0) at(:,:,:,2,:) = 0.0_r8
+      call MPI_gather(at(:,:,:,2,1),imt*jmt*km,MPI_PR,buffer3d,imt*jmt*km,MPI_PR,master_task+30,mpi_comm_ocn,ierr)
+
+      do klevel=1,km
+         where (vit(:,:,klevel,:) < 0.5D0) ws(:,:,klevel,:) = 0.0_r8
+      end do
+      call MPI_gather(ws(:,:,:,1),imt*jmt*km,MPI_PR,buffer3d,imt*jmt*km,MPI_PR,master_task+40,mpi_comm_ocn,ierr)
+#ifdef DEBUGXX
+      call MPI_gather(ws(:,:,:,1),imt*jmt*km,MPI_PR,buffer3d,imt*jmt*km,MPI_PR,master_task,mpi_comm_ocn,ierr)
+      if (mytid==40) then
+         open(40,file="fort.40",form='unformatted')
+       do k=1,nblocks_tot
+       write(40) buffer3d(:,:,:,k)
+       write(42,*) k,sum(buffer3d(:,:,:,k))
+       end do
+       close(40)
+      end if
+
+      if (mytid==0) then
+         open(41,file="fort.41",form='unformatted')
+       do k=1,nblocks_tot
+       write(41) buffer3d(:,:,:,k)
+       write(43,*) k,sum(buffer3d(:,:,:,k))
+       end do
+       close(41)
+      end if
+#endif DEBUGXX
+
+      if (mytid==0) then
+       do klevel=1,km
+             call gather_global2(buffer, buffer3d(:,:,klevel,:), master_task,distrb_clinic)
+             WRITE (22) buffer
+       end do
+      end if
+
+      if (mytid==50) then
+       do klevel=1,km
+             call gather_global2(buffer, buffer3d(:,:,klevel,:), master_task,distrb_clinic)
+             WRITE (23) buffer
+       end do
+      end if
+
+      if (mytid==20) then
+       do klevel=1,km
+             call gather_global2(buffer, buffer3d(:,:,klevel,:), master_task,distrb_clinic)
+             WRITE (24) buffer
+       end do
+      end if
+
+      if (mytid==30) then
+       do klevel=1,km
+             call gather_global2(buffer, buffer3d(:,:,klevel,:), master_task,distrb_clinic)
+             WRITE (25) buffer
+       end do
+      end if
+
+      if (mytid==40) then
+       do klevel=1,km
+             call gather_global2(buffer, buffer3d(:,:,klevel,:), master_task,distrb_clinic)
+             WRITE (26) buffer
+       end do
+      end if
+
+       do klevel=1,km
+          if (mytid==0) then
+!             WRITE (22) w3d(:,:,klevel)
+          end if
+       end do
+!         write(*,*)'finish U'
+!        
+       do klevel=1,km
+          if (mytid==50) then
+!             call MPI_send(w3d(:,:,klevel),imt_global*jmt_global,MPI_PR,master_task,123456,mpi_comm_ocn,ierr)
+!             WRITE (23) w3d(:,:,klevel)
+          end if
+          if (mytid==0) then
+!             call MPI_recv(buffer,imt_global*jmt_global,MPI_PR,master_task+50,123456,mpi_comm_ocn,status,ierr)
+!             WRITE (22) w3d(:,:,klevel)
+          end if
+       end do
+!         write(*,*)'finish V'
+!
+       do klevel=1,km
+          if (mytid==20) then
+!             call MPI_send(w3d(:,:,klevel),imt_global*jmt_global,MPI_PR,master_task,123456,mpi_comm_ocn,ierr)
+          end if
+         if (mytid==0) then
+!             call MPI_recv(buffer,imt_global*jmt_global,MPI_PR,master_task+20,123456,mpi_comm_ocn,ierr)
+!             call MPI_recv(w3d,imt_global*jmt_global*km,MPI_PR,master_task+20,123456,mpi_comm_ocn,ierr)
+!             WRITE (22) w3d(:,:,klevel)
+         end if
+       end do
+!         write(*,*)'finish at1'
+!
+       do klevel=1,km
+          if (mytid==30) then
+!             call MPI_send(w3d(:,:,klevel),imt_global*jmt_global,MPI_PR,master_task,123456,mpi_comm_ocn,ierr)
+          end if
+         if (mytid==0) then
+!             call MPI_recv(buffer,imt_global*jmt_global,MPI_PR,master_task+30,123456,mpi_comm_ocn,ierr)
+!           WRITE (22) w3d(:,:,klevel)
+         end if
+       end do
+!         write(*,*)'finish at2'
+!lhl20110728
+       do klevel=1,km
+          if (mytid==40) then
+!             call MPI_send(w3d(:,:,klevel),imt_global*jmt_global,MPI_PR,master_task,123456,mpi_comm_ocn,ierr)
+          end if
+         if (mytid==0) then
+!             call MPI_recv(buffer,imt_global*jmt_global,MPI_PR,master_task+40,123456,mpi_comm_ocn,ierr)
+!             WRITE (22) w3d(:,:,klevel)
+         end if
+       end do
+!         write(*,*)'finish ws'
+!        
+      where (viv(:,:,1,:) < 0.5D0) su = 0.0_r8
+      call gather_global(buffer, su, master_task,distrb_clinic)
+      if (mytid==0) then
+         WRITE (27)buffer
+      end if
+!         write(*,*)'finish su'
+
+      where (viv(:,:,1,:) < 0.5D0) sv = 0.0_r8
+      call gather_global(buffer, sv, master_task,distrb_clinic)
+      if (mytid==0) then
+         WRITE (27)buffer
+      end if
+
+!         write(*,*)'finish sv'
+      where (vit(:,:,1,:) < 0.5D0) swv = 0.0_r8
+     call gather_global(buffer, swv, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (27)buffer
+     end if
+!         write(*,*)'finish lwv'
+      where (vit(:,:,1,:) < 0.5D0) sshf = 0.0_r8
+     call gather_global(buffer, sshf, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (27)buffer
+     end if
+!         write(*,*)'finish sshf'
+      where (vit(:,:,1,:) < 0.5D0) lthf = 0.0_r8
+     call gather_global(buffer, lthf, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (27)buffer
+     end if
+!         write(*,*)'finish lthf'
+      where (vit(:,:,1,:) < 0.5D0) fresh = 0.0_r8
+     call gather_global(buffer, fresh, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (27)buffer
+     end if
+!         write(*,*)'finish fresh'
+     if (mytid==0) then
+         write(27) number_month, number_day
+     end if
+!
+#ifdef COUP
+      where (vit(:,:,1,:) < 0.5D0) t_cpl = 0.0_r8
+     call gather_global(buffer, t_cpl, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (22)buffer
+     end if
+!         write(*,*)'finish t_cpl'
+      where (vit(:,:,1,:) < 0.5D0) s_cpl = 0.0_r8
+     call gather_global(buffer, s_cpl, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (22)buffer
+     end if
+!         write(*,*)'finish s_cpl'
+      where (vit(:,:,1,:) < 0.5D0) u_cpl = 0.0_r8
+     call gather_global(buffer, u_cpl, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (22)buffer
+     end if
+!         write(*,*)'finish u_cpl'
+      where (vit(:,:,1,:) < 0.5D0) v_cpl = 0.0_r8
+     call gather_global(buffer, v_cpl, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (22)buffer
+     end if
+!         write(*,*)'finish v_cpl'
+      where (vit(:,:,1,:) < 0.5D0) dhdx = 0.0_r8
+     call gather_global(buffer, dhdx, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (22)buffer
+     end if
+!         write(*,*)'finish dhdx'
+      where (vit(:,:,1,:) < 0.5D0) dhdy = 0.0_r8
+     call gather_global(buffer, dhdy, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (22)buffer
+     end if
+!         write(*,*)'finish dhdy'
+      where (vit(:,:,1,:) < 0.5D0) qheat = 0.0_r8
+     call gather_global(buffer, qheat, master_task,distrb_clinic)
+     if (mytid==0) then
+         WRITE (22)buffer
+     end if
+!         write(*,*)'finish q'
+#endif
+
+     deallocate( buffer)
+      if(mytid==0) then
+        close(22)
+        close(27)
+      end if
+      if(mytid==50) then
+        close(23)
+      end if
+      if(mytid==20) then
+        close(24)
+      end if
+      if(mytid==30) then
+        close(25)
+      end if
+      if(mytid==40) then
+        close(26)
+      end if
+!
+  end if
+
+      return
+      end
+
+#if (defined NETCDF) || (defined ALL)
+      SUBROUTINE check_err (iret)
+#include <netcdf.inc>
+      INTEGER :: iret
+      IF (iret /= NF_NOERR) THEN
+         PRINT *, nf_strerror (iret)
+         STOP
+      END IF
+      END SUBROUTINE check_err
+#endif
+

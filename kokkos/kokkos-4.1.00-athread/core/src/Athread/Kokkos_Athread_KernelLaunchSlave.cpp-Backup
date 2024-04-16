@@ -1,0 +1,492 @@
+// __INCLUDE_FUNCTOR_HPP_START__
+// __INCLUDE_FUNCTOR_HPP_END__
+#include "Kokkos_Athread_RegisterFunction.hpp"
+#include "Kokkos_Athread_ParamWrap.h"
+
+#include "simd.h"
+#include "slave.h"
+
+#include <string>
+
+#include <time.h>
+
+extern "C" void slave_cores_reduce(void* src_addr, void* dest_addr, 
+		int units, int dtype, int optype, void *buf, int buf_item);
+
+
+//ATHREAD DMA transfer definition 
+__thread_local unsigned int D_COUNT  = 0;
+__thread_local crts_rply_t  dma_rply = 0;
+__thread_local crts_rply_t  l_rply   = 0;
+__thread_local crts_rply_t  r_rply   = 0;
+
+__thread_local_fix AthreadParamWrap local_param __attribute__ ((aligned(64)));
+
+// Buffer for the operator of a reduction between slave cores
+__thread_local double buf_reduce __attribute__ ((aligned(64)));
+
+inline static int* arr_char_to_arr_int(const char *str, int &num_intv16) {
+  // This function used SIMD for str cmp
+  int key_len = 0;
+  while (str[key_len] != '\0') {
+    key_len += 1;
+  }
+  if (key_len > 32) {
+    printf("len=%d, %s\n", key_len, str);
+    printf("Current version the length of Functor's name must be less than 32.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  int *arr_int __attribute__ ((aligned(64))) = nullptr;
+
+  if (key_len > 16) {
+    arr_int = (int*)libc_aligned_malloc(sizeof(int) * 32);
+  } else {
+    arr_int = (int*)libc_aligned_malloc(sizeof(int) * 16);
+  }
+
+  for (int i = 0; i < key_len; ++i) {
+    arr_int[i] = str[i];
+  }
+
+  if (key_len > 16) {
+    for (int i = key_len; i < 32; ++i) {
+      arr_int[i] = '0';
+    }
+    num_intv16 = 2;
+  } else {
+    for (int i = key_len; i < 16; ++i) {
+      arr_int[i] = '0';
+    }
+    num_intv16 = 1;
+  }
+  return arr_int;
+}
+
+// TODO SIMD
+inline static bool str_cmp(char* const str1, char* const str2) {
+  int i1 = 0;
+  int i2 = 0;
+  while (str1[i1] != '\0' && str2[i2] != '\0') {
+    if (str1[i1] != str2[i2]) {
+      return true;
+    }
+    ++i1;
+    ++i2;
+  }
+  return false;
+}
+extern int* g_athread_functor_key __attribute__ ((aligned(64)));
+
+inline static bool str_cmp_intv16 (const intv16 &str1_simd, const intv16 &str2_simd, intv16 &result_simd) {
+
+  // about 1 cycle
+  result_simd = simd_vcmpeqw(str1_simd, str2_simd);
+
+  // about 29 cycles
+  if (simd_reduc_plusw(result_simd) == 16) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+extern AthradRegisterFunctionListNode* reg_func_list_node;
+typedef void (*FunctionPointer)(AthreadParamWrap *);
+
+static FunctionPointer lookup_fp () {
+  using node = AthradRegisterFunctionListNode;
+
+  intv16 *result_simd    = (intv16*)ldm_malloc(sizeof(intv16));
+  intv16 *node_key_simd  = (intv16*)ldm_malloc(sizeof(intv16));
+  intv16 *curr_key1_simd = (intv16*)ldm_malloc(sizeof(intv16));
+
+  node* target_node = reg_func_list_node;
+
+  if (local_param.num_intv16 == 1) {
+
+    simd_load(curr_key1_simd[0], g_athread_functor_key);
+
+    while (target_node != nullptr) {
+      if (target_node->num_intv16 != local_param.num_intv16) {
+        target_node = target_node->next;
+      }
+      simd_load(node_key_simd[0], target_node->key);
+      if (str_cmp_intv16(node_key_simd[0], curr_key1_simd[0], result_simd[0])) {
+        break;
+      } else {
+        target_node = target_node->next;
+      }
+    }
+  } else if (local_param.num_intv16 == 2) {
+
+    intv16 *curr_key2_simd = (intv16*)ldm_malloc(sizeof(intv16));
+
+    simd_load(curr_key1_simd[0],   g_athread_functor_key);
+    simd_load(curr_key2_simd[0], &(g_athread_functor_key[16]));
+
+    while (target_node != nullptr) {
+
+      if (target_node->num_intv16 != local_param.num_intv16) {
+        target_node = target_node->next;
+      }
+
+      simd_load(node_key_simd[0], target_node->key);
+
+      if (!str_cmp_intv16(node_key_simd[0], curr_key1_simd[0], result_simd[0])) {
+        // compare first intv16
+        target_node = target_node->next;
+        continue;
+      }
+
+      simd_load(node_key_simd[0], &(target_node->key[16]));
+
+      if (str_cmp_intv16(node_key_simd[0], curr_key2_simd[0], result_simd[0])) {
+        // compare second intv16
+        break;
+      } else {
+        target_node = target_node->next;
+      }
+    } // End while
+    ldm_free(curr_key2_simd, sizeof(intv16));
+  } else {
+    printf ("error in %s, num_intv16 = %d\n", __PRETTY_FUNCTION__, local_param.num_intv16);
+    exit(EXIT_FAILURE);
+  }
+
+  if (target_node == nullptr) {
+    if (athread_tid == 0) {
+      printf ("Error: \"");
+      for (int i = 0; i < local_param.num_intv16; ++i) {
+        for (int j = 0; j < 16; ++j) {
+          printf("%c", g_athread_functor_key[i * 16 + j]);
+        }
+      }
+      printf("\" was not found.\n");
+    }
+    exit(EXIT_FAILURE);
+  }
+
+  ldm_free(result_simd,    sizeof(intv16));
+  ldm_free(node_key_simd,  sizeof(intv16));
+  ldm_free(curr_key1_simd, sizeof(intv16));
+
+  return target_node->fp;
+}
+
+extern "C" void register_kernel() {
+  // __REGISTER_START__
+  // __REGISTER_END__
+  return ;
+}
+
+extern "C" void parallel_for_1D(AthreadParamWrap* host_param) {
+
+  athread_dma_iget(&local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+  D_COUNT++;
+  athread_dma_wait_value(&dma_rply, D_COUNT);
+
+  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+
+  const int ATHREAD_SLAVE_CORES = 64;
+
+  const int start = local_param.range[0][0];
+  const int end   = local_param.range[0][1];
+  const int len   = end - start;
+  const int times = (len + ATHREAD_SLAVE_CORES - 1) / ATHREAD_SLAVE_CORES;
+
+  for (int i = 0; i < times; ++i) {
+    int index = start + athread_tid * times + i;
+    if (index < end) {
+      local_param.index[0] = index;
+      fp(&local_param);
+    }
+  }
+  return ;
+}
+
+extern "C" void parallel_for_2D(AthreadParamWrap* host_param) {
+
+  athread_dma_iget(&local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+  D_COUNT++;
+  athread_dma_wait_value(&dma_rply, D_COUNT);
+
+  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+
+  const int ATHREAD_SLAVE_CORES = 64;
+
+  const int start0 = local_param.range[0][0];
+  const int end0   = local_param.range[0][1];
+  const int start1 = local_param.range[1][0];
+  const int end1   = local_param.range[1][1];
+  const int tile0  = local_param.tile[0];
+  const int tile1  = local_param.tile[1];
+
+  const int num_tiles0 = (end0 - start0 + tile0 - 1) / tile0;
+  const int num_tiles1 = (end1 - start1 + tile1 - 1) / tile1;
+
+  const int num_tiles = num_tiles0 * num_tiles1;
+  
+  for (int index_tile = athread_tid; index_tile < num_tiles; 
+      index_tile += ATHREAD_SLAVE_CORES) {
+    const int index_tile0 = index_tile / num_tiles1;
+    const int index_tile1 = index_tile % num_tiles1;
+
+    for (int index00 = 0; index00 < tile0; ++ index00) {
+      const int index0 = start0 + index_tile0 * tile0 + index00;
+      if (index0 >= end0) { break; }
+      for (int index_11 = 0; index_11 < tile1; ++ index_11) {
+        const int index1 = start1 + index_tile1 * tile1 + index_11;
+        if (index1 >= end1) { break; }
+        local_param.index[0] = index0;
+        local_param.index[1] = index1;
+        fp(&local_param);
+      }
+    }
+  }
+  return ;
+}
+
+extern "C" void parallel_for_3D(AthreadParamWrap* host_param) {
+
+  athread_dma_iget(&local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+  D_COUNT++;
+  athread_dma_wait_value(&dma_rply, D_COUNT);
+
+  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+
+  const int ATHREAD_SLAVE_CORES = 64;
+
+  const int start[3] = {local_param.range[0][0], local_param.range[1][0], local_param.range[2][0]};
+  const int end[3]   = {local_param.range[0][1], local_param.range[1][1], local_param.range[2][1]};
+  const int tile[3]  = {local_param.tile[0],     local_param.tile[1],     local_param.tile[2]};
+
+  const int num_tiles0 = (end[0] - start[0] + tile[0] - 1) / tile[0];
+  const int num_tiles1 = (end[1] - start[1] + tile[1] - 1) / tile[1];
+  const int num_tiles2 = (end[2] - start[2] + tile[2] - 1) / tile[2];
+
+  const int tmp0 = num_tiles1 * num_tiles2;
+  const int num_tiles = num_tiles0 * tmp0;
+  
+  for (int index_tile = athread_tid; index_tile < num_tiles; index_tile += ATHREAD_SLAVE_CORES) {
+
+    const int index_tile0 = index_tile / tmp0;
+    const int tmp1        = index_tile % tmp0;
+    const int index_tile1 = tmp1      / num_tiles2;
+    const int index_tile2 = tmp1      % num_tiles2;
+
+    for (int index_00 = 0; index_00 < tile[0]; ++ index_00) {
+      const int index0 = start[0] + index_tile0 * tile[0] + index_00;
+      if (index0 >= end[0]) { break; }
+      for (int index_11 = 0; index_11 < tile[1]; ++ index_11) {
+        const int index1 = start[1] + index_tile1 * tile[1] + index_11;
+        if (index1 >= end[1]) { break; }
+        for (int index_22 = 0; index_22 < tile[2]; ++ index_22) {
+          const int index2 = start[2] + index_tile2 * tile[2] + index_22;
+          if (index2 >= end[2]) { break; }
+
+          local_param.index[0] = index0;
+          local_param.index[1] = index1;
+          local_param.index[2] = index2;
+          fp(&local_param);
+        }
+      }
+    }
+  }
+  return ;
+}
+
+extern "C" void parallel_for_4D(AthreadParamWrap* host_param) {
+
+  athread_dma_iget(&local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+  D_COUNT++;
+  athread_dma_wait_value(&dma_rply, D_COUNT);
+
+  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+
+  const int ATHREAD_SLAVE_CORES = 64;
+
+  const int start[4] = {local_param.range[0][0], local_param.range[1][0], 
+      local_param.range[2][0], local_param.range[3][0]};
+  const int end[4]   = {local_param.range[0][1], local_param.range[1][1], 
+      local_param.range[2][1], local_param.range[3][1]};
+  const int tile[4]  = {local_param.tile[0],     local_param.tile[1],     
+      local_param.tile[2],     local_param.tile[3]};
+
+  const int num_tiles0 = (end[0] - start[0] + tile[0] - 1) / tile[0];
+  const int num_tiles1 = (end[1] - start[1] + tile[1] - 1) / tile[1];
+  const int num_tiles2 = (end[2] - start[2] + tile[2] - 1) / tile[2];
+  const int num_tiles3 = (end[3] - start[3] + tile[3] - 1) / tile[3];
+
+  const int tmp0      = num_tiles2 * num_tiles3;
+  const int tmp1      = num_tiles1 * tmp0;
+  const int num_tiles = num_tiles0 * tmp1;
+  
+  for (int index_tile = athread_tid; index_tile < num_tiles; index_tile += ATHREAD_SLAVE_CORES) {
+
+    const int index_tile0 = index_tile / tmp1;
+    const int tmp2        = index_tile % tmp1;
+    const int index_tile1 = tmp2       / tmp0;
+    const int tmp3        = tmp2       % tmp0;
+    const int index_tile2 = tmp3       / num_tiles3;
+    const int index_tile3 = tmp3       % num_tiles3;
+
+    for (int index_00 = 0; index_00 < tile[0]; ++ index_00) {
+      const int index0 = start[0] + index_tile0 * tile[0] + index_00;
+      if (index0 >= end[0]) { break; }
+      for (int index_11 = 0; index_11 < tile[1]; ++ index_11) {
+        const int index1 = start[1] + index_tile1 * tile[1] + index_11;
+        if (index1 >= end[1]) { break; }
+        for (int index_22 = 0; index_22 < tile[2]; ++ index_22) {
+          const int index2 = start[2] + index_tile2 * tile[2] + index_22;
+          if (index2 >= end[2]) { break; }
+          for (int index_33 = 0; index_33 < tile[3]; ++ index_33) {
+            const int index3 = start[3] + index_tile3 * tile[3] + index_33;
+            if (index3 >= end[3]) { break; }
+
+            local_param.index[0] = index0;
+            local_param.index[1] = index1;
+            local_param.index[2] = index2;
+            local_param.index[3] = index3;
+            fp(&local_param);
+          }
+        }
+      }
+    }
+  }
+  return ;
+}
+
+extern "C" void parallel_reduce_1D(AthreadParamWrap* host_param) {
+
+  athread_dma_iget(&local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+  D_COUNT++;
+  athread_dma_wait_value(&dma_rply, D_COUNT);
+
+  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+
+  const int ATHREAD_SLAVE_CORES = 64;
+
+  const int start = local_param.range[0][0];
+  const int end   = local_param.range[0][1];
+  const int len   = end - start;
+  const int times = (len + ATHREAD_SLAVE_CORES - 1) / ATHREAD_SLAVE_CORES;
+
+  for (int i = 0; i < times; ++i) {
+    int index = start + athread_tid * times + i;
+    if (index < end) {
+      local_param.index[0] = index;
+      fp(&local_param);
+    }
+  }
+  // reduce from all slave cores
+  slave_cores_reduce(&(local_param.reduce_result),
+      &(local_param.reduce_result), 1, athread_double, OP_add, &buf_reduce, 1);
+  if (athread_tid == 0) {
+    host_param->reduce_result = local_param.reduce_result;
+  }
+  return ;
+}
+
+extern "C" void parallel_reduce_2D(AthreadParamWrap* host_param) {
+
+  athread_dma_iget(&local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+  D_COUNT++;
+  athread_dma_wait_value(&dma_rply, D_COUNT);
+
+  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+
+  const int ATHREAD_SLAVE_CORES = 64;
+
+  const int start0 = local_param.range[0][0];
+  const int end0   = local_param.range[0][1];
+  const int start1 = local_param.range[1][0];
+  const int end1   = local_param.range[1][1];
+  const int tile0  = local_param.tile[0];
+  const int tile1  = local_param.tile[1];
+
+  const int num_tiles0 = (end0 - start0 + tile0 - 1) / tile0;
+  const int num_tiles1 = (end1 - start1 + tile1 - 1) / tile1;
+
+  const int num_tiles = num_tiles0 * num_tiles1;
+  
+  for (int index_tile = athread_tid; index_tile < num_tiles; 
+      index_tile += ATHREAD_SLAVE_CORES) {
+    const int index_tile0 = index_tile / num_tiles1;
+    const int index_tile1 = index_tile % num_tiles1;
+
+    for (int index00 = 0; index00 < tile0; ++ index00) {
+      const int index0 = start0 + index_tile0 * tile0 + index00;
+      if (index0 >= end0) { break; }
+      for (int index_11 = 0; index_11 < tile1; ++ index_11) {
+        const int index1 = start1 + index_tile1 * tile1 + index_11;
+        if (index1 >= end1) { break; }
+        local_param.index[0] = index0;
+        local_param.index[1] = index1;
+        fp(&local_param);
+      }
+    }
+  }
+  // reduce from all slave cores
+  slave_cores_reduce(&(local_param.reduce_result),
+      &(local_param.reduce_result), 1, athread_double, OP_add, &buf_reduce, 1);
+  if (athread_tid == 0) {
+    host_param->reduce_result = local_param.reduce_result;
+  }
+  return ;
+}
+
+extern "C" void parallel_reduce_3D(AthreadParamWrap* host_param) {
+
+  athread_dma_iget(&local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+  D_COUNT++;
+  athread_dma_wait_value(&dma_rply, D_COUNT);
+
+  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+
+  const int ATHREAD_SLAVE_CORES = 64;
+
+  const int start[3] = {local_param.range[0][0], local_param.range[1][0], local_param.range[2][0]};
+  const int end[3]   = {local_param.range[0][1], local_param.range[1][1], local_param.range[2][1]};
+  const int tile[3]  = {local_param.tile[0],     local_param.tile[1],     local_param.tile[2]};
+
+  const int num_tiles0 = (end[0] - start[0] + tile[0] - 1) / tile[0];
+  const int num_tiles1 = (end[1] - start[1] + tile[1] - 1) / tile[1];
+  const int num_tiles2 = (end[2] - start[2] + tile[2] - 1) / tile[2];
+
+  const int tmp0 = num_tiles1 * num_tiles2;
+  const int num_tiles = num_tiles0 * tmp0;
+  
+  for (int index_tile = athread_tid; index_tile < num_tiles; index_tile += ATHREAD_SLAVE_CORES) {
+
+    const int index_tile0 = index_tile / tmp0;
+    const int tmp1        = index_tile % tmp0;
+    const int index_tile1 = tmp1      / num_tiles2;
+    const int index_tile2 = tmp1      % num_tiles2;
+
+    for (int index_00 = 0; index_00 < tile[0]; ++ index_00) {
+      const int index0 = start[0] + index_tile0 * tile[0] + index_00;
+      if (index0 >= end[0]) { break; }
+      for (int index_11 = 0; index_11 < tile[1]; ++ index_11) {
+        const int index1 = start[1] + index_tile1 * tile[1] + index_11;
+        if (index1 >= end[1]) { break; }
+        for (int index_22 = 0; index_22 < tile[2]; ++ index_22) {
+          const int index2 = start[2] + index_tile2 * tile[2] + index_22;
+          if (index2 >= end[2]) { break; }
+
+          local_param.index[0] = index0;
+          local_param.index[1] = index1;
+          local_param.index[2] = index2;
+          fp(&local_param);
+        }
+      }
+    }
+  }
+  // reduce from all slave cores
+  slave_cores_reduce(&(local_param.reduce_result),
+      &(local_param.reduce_result), 1, athread_double, OP_add, &buf_reduce, 1);
+  if (athread_tid == 0) {
+    host_param->reduce_result = local_param.reduce_result;
+  }
+  return ;
+}

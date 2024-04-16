@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "kokkos/kokkos-4.1.00-athread/containers",
+		"source" : "kokkos/kokkos-4.1.00-athread/containers"
+	}
+}

@@ -1,0 +1,500 @@
+#ifndef LICOM3_KOKKOS_SRC_HEAD_LICOM_TEST_TIME_HPP_
+#define LICOM3_KOKKOS_SRC_HEAD_LICOM_TEST_TIME_HPP_
+
+#include "def-undef.h"
+
+#include "cpp_domain.h"
+#include "cpp_param_mod.h"
+#include "cpp_pop_halo_mod.hpp"
+
+#include "fortran_extern_functions.h"
+
+#ifdef LICOM_ENABLE_KOKKOS
+#include "Kokkos_Core.hpp"
+#endif // LICOM_ENABLE_KOKKOS
+
+#ifdef LICOM_ENABLE_GPTL
+#include "gptl.h"
+#include "papi.h"
+#else // LICOM_ENABLE_GPTL
+#include <unordered_map>
+#endif // LICOM_ENABLE_GPTL
+
+#include <string>
+
+#include <mpi.h>
+#include <chrono>
+#include <cstdio>
+
+namespace TestTime {
+
+using std::chrono::high_resolution_clock;
+using duration_s = std::chrono::duration<float, std::ratio<1, 1>>;
+
+struct highResTime {
+	highResTime() : time (0.0) {
+    time_point = high_resolution_clock::now();
+	}
+  high_resolution_clock::time_point time_point;
+	float time;
+};
+
+class MyTime {
+
+ public:
+  float t_sum = 0.0;
+  float t_once;
+  float t_stepon, t_daily; 
+  float t_daily_h2d, t_daily_d2h;
+#ifndef LICOM_ENABLE_GPTL
+  float t_readyt, t_readyc, t_barotr, t_bclinc, t_tracer, t_icesnow, t_convadj;
+#endif // LICOM_ENABLE_GPTL
+
+void inline fence() {
+
+#ifndef LICOM_ENABLE_FORTRAN
+    MPI_Barrier(comm);
+#else
+    fortran_mpi_barrier_();
+#endif
+
+#ifdef LICOM_ENABLE_CUDA
+    cudaDeviceSynchronize();
+#endif // LICOM_ENABLE_CUDA
+#ifdef LICOM_ENABLE_HIP
+    hipDeviceSynchronize();
+#endif // LICOM_ENABLE_HIP
+#ifdef LICOM_ENABLE_KOKKOS
+    Kokkos::fence();
+#endif // LICOM_ENABLE_KOKKOS
+  return ;
+}
+  void inline start_once() {
+
+    if (flag_once) {
+      if (CppParamMod::mytid == 0) {
+        printf("start_once err\n");
+      }
+      return ;
+    }
+    flag_once = true;
+
+    t_once = 0.0;
+
+    fence();
+    t_once_1 = high_resolution_clock::now();
+
+    return ;
+  }
+
+  void inline end_once() {
+
+    if (!flag_once) {
+      if (CppParamMod::mytid == 0) {
+        printf("start_once err\n");
+      }
+      return ;
+    }
+    flag_once = false;
+
+    fence();
+    t_once_2 = high_resolution_clock::now();
+
+    t_once   = duration_s(t_once_2 - t_once_1).count();
+
+    return ;
+  }
+
+  void inline start_sum() {
+
+    fence();
+    t_sum_1 = high_resolution_clock::now();
+
+    return ;
+  }
+
+  void inline end_sum() {
+
+    fence();
+    t_sum_2 = high_resolution_clock::now();
+
+    t_sum  += duration_s(t_sum_2 - t_sum_1).count();
+
+    return ;
+  }
+
+  void inline start_daily() {
+    t_daily = 0.0;
+    fence();
+    t_daily_1 = high_resolution_clock::now();
+    return ;
+  }
+
+  void inline end_daily() {
+    fence();
+    t_daily_2 = high_resolution_clock::now();
+    t_daily = duration_s(t_daily_2 - t_daily_1).count();
+    return ;
+  }
+
+  void inline start_stepon() {
+    t_stepon = 0.0;
+    fence();
+    t_stepon_1 = high_resolution_clock::now();
+    return ;
+  }
+
+  void inline end_stepon() {
+    fence();
+    t_stepon_2 = high_resolution_clock::now();
+    t_stepon = duration_s(t_stepon_2 - t_stepon_1).count();
+    return ;
+  }
+
+  void inline start_daily_h2d() {
+    t_daily_update_1 = high_resolution_clock::now();
+    return ;
+  }
+
+  void inline end_daily_h2d() {
+    t_daily_update_2 = high_resolution_clock::now();
+
+    t_daily_h2d = duration_s(t_daily_update_2 - t_daily_update_1).count();
+    return ;
+  }
+
+  void inline start_daily_d2h() {
+    t_daily_update_1 = high_resolution_clock::now();
+    return ;
+  }
+
+  void inline end_daily_d2h() {
+    t_daily_update_2 = high_resolution_clock::now();
+
+    t_daily_d2h = duration_s(t_daily_update_2 - t_daily_update_1).count();
+    return ;
+  }
+//----------------------------
+// GPTL
+#ifdef LICOM_ENABLE_GPTL
+  void inline GPTL_initialize() {
+    // gptl_ret = GPTLsetoption(GPTL_IPC, 1);
+    
+    gptl_ret = GPTLsetoption(GPTLpercent, 1);
+    gptl_ret = GPTLsetoption(GPTLoverhead, 1);
+    gptl_ret = GPTLsetoption(GPTLverbose, 1);
+    // gptl_ret = GPTLsetutr(GPTLmpiwtime);
+    //gptl_ret = GPTLsetoption(GPTLdopr_memusage, 1);
+    //gptl_ret = GPTLsetoption(GPTLmem_growth, 1);
+    
+#ifdef LICOM_ENABLE_PAPI
+
+#endif // LICOM_ENABLE_PAPI
+
+    gptl_ret = GPTLinitialize();
+
+#ifdef LICOM_ENABLE_FORTRAN
+    gptl_ret = GPTLstart ("LICOM3-Fortran");
+#endif // LICOM_ENABLE_Fortran
+#ifdef LICOM_ENABLE_CPP
+    gptl_ret = GPTLstart ("LICOM3-CPP");
+#endif // LICOM_ENABLE_CPP
+#ifdef LICOM_ENABLE_HIP
+    gptl_ret = GPTLstart ("LICOM3-HIP");
+#endif // LICOM_ENABLE_HIP
+#ifdef LICOM_ENABLE_CUDA
+    gptl_ret = GPTLstart ("LICOM3-CUDA");
+#endif // LICOM_ENABLE_CUDA
+#ifdef LICOM_ENABLE_KOKKOS
+    gptl_ret = GPTLstart ("LICOM3-Kokkos");
+#endif // LICOM_ENABLE_KOKKOS
+
+    return ;
+  }
+
+  void inline GPTL_finalize() {
+
+#ifdef LICOM_ENABLE_FORTRAN
+    gptl_ret = GPTLstop ("LICOM3-Fortran");
+#endif // LICOM_ENABLE_Fortran
+#ifdef LICOM_ENABLE_CPP
+    gptl_ret = GPTLstop ("LICOM3-CPP");
+#endif // LICOM_ENABLE_CPP
+#ifdef LICOM_ENABLE_HIP
+    gptl_ret = GPTLstop ("LICOM3-HIP");
+#endif // LICOM_ENABLE_HIP
+#ifdef LICOM_ENABLE_CUDA
+    gptl_ret = GPTLstop ("LICOM3-CUDA");
+#endif // LICOM_ENABLE_CUDA
+#ifdef LICOM_ENABLE_KOKKOS
+    gptl_ret = GPTLstop ("LICOM3-Kokkos");
+#endif // LICOM_ENABLE_KOKKOS
+
+    gptl_ret = GPTLpr_file("@LOG_DIR@/@LICOM_RES@/@CUR_DATE@-@MACHINE@-gptl.out");
+
+    gptl_ret = GPTLfinalize();
+    // GPTLpr_summary_file(comm, "output_file");
+  }
+
+#endif // LICOM_ENABLE_GPTL
+
+//----------------------------
+  void inline testTime_initialize() {
+
+#ifndef LICOM_ENABLE_FORTRAN
+    comm = CppDomain::POP_haloClinic_C.communicator;
+#endif // LICOM_ENABLE_FORTRAN
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    GPTL_initialize ();
+#else  // LICOM_ENABLE_GPTL
+    t_readyt  = 0.0;
+    t_readyc  = 0.0;
+    t_barotr  = 0.0;
+    t_bclinc  = 0.0;
+    t_tracer  = 0.0;
+    t_icesnow = 0.0;
+    t_convadj = 0.0;
+#endif // LICOM_ENABLE_GPTL
+  }
+
+  void inline testTime_finalize() {
+
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    GPTL_finalize ();
+#else  // LICOM_ENABLE_GPTL
+    if (CppParamMod::mytid == 0) {
+      printf ("====================\n");
+      printf ("Unit: seconds.\n");
+      printf ("Main modules:\n");
+      printf ("readyt  \t%.3f\n", t_readyt);
+      printf ("readyc  \t%.3f\n", t_readyc);
+      printf ("barotr  \t%.3f\n", t_barotr);
+      printf ("bclinc  \t%.3f\n", t_bclinc);
+      printf ("tracer  \t%.3f\n", t_tracer);
+      printf ("icesnow \t%.3f\n", t_icesnow);
+      printf ("convadj \t%.3f\n", t_convadj);
+
+      printf ("\nOthers:\n");
+      for (auto cur_name : map_name) {
+        printf("%30s\t%.3f\n", cur_name.first.c_str(), cur_name.second.time);
+      }
+      printf ("====================\n");
+    }
+#endif // LICOM_ENABLE_GPTL
+
+  }
+
+  void inline readyt_start () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstart("readyt");
+#else  // LICOM_ENABLE_GPTL
+    t_module_1 = high_resolution_clock::now();
+#endif // LICOM_ENABLE_GPTL
+    return ;
+  }
+
+  void inline readyt_stop () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstop("readyt");
+#else  // LICOM_ENABLE_GPTL
+    t_module_2 = high_resolution_clock::now();
+    t_readyt  += duration_s(t_module_2 - t_module_1).count();
+#endif // LICOM_ENABLE_GPTL
+  }
+
+  void inline readyc_start () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstart("readyc");
+#else  // LICOM_ENABLE_GPTL
+    t_module_1 = high_resolution_clock::now();
+#endif // LICOM_ENABLE_GPTL
+    return ;
+  }
+
+  void inline readyc_stop () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstop("readyc");
+#else  // LICOM_ENABLE_GPTL
+    t_module_2 = high_resolution_clock::now();
+    t_readyc  += duration_s(t_module_2 - t_module_1).count();
+#endif // LICOM_ENABLE_GPTL
+  }
+
+  void inline barotr_start () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstart("barotr");
+#else  // LICOM_ENABLE_GPTL
+    t_module_1 = high_resolution_clock::now();
+#endif // LICOM_ENABLE_GPTL
+    return ;
+  }
+
+  void inline barotr_stop () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstop("barotr");
+#else  // LICOM_ENABLE_GPTL
+    t_module_2 = high_resolution_clock::now();
+    t_barotr  += duration_s(t_module_2 - t_module_1).count();
+#endif // LICOM_ENABLE_GPTL
+  }
+
+  void inline bclinc_start () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstart("bclinc");
+#else  // LICOM_ENABLE_GPTL
+    t_module_1 = high_resolution_clock::now();
+#endif // LICOM_ENABLE_GPTL
+    return ;
+  }
+
+  void inline bclinc_stop () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstop("bclinc");
+#else  // LICOM_ENABLE_GPTL
+    t_module_2 = high_resolution_clock::now();
+    t_bclinc  += duration_s(t_module_2 - t_module_1).count();
+#endif // LICOM_ENABLE_GPTL
+  }
+
+  void inline tracer_start () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstart("tracer");
+#else  // LICOM_ENABLE_GPTL
+    t_module_1 = high_resolution_clock::now();
+#endif // LICOM_ENABLE_GPTL
+    return ;
+  }
+
+  void inline tracer_stop () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstop("tracer");
+#else  // LICOM_ENABLE_GPTL
+    t_module_2 = high_resolution_clock::now();
+    t_tracer  += duration_s(t_module_2 - t_module_1).count();
+#endif // LICOM_ENABLE_GPTL
+  }
+  void inline icesnow_start () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstart("icesnow");
+#else  // LICOM_ENABLE_GPTL
+    t_module_1 = high_resolution_clock::now();
+#endif // LICOM_ENABLE_GPTL
+    return ;
+  }
+
+  void inline icesnow_stop () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstop("icesnow");
+#else  // LICOM_ENABLE_GPTL
+    t_module_2 = high_resolution_clock::now();
+    t_icesnow += duration_s(t_module_2 - t_module_1).count();
+#endif // LICOM_ENABLE_GPTL
+  }
+  void inline convadj_start () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstart("convadj");
+#else  // LICOM_ENABLE_GPTL
+    t_module_1 = high_resolution_clock::now();
+#endif // LICOM_ENABLE_GPTL
+    return ;
+  }
+
+  void inline convadj_stop () {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    gptl_ret = GPTLstop("convadj");
+#else  // LICOM_ENABLE_GPTL
+    t_module_2 = high_resolution_clock::now();
+    t_convadj += duration_s(t_module_2 - t_module_1).count();
+#endif // LICOM_ENABLE_GPTL
+  }
+
+  void inline testTime_start(const char *name) {
+
+#ifdef LICOM_ENABLE_GPTL
+    fence ();
+    GPTLstart (name);
+#else  // LICOM_ENABLE_GPTL
+    const auto str_name = std::string(name);
+    // if (CppParamMod::mytid == 0) {
+    //   printf ("%s\n", name);
+    //   printf ("%s\n", str_name);
+    //   printf ("%s\n", str_name.c_str());
+    // }
+    if (map_name.find(str_name) == map_name.end()) {
+		  auto new_name = highResTime();
+      map_name.insert(std::pair<std::string, highResTime>(str_name, new_name));
+    }
+    auto &cur_name = map_name[str_name];
+    fence ();
+    cur_name.time_point = high_resolution_clock::now();
+#endif // LICOM_ENABLE_GPTL
+    return ;
+  }
+
+  void inline testTime_stop(const char *name) {
+    fence ();
+#ifdef LICOM_ENABLE_GPTL
+    GPTLstop (name);
+#else  // LICOM_ENABLE_GPTL
+    cur_time_point = high_resolution_clock::now();
+
+    const auto str_name = std::string(name);
+    if (map_name.find(str_name) == map_name.end()) {
+      if (CppParamMod::mytid == 0) {
+        printf ("err: %s\n", name);
+        printf ("%d\t%s\n", __LINE__, __FILE__);
+      }
+      exit (0);
+    }
+
+    auto &cur_name = map_name[str_name];
+    cur_name.time += duration_s(cur_time_point - cur_name.time_point).count();
+
+#endif // LICOM_ENABLE_GPTL
+    return ;
+  }
+
+ private:
+
+  bool flag_once = false;
+
+#ifdef LICOM_ENABLE_GPTL
+  int gptl_ret;
+#else  // LICOM_ENABLE_GPTL
+  high_resolution_clock::time_point t_module_1, t_module_2;
+  high_resolution_clock::time_point cur_time_point;
+	std::unordered_map<std::string, highResTime> map_name;
+#endif // LICOM_ENABLE_GPTL
+
+  MPI_Comm comm;
+
+  high_resolution_clock::time_point t_sum_1, t_sum_2;
+
+  high_resolution_clock::time_point t_once_1, t_once_2;
+
+  high_resolution_clock::time_point t_daily_1, t_daily_2;
+
+  high_resolution_clock::time_point t_stepon_1, t_stepon_2;
+
+  high_resolution_clock::time_point t_daily_update_1, t_daily_update_2;
+};
+
+} // TestTime
+
+#endif // LICOM3_KOKKOS_SRC_HEAD_LICOM_TEST_TIME_HPP_

@@ -1,0 +1,41 @@
+#!/usr/bin/bash
+
+# TAISHAN
+#DATAPATH=/workspace/home/migration/chengqian/huangjian/data/100km
+# 419
+#DATAPATH=/work1/esm7/licom/data/100km
+# IAP_GPU
+# DATAPATH=/home/wjl/workspace/licom/data/100km
+# Ocean Light
+#DATAPATH=/home/export/online1/mdt00/shisuan/swsccas/huangjian/licom/100km
+DATAPATH=/home/export/online1/mdt00/shisuan/swiap/licom/data/100km
+
+
+
+ln -sf ${DATAPATH}/LICOM_Basin_360X218X30_tripole_omip_20160507.DATA         Basin.data
+ln -sf ${DATAPATH}/LICOM_Ver_Grid_360X196X30.DATA                            depth.da
+ln -sf ${DATAPATH}/dncoef_eq1x1.h                                            dncoef.h1
+ln -sf ${DATAPATH}/LICOM_Hor_Grid_360X218X30_tripole_omip_20160507.DATA      grid.da
+ln -sf ${DATAPATH}/ice.2016_daily.nc                                         ice.2016_daily.nc
+ln -sf ${DATAPATH}/LICOM_Topo_360X218X30_tripole_omip_20160507.DATA          kmt.da
+ln -sf ${DATAPATH}/chl_clim_monthly_tripole_360X218X30_omip_db_20160507.nc   MODEL_CHLFRC
+ln -sf ${DATAPATH}/q_10.2016_daily.nc                                        q_10.2016_daily.nc
+ln -sf ${DATAPATH}/rain.2016_daily.nc                                        rain.2016_daily.nc
+ln -sf ${DATAPATH}/rlds.2016_daily.nc                                        rlds.2016_daily.nc
+ln -sf ${DATAPATH}/rsds.2016_daily.nc                                        rsds.2016_daily.nc
+ln -sf ${DATAPATH}/runoff_all.2016_daily.nc                                  runoff_all.2016_daily.nc
+ln -sf ${DATAPATH}/mecator-salt-20160501-360X218X30_n2s.nc                   salt_initial
+ln -sf ${DATAPATH}/slp.2016_daily.nc                                         slp.2016_daily.nc
+ln -sf ${DATAPATH}/snow.2016_daily.nc                                        snow.2016_daily.nc
+ln -sf ${DATAPATH}/sss_month_phc3_tripole_360X218X30_omip_db_20160507.nc     sss_phc3_monthly.nc
+
+ln -sf ${DATAPATH}/t_10.2016_daily.nc                                        t_10.2016_daily.nc
+ln -sf ${DATAPATH}/mecator-temp-20160501-360X218X30_n2s.nc                   temp_initial
+ln -sf ${DATAPATH}/tidal_energy_licom_tripole_360X218X30_omip_db_20160507.nc tidal_energy.nc
+ln -sf ${DATAPATH}/TSinitial_jan_phc3_tripole_360X218X30_omip_db_20160507.nc TSinitial
+ln -sf ${DATAPATH}/u_10.2016_daily.nc                                        u_10.2016_daily.nc
+ln -sf ${DATAPATH}/v_10.2016_daily.nc                                        v_10.2016_daily.nc
+ln -sf ${DATAPATH}/fort.22.0003-01-01                                        fort.22.0003-01-01
+cp ${DATAPATH}/ocn.parm                                                      ocn.parm
+cp ${DATAPATH}/rpointer.ocn                                                  rpointer.ocn
+

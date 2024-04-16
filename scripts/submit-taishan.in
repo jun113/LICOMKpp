@@ -1,0 +1,10 @@
+dsub -s run
+#sbatch -n 40 -p debug --exclusive ./run.sh
+
+#!/usr/bin/bash
+
+echo "@LOG_DIR@/@LICOM_RES@"
+echo "@LOG_DIR@/@LICOM_RES@/@CUR_DATE@-@MACHINE@.out"
+echo "@LOG_DIR@/@LICOM_RES@/@CUR_DATE@-@MACHINE@.err"
+
+watch djob

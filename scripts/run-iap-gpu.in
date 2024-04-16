@@ -1,0 +1,100 @@
+#!/usr/bin/bash
+
+outName=@LOG_DIR@/@LICOM_RES@/@CUR_DATE@-@MACHINE@
+
+out_licom=${outName}.out
+
+out_nvprof1=${outName}.nvprof-out
+out_nvprof2=${outName}.nvprof-rep
+
+out_nsight1=${outName}.nsys-out
+out_nsight2=${outName}.nsys-rep
+
+out_ncu1=${outName}.ncu-out
+out_ncu2=${outName}.ncu-rep
+echo ${out_licom}
+#echo ${output} | xclip -sel clip
+
+cd ../run/
+
+sed -i -e "/nprocs_/s/[0-9]\+/@NUM_PROCE@/" ocn.parm
+
+rm -f ocn.log
+
+#mpirun -np @NUM_PROCE@ ./@PROJECT_NAME@
+mpirun -np @NUM_PROCE@ ./@PROJECT_NAME@ | tee ${out_licom}
+
+#mpirun -np @NUM_PROCE@ nvprof -f -o ${nvp} ./licom3-kokkos.exe > ${output}
+#mpirun -np @NUM_PROCE@ nvprof -f -o ${nvp} --log-file ${output} ./licom3-kokkos.exe > ${output}
+#mpirun -np @NUM_PROCE@ nvprof -f -o ${out_nvprof2} --log-file ${out_nvprof1} ./licom3-kokkos.exe > ${out_licom}
+
+#====================================================
+# Nsight System
+
+# /usr/local/cuda/bin/nsys profile \
+# 	--cuda-memory-usage=true \
+#     --gpu-metrics-device=all \
+# 	--cudabacktrace=all \
+# 	--output ${outName}-%p.nsys-rep \
+#     --stats=true \
+# 	--show-output=true \
+# 	--trace=cuda,nvtx \
+#     --trace-fork-before-exec=true \
+# 		/home/wjl/software/oneAPI/mpi/2021.7.1/bin/mpirun -np @NUM_PROCE@ ./@PROJECT_NAME@ | tee ${out_licom}
+
+    #--capture-range=nvtx \
+	#--export=json \
+
+#====================================================
+
+#***************************************************
+# sudo ./run
+
+# export UCX_TLS=ud,sm,self
+# source /home/wjl/software/oneAPI/setvars.sh --force
+
+# Nisght Compute
+
+#/usr/local/cuda/bin/ncu -o ${out_ncu2} \
+#    --log-file ${out_ncu1} \
+#    --nvtx \
+#	--set full \
+#   --metrics all \
+#    --print-summary per-nvtx \
+#    --details-all \
+#    --call-stack \
+#    --print-fp \
+#    --print-units base \
+#    --page raw \
+#	--target-processes all \
+#		/home/wjl/software/oneAPI/mpi/2021.7.1/bin/mpirun -np @NUM_PROCE@ ./@PROJECT_NAME@ | tee ${out_licom}
+
+    # --csv \
+	#-k regex:"parallel" \
+
+#====================================================
+# nvprof
+
+# /usr/local/cuda/bin/nvprof \
+#     --metrics all \
+#     --profile-api-trace all \
+#     --concurrent-kernels on \
+#     --analysis-metrics \
+#     --normalized-time-unit s \
+#     --print-api-summary \
+#     --print-gpu-summary \
+#     --print-summary \
+#     --print-summary-per-gpu \
+#     --profile-child-processes \
+#     --track-memory-allocations on \
+#     --export-profile ${outName}-%p.nvprof-rep \
+#     --log-file ${outName}-%p.nvprof-out \
+# /home/wjl/software/oneAPI/mpi/2021.7.1/bin/mpirun -np @NUM_PROCE@ ./@PROJECT_NAME@ | tee ${out_licom}
+
+
+    #--print-api-trace \
+    #--print-gpu-trace \
+    #--log-file ${outName}-%p.nvprof-out \
+
+    #--profile-all-processes \
+echo ${out_licom}

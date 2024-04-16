@@ -1,0 +1,8 @@
+sbatch ./run
+
+#!/usr/bin/bash
+
+echo "@LOG_DIR@/@LICOM_RES@/"
+echo "@LOG_DIR@/@LICOM_RES@/@CUR_DATE@-@MACHINE@"
+
+watch -d squeue

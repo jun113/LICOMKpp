@@ -1,0 +1,194 @@
+{
+	"kind" : "toolchains",
+	"toolchains" : 
+	[
+		{
+			"compiler" : 
+			{
+				"id" : "GNU",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"/usr/sw/mpi/mpi_20220608_SEA/include",
+						"/home/export/base/shisuan/swiap/online/local/x86/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0/include-fixed",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/shared_include"
+					],
+					"linkDirectories" : 
+					[
+						"/usr/sw/mpi/mpi_20220608_SEA/lib/single_static",
+						"/usr/sw/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr_sw/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr_sw/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr_sw/sw_64sw6a-sunway-linux-gnu/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"-Wl,--as-needed -Wl,-Bdynamic"
+					]
+				},
+				"path" : "/usr/sw/mpi/mpi_current/bin/mpicc",
+				"version" : "7.1.0"
+			},
+			"language" : "C",
+			"sourceFileExtensions" : 
+			[
+				"c",
+				"m"
+			]
+		},
+		{
+			"compiler" : 
+			{
+				"id" : "GNU",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"/home/export/base/shisuan/swiap/online/local/x86/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/include/c++/7.1.0",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/include/c++/7.1.0/sw_64sw6a-sunway-linux-gnu",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/include/c++/7.1.0/backward",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0/include-fixed",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/shared_include"
+					],
+					"linkDirectories" : 
+					[
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr_sw/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr_sw/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr_sw/sw_64sw6a-sunway-linux-gnu/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"stdc++"
+					]
+				},
+				"path" : "/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/bin/swg++",
+				"version" : "7.1.0"
+			},
+			"language" : "CXX",
+			"sourceFileExtensions" : 
+			[
+				"C",
+				"M",
+				"c++",
+				"cc",
+				"cpp",
+				"cxx",
+				"mm",
+				"mpp",
+				"CPP",
+				"ixx",
+				"cppm"
+			]
+		},
+		{
+			"compiler" : 
+			{
+				"id" : "GNU",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"/usr/sw/mpi/mpi_20220608_SEA/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0/finclude",
+						"/home/export/base/shisuan/swiap/online/local/x86/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0/include-fixed",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/include",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/shared_include"
+					],
+					"linkDirectories" : 
+					[
+						"/usr/sw/mpi/mpi_20220608_SEA/lib/single_static",
+						"/usr/sw/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib/gcc",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr_sw/lib",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr_sw/lib/gcc/sw_64sw6a-sunway-linux-gnu/7.1.0",
+						"/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr_sw/sw_64sw6a-sunway-linux-gnu/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"mpifort",
+						"mpi",
+						"pthread",
+						"swverbs_ft_perf",
+						"swutils",
+						"swtm",
+						"gfortran",
+						"gfortran_slave",
+						"m",
+						"dl",
+						"rt",
+						"pthread",
+						"gfortran",
+						"gfortran_slave",
+						"m",
+						"slave",
+						"crts_host",
+						"crts_slave",
+						"athread",
+						"/usr/sw/lib/libswtm_fpic.a",
+						"rt",
+						"pthread",
+						"gcc",
+						"gcc_slave",
+						"m",
+						"gcc",
+						"gcc_slave",
+						"c_slave",
+						"rt",
+						"c",
+						"glibc_slave"
+					]
+				},
+				"path" : "/usr/sw/mpi/mpi_current/bin/mpif90",
+				"version" : "7.1.0"
+			},
+			"language" : "Fortran",
+			"sourceFileExtensions" : 
+			[
+				"f",
+				"F",
+				"fpp",
+				"FPP",
+				"f77",
+				"F77",
+				"f90",
+				"F90",
+				"for",
+				"For",
+				"FOR",
+				"f95",
+				"F95"
+			]
+		}
+	],
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 0
+	}
+}

@@ -1,0 +1,92 @@
+#!/bin/bash
+#DSUB -n licom3-@LICOM_RES@
+#DSUB --job_type cosched
+#DSUB -A root.migration
+#DSUB -q root.default
+#DSUB -N 2
+#DSUB -R 'cpu=128'
+#DSUB -EP '@CMAKE_SOURCE_DIR@/run'
+#DSUB -o '@LOG_DIR@/@LICOM_RES@/@CUR_DATE@-@MACHINE@.out'
+#DSUB -e '@LOG_DIR@/@LICOM_RES@/@CUR_DATE@-@MACHINE@.err'
+###DSUB --exclusive
+
+#####=========== Env ===========#####
+echo JOBDIR  $JOB_DIR
+
+SYS_JOB_TYPE=hmpi
+source /usr/share/Modules/init/bash
+if [ "x${SYS_JOB_TYPE}" == "xopenmpi" -o "x${SYS_JOB_TYPE}" == "xhmpi" ];then
+
+  module purge
+  module use /workspace/public/software/modules
+  module load compilers/gcc/kunpenggcc/9.3.1/gcc9.3.1
+  module load mpi/openmpi/4.0.1_kunpenggcc9.3.1
+
+  module load libs/hdf5/1.12.0/kunpenggcc9.3.1_hmpi1.1.1
+  module load libs/netcdf/netcdf_c_4.7.4_fortran_4.5.3/kunpenggcc9.3.1_hmpi1.1.1
+  module list
+
+  export LD_LIBRARY_PATH=/workspace/public/software/compilers/gcc/kunpenggcc/9.3.1/gcc-9.3.1-2021.03-aarch64-linux/lib64/:$LD_LIBRARY_PATH
+
+  export GPTL_PATH=/workspace/home/migration/chengqian/wjl/GPTL/8.1.1
+  export PATH=$GPTL_PATH/bin:$PATH
+  export CPATH=$GPTL_PATH/include:$CPATH
+  export LIBRARY_PATH=$GPTL_PATH/bin:$LIBRARY_PATH
+  export LD_LIBRARY_PATH=$GPTL_PATH/lib:$LD_LIBRARY_PATH
+	 MPI_TYPE='--mca plm_rsh_agent /opt/batch/agent/tools/dstart'
+
+elif [ "x${SYS_JOB_TYPE}" == "xintelmpi" -o "x${SYS_JOB_TYPE}" == "xmpich" ];then
+	# 加载intelmpi/mpich和对应编译器
+       	MPI_TYPE='--launcher ssh -launcher-exec /opt/batch/agent/tools/dstart'
+fi
+
+echo $MPI_TYPE
+
+export HOSTFILE=@CMAKE_SOURCE_DIR@/run/hostfile
+
+rm -rf $HOSTFILE
+
+touch  $HOSTFILE
+
+ntask=`cat ${CCS_ALLOC_FILE} | awk -v fff="$HOSTFILE" '{}
+{
+ split($0, a, " ")
+ if (length(a[1]) >0 && length(a[3]) >0) {
+ print a[1] >> fff
+ total_task+=a[3]
+ }
+}END{print total_task}'`
+
+total_num_proc=@NUM_PROCE@
+num_procs_per_node=128
+num_threads_per_proc=1
+
+RUN_CMD="mpirun $MPI_TYPE -N \
+                $num_procs_per_node \
+		-np $total_num_proc \
+		-hostfile $HOSTFILE \
+		-x PATH \
+		-x LD_LIBRARY_PATH \
+		-x NO_STOP_MESSAGE=1 \
+		-x OMP_NUM_THREADS=$num_threads_per_proc \
+		-map-by ppr:$num_procs_per_node:node:pe=$num_threads_per_proc \
+		-x OMP_PLACES=cores \
+		-x OMP_PROC_BIND=close \
+		-x OMP_DISPLAY_ENV \
+		-x OMP_SCHEDULE=static \
+		-x OMP_STACKSIZE=1G \
+		-mca pml ucx \
+		-mca opal_common_ucx_opal_mem_hooks 1 \
+		-x UCX_NET_DEVICES=mlx5_0:1 \
+		-mca btl ^vader,tcp,openib,uct \
+		-x UCX_TLS=self,sm,rc ./@PROJECT_NAME@"
+
+#RUN_CMD="mpirun $MPI_TYPE -N 4 -np 4 -hostfile $HOSTFILE -x PATH -x LD_LIBRARY_PATH -x NO_STOP_MESSAGE=1 -mca pml ucx -x UCX_NET_DEVICES=mlx5_0:1 -mca btl ^vader,tcp,openib,uct -x UCX_TLS=self,sm,rc ./licom3-kokkos.exe"
+#--mca opal_common_ucx_opal_mem_hooks 1
+
+
+echo $RUN_CMD
+$RUN_CMD
+#--rankfile $RANKFILE ./res_bind.sh
+ret=$?
+exit $ret

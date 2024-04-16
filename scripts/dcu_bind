@@ -1,0 +1,38 @@
+#!/bin/bash
+APP="./licom3-kokkos"
+local_rank=$OMPI_COMM_WORLD_LOCAL_RANK
+#local_rank=$(expr $OMPI_COMM_WORLD_LOCAL_RANK % 4)
+export HSA_USERPTR_FOR_PAGED_MEM=1
+export HSA_ENABLE_SDMA=0
+export HIP_MEMCPY2D_FORCE_SDMA=0
+export HCC_LAZYINIT=ON
+case ${local_rank} in
+[0])
+  export UCX_NET_DEVICES="mlx5_0:1"
+  export UCX_IB_PCI_BW="mlx5_0:50Gbs"
+  export HIP_VISIBLE_DEVICES=0
+  numactl --cpunodebind=0 --membind=0 \
+ $APP
+  ;;
+[1])
+  export UCX_NET_DEVICES="mlx5_1:1"
+  export UCX_IB_PCI_BW="mlx5_1:50Gbs"
+  export HIP_VISIBLE_DEVICES=1
+  numactl --cpunodebind=1 --membind=1 \
+  $APP
+  ;;
+[2])
+  export UCX_NET_DEVICES="mlx5_2:1"
+  export UCX_IB_PCI_BW="mlx5_2:50Gbs"
+  export HIP_VISIBLE_DEVICES=2
+ numactl --cpunodebind=2 --membind=2 \
+  $APP
+ ;;
+[3])
+  export UCX_NET_DEVICES="mlx5_3:1"
+  export UCX_IB_PCI_BW="mlx5_3:50Gbs"
+  export HIP_VISIBLE_DEVICES=3
+ numactl --cpunodebind=3 --membind=3 \
+ $APP
+  ;;
+esac

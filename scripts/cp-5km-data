@@ -1,0 +1,33 @@
+#!/usr/bin/bash
+# DATAPATH=/work1/esm7/licom/data/5km/data_new5km
+DATAPATH=/home/export/online1/mdt00/shisuan/swiap/licom/jesong/data_new5km
+
+ln -sf ${DATAPATH}/mector-salt_20160501_7200x3920x55_nearest_real.nc salt_initial
+ln -sf ${DATAPATH}/mector-temp_20160501_7200x3920x55_nearest_real.nc temp_initial
+#ln -sf ${DATAPATH}/ MODEL_CHLFRC
+
+ln -sf ${DATAPATH}/ice.2016_daily.nc ice.2016_daily.nc
+ln -sf ${DATAPATH}/q_10.2016_daily.nc q_10.2016_daily.nc
+ln -sf ${DATAPATH}/rain.2016_daily.nc rain.2016_daily.nc
+ln -sf ${DATAPATH}/rlds.2016_daily.nc rlds.2016_daily.nc
+ln -sf ${DATAPATH}/rsds.2016_daily.nc rsds.2016_daily.nc
+ln -sf ${DATAPATH}/runoff_all.2016_daily.nc runoff_all.2016_daily.nc
+ln -sf ${DATAPATH}/slp.2016_daily.nc slp.2016_daily.nc
+ln -sf ${DATAPATH}/snow.2016_daily.nc snow.2016_daily.nc
+ln -sf ${DATAPATH}/sss_7200x3920x55_nearest_real.nc sss_phc3_monthly.nc
+ln -sf ${DATAPATH}/t_10.2016_daily.nc t_10.2016_daily.nc
+ln -sf ${DATAPATH}/tm_7200x3920x55_nearest_real.nc tidal_energy.nc
+ln -sf ${DATAPATH}/u_10.2016_daily.nc u_10.2016_daily.nc
+ln -sf ${DATAPATH}/v_10.2016_daily.nc v_10.2016_daily.nc
+
+ln -sf ${DATAPATH}/depth.da depth.da
+ln -sf ${DATAPATH}/grid_n2sN.da grid.da
+ln -sf ${DATAPATH}/kmt_n2sN.da kmt.da
+ln -sf ${DATAPATH}/dncoef.h1 dncoef.h1
+ln -sf ${DATAPATH}/fort.22.0003-12-12 fort.22.0003-12-12
+cp ${DATAPATH}/rpointer.ocn rpointer.ocn
+cp ${DATAPATH}/ocn.parm ocn.parm
+
+
+#Tsinitial LOWRES
+#latlon-area.nc

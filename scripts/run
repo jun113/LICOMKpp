@@ -1,0 +1,35 @@
+#!/usr/bin/bash
+outName=/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/logfile/100km/20240416-094256-OCEANLIGHT
+
+out_licom=${outName}.out
+
+# echo ${out_licom}
+#echo ${output} | xclip -sel clip
+
+cd ../run/
+
+# sed -i -e "/nprocs_/s/[0-9]\+/120/" ocn.parm
+
+rm -f ocn.log
+
+bsub -J licom3-100km \
+	-p -b -I -cache_size 128 \
+	-q q_20240403 \
+	-n 120 \
+	-cgsp 64 \
+	-share_size 15360 \
+	-host_stack 2048 \
+	-o ${out_licom} ./licom3-kokkos
+
+# bsub -J licom3-100km \
+# 	-p -b -cache_size 128 \
+# 	-q q_swiap \
+# 	-n 120 \
+# 	-cgsp 64 \
+# 	-share_size 15360 \
+# 	-host_stack 2048 \
+# 	-o ${out_licom} ./licom3-kokkos
+
+echo ${out_licom}
+
+#watch bjobs
