@@ -1,9 +1,0 @@
-./run
-#sbatch -n 40 -p debug --exclusive ./run.sh
-
-#!/usr/bin/bash
-
-#echo "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/logfile/100km"
-#echo "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/logfile/100km/20240416-094256-OCEANLIGHT.out"
-
-#watch bjobs

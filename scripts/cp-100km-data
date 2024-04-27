@@ -5,10 +5,10 @@
 # 419
 #DATAPATH=/work1/esm7/licom/data/100km
 # IAP_GPU
-# DATAPATH=/home/wjl/workspace/licom/data/100km
+DATAPATH=/home/wjl/workspace/licom/data/100km
 # Ocean Light
 #DATAPATH=/home/export/online1/mdt00/shisuan/swsccas/huangjian/licom/100km
-DATAPATH=/home/export/online1/mdt00/shisuan/swiap/licom/data/100km
+# DATAPATH=/home/export/online1/mdt00/shisuan/swiap/licom/data/100km
 
 
 

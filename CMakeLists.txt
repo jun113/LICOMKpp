@@ -8,7 +8,7 @@
 cmake_minimum_required (VERSION 3.18)
 
 #project name
-set(PROJECT_NAME "licom3-kokkos")
+set(PROJECT_NAME "LICOMKpp")
 project(${PROJECT_NAME})
 
 #find_package(Kokkos REQUIRED)

@@ -82,7 +82,6 @@ extern "C" void licom_core_() {
 #endif // LICOM_ENABLE_FORTRAN
 
   int totalday = 0;
-  int test_day = 1;
 
   my_time.testTime_initialize();
 
@@ -300,22 +299,22 @@ extern "C" void licom_core_() {
       //LOGMSG
       if (num_step_per_day == 0) {
 
-// #ifdef LICOM_ENABLE_TEST_TIME
-//       my_time.testTime_start("write file");
-// #endif // LICOM_ENABLE_TEST_TIME
+#ifdef LICOM_ENABLE_TEST_TIME
+      my_time.testTime_start("write file");
+#endif // LICOM_ENABLE_TEST_TIME
 
-//         my_time.start_once();
+        my_time.start_once();
 
-//         ssaveins_();
+        ssaveins_();
 
-// #ifdef LICOM_ENABLE_TEST_TIME
-//       my_time.testTime_stop("write file");
-// #endif // LICOM_ENABLE_TEST_TIME
-//         my_time.end_once();
+#ifdef LICOM_ENABLE_TEST_TIME
+      my_time.testTime_stop("write file");
+#endif // LICOM_ENABLE_TEST_TIME
+        my_time.end_once();
 
-//         if (mytid == 0) {
-//           printf("write_file time: %.3f s\n", my_time.t_once);
-//         }
+        if (mytid == 0) {
+          printf("write_file time: %.3f s\n", my_time.t_once);
+        }
 #ifdef LICOM_ENABLE_KOKKOS
         kokkos_nextstep();
 #else
@@ -333,12 +332,9 @@ extern "C" void licom_core_() {
         printf("day: %.3f s, SYPD: %.2f , MM: %d, iday: %d\n", 
             my_time.t_daily, 86400.0 / (my_time.t_daily * 365.0), mm, iday);
       }
-      if (++totalday == 2) {
-        break;
-      }
-      ++ test_day;
-      if (test_day == 2) {
       //if (iday == 7) {
+      totalday++;
+      if (totalday == 2) {
         my_time.fence();
 #ifdef LICOM_ENABLE_KOKKOS
         //Kokkos::finalize();

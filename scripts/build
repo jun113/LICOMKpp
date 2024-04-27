@@ -2,75 +2,25 @@
 
 # set -x
 
-# NP=4
-# BLOCK_X=180
-# BLOCK_Y=110
-NP=120
-BLOCK_X=30
-BLOCK_Y=22
-#  NP=6
-#  BLOCK_X=180
-#  BLOCK_Y=73
-#  NP=6
-#  BLOCK_X=60
-#  BLOCK_Y=218
-# NP=8
-# BLOCK_X=180
-# BLOCK_Y=55
-#NP=160
-#BLOCK_X=180
-#BLOCK_Y=288
-# BLOCK_X=450
-# BLOCK_Y=116
-#  NP=40
-#  BLOCK_X=45
-#  BLOCK_Y=44
-# NP=48
-# BLOCK_X=45
-# BLOCK_Y=37
-#NP=1024
-#BLOCK_X=113
-#BLOCK_Y=72
-#10km
-#NP=128
-#BLOCK_X=450
-#BLOCK_Y=144
-#NP=2048
-#BLOCK_X=113
-#BLOCK_Y=36
-# NP=1560
-# BLOCK_X=90
-# BLOCK_Y=60
-#NP=2340
-#BLOCK_X=60
-#BLOCK_Y=60
-#NP=11520
-#BLOCK_X=45
-#BLOCK_Y=16
-#NP=5880
-#BLOCK_X=120
-#BLOCK_Y=40
-# 5km
-#NP=28000
-#BLOCK_X=72
-#BLOCK_Y=14
+NP=48
+BLOCK_X=45
+BLOCK_Y=37
 
 #419 KUNSHAN IAP_GPU TAISHAN OCEANLIGHT
-# MACHINE="IAP_GPU"
-MACHINE="OCEANLIGHT"
+MACHINE="IAP_GPU"
+# MACHINE="OCEANLIGHT"
 
-#LICOM_RES="5km"
+# 100km 25km 10km 6.66km 5km 3.33km 2km 1km
 LICOM_RES="100km"
-#LICOM_RES="10km"
 
-LICOM_ENABLE_TEST_TIME="undef"
 LICOM_ENABLE_TEST_TIME="define"
+LICOM_ENABLE_TEST_TIME="undef"
 
 LICOM_ENABLE_GPTL="define"
 LICOM_ENABLE_GPTL="undef"
 
-LICOM_ENABLE_FORTRAN_COMPILER="LICOM_ENABLE_FORTRAN_COMPILER_INTEL"
 LICOM_ENABLE_FORTRAN_COMPILER="LICOM_ENABLE_FORTRAN_COMPILER_GNU"
+LICOM_ENABLE_FORTRAN_COMPILER="LICOM_ENABLE_FORTRAN_COMPILER_INTEL"
 
 LICOM_ENABLE_VERSION="LICOM_ENABLE_CUDA"
 LICOM_ENABLE_VERSION="LICOM_ENABLE_HIP"
@@ -109,21 +59,22 @@ echo Current machine:
 if [ "${MACHINE}" == "IAP_GPU" ]; then
   echo "IAP GPU"
 
-  KOKKOS_SRC=$(cd ../kokkos/kokkos-4.1.00-athread ; pwd)
+#   KOKKOS_SRC=$(cd ../kokkos/kokkos-4.1.00-athread ; pwd)
+  KOKKOS_SRC=$(cd ../kokkos/kokkos-4.3.00 ; pwd)
 
   cmake	.. \
       -D CMAKE_C_COMPILER="gcc" \
-      -D CMAKE_CXX_COMPILER="${KOKKOS_SRC}/bin/nvcc_wrapper" \
+      -D CMAKE_CXX_COMPILER="g++" \
       -D CMAKE_Fortran_COMPILER="ifort" \
-      -D Kokkos_ENABLE_CUDA_CONSTEXPR=on \
-      -D Kokkos_ENABLE_CUDA_LAMBDA=on \
-      -D Kokkos_ENABLE_CUDA=on \
-      -D Kokkos_ARCH_VOLTA70=on \
+      -D Kokkos_ENABLE_CUDA_CONSTEXPR=off \
+      -D Kokkos_ENABLE_CUDA_LAMBDA=off \
+      -D Kokkos_ENABLE_CUDA=off \
+      -D Kokkos_ARCH_VOLTA70=off \
       -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=off \
       -D Kokkos_ENABLE_PROFILING_LOAD_PRINT=Off \
       -D Kokkos_ENABLE_COMPILER_WARNINGS=off \
       -D Kokkos_ENABLE_DEBUG=off \
-      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=on \
+      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=off \
       -D Kokkos_ENABLE_SERIAL=on \
       -D NUM_PROCE=${NP} \
       -D LICOM_RES=${LICOM_RES} \
@@ -269,4 +220,4 @@ else
     chmod 777 ../scripts/submit
 fi
 
-cp ./bin/licom3-kokkos ../run/.
+cp ./bin/LICOMKpp ../run/.

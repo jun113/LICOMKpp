@@ -1,0 +1,281 @@
+{
+	"kind" : "toolchains",
+	"toolchains" : 
+	[
+		{
+			"compiler" : 
+			{
+				"id" : "GNU",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"/home/wjl/software/GPTL/8.1.1/include",
+						"/home/wjl/software/nccl-master/build/include",
+						"/home/wjl/software/oneAPI/vpl/2022.2.5/include",
+						"/home/wjl/software/oneAPI/tbb/2021.7.1/include",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/include",
+						"/home/wjl/software/oneAPI/mkl/2022.2.1/include",
+						"/home/wjl/software/oneAPI/ipp/2021.6.2/include",
+						"/home/wjl/software/oneAPI/ippcp/2021.6.2/include",
+						"/home/wjl/software/oneAPI/dpl/2021.7.2/linux/include",
+						"/home/wjl/software/oneAPI/dpcpp-ct/2022.2.1/include",
+						"/home/wjl/software/oneAPI/dnnl/2022.2.1/cpu_dpcpp_gpu_dpcpp/include",
+						"/home/wjl/software/oneAPI/dev-utilities/2021.7.1/include",
+						"/home/wjl/software/oneAPI/dal/2021.7.1/include",
+						"/home/wjl/software/oneAPI/ccl/2021.7.1/include/cpu_gpu_dpcpp",
+						"/home/wjl/usr/include",
+						"/home/wjl/software/GCC/8.4.0/lib/gcc/x86_64-pc-linux-gnu/8.4.0/include",
+						"/usr/local/include",
+						"/home/wjl/software/GCC/8.4.0/include",
+						"/home/wjl/software/GCC/8.4.0/lib/gcc/x86_64-pc-linux-gnu/8.4.0/include-fixed",
+						"/usr/include"
+					],
+					"linkDirectories" : 
+					[
+						"/lib64",
+						"/home/wjl/software/GCC/8.4.0/lib64",
+						"/home/wjl/software/GCC/8.4.0/lib/gcc/x86_64-pc-linux-gnu/8.4.0",
+						"/usr/lib64",
+						"/home/wjl/software/GPTL/8.1.1/bin",
+						"/home/wjl/software/chromedriver",
+						"/home/wjl/software/chrome-107.0.5304.87/opt/google/chrome",
+						"/usr/local/netcdf/bin",
+						"/bin",
+						"/home/wjl/software/GCC/8.4.0/lib",
+						"/home/wjl/software/oneAPI/vpl/2022.2.5/lib",
+						"/home/wjl/software/oneAPI/tbb/2021.7.1/lib/intel64/gcc4.8",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/libfabric/lib",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/lib/release",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/lib",
+						"/home/wjl/software/oneAPI/mkl/2022.2.1/lib/intel64",
+						"/home/wjl/software/oneAPI/ipp/2021.6.2/lib/intel64",
+						"/home/wjl/software/oneAPI/ippcp/2021.6.2/lib/intel64",
+						"/home/wjl/software/oneAPI/dnnl/2022.2.1/cpu_dpcpp_gpu_dpcpp/lib",
+						"/home/wjl/software/oneAPI/dal/2021.7.1/lib/intel64",
+						"/home/wjl/software/oneAPI/compiler/2022.2.1/linux/compiler/lib/intel64_lin",
+						"/home/wjl/software/oneAPI/compiler/2022.2.1/linux/lib",
+						"/home/wjl/software/oneAPI/clck/2021.7.1/lib/intel64",
+						"/home/wjl/software/oneAPI/ccl/2021.7.1/lib/cpu_gpu_dpcpp",
+						"/home/wjl/usr/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"gcc",
+						"gcc_s",
+						"c",
+						"gcc",
+						"gcc_s"
+					]
+				},
+				"path" : "/home/wjl/software/GCC/8.4.0/bin/gcc",
+				"version" : "8.4.0"
+			},
+			"language" : "C",
+			"sourceFileExtensions" : 
+			[
+				"c",
+				"m"
+			]
+		},
+		{
+			"compiler" : 
+			{
+				"id" : "GNU",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"/home/wjl/software/GPTL/8.1.1/include",
+						"/home/wjl/software/nccl-master/build/include",
+						"/home/wjl/software/oneAPI/vpl/2022.2.5/include",
+						"/home/wjl/software/oneAPI/tbb/2021.7.1/include",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/include",
+						"/home/wjl/software/oneAPI/mkl/2022.2.1/include",
+						"/home/wjl/software/oneAPI/ipp/2021.6.2/include",
+						"/home/wjl/software/oneAPI/ippcp/2021.6.2/include",
+						"/home/wjl/software/oneAPI/dpl/2021.7.2/linux/include",
+						"/home/wjl/software/oneAPI/dpcpp-ct/2022.2.1/include",
+						"/home/wjl/software/oneAPI/dnnl/2022.2.1/cpu_dpcpp_gpu_dpcpp/include",
+						"/home/wjl/software/oneAPI/dev-utilities/2021.7.1/include",
+						"/home/wjl/software/oneAPI/dal/2021.7.1/include",
+						"/home/wjl/software/oneAPI/ccl/2021.7.1/include/cpu_gpu_dpcpp",
+						"/home/wjl/usr/include",
+						"/home/wjl/software/oneAPI/clck/2021.7.1/include",
+						"/home/wjl/software/GCC/8.4.0/include/c++/8.4.0",
+						"/home/wjl/software/GCC/8.4.0/include/c++/8.4.0/x86_64-pc-linux-gnu",
+						"/home/wjl/software/GCC/8.4.0/include/c++/8.4.0/backward",
+						"/home/wjl/software/GCC/8.4.0/lib/gcc/x86_64-pc-linux-gnu/8.4.0/include",
+						"/usr/local/include",
+						"/home/wjl/software/GCC/8.4.0/include",
+						"/home/wjl/software/GCC/8.4.0/lib/gcc/x86_64-pc-linux-gnu/8.4.0/include-fixed",
+						"/usr/include"
+					],
+					"linkDirectories" : 
+					[
+						"/lib64",
+						"/home/wjl/software/GCC/8.4.0/lib64",
+						"/home/wjl/software/GCC/8.4.0/lib/gcc/x86_64-pc-linux-gnu/8.4.0",
+						"/usr/lib64",
+						"/home/wjl/software/GPTL/8.1.1/bin",
+						"/home/wjl/software/chromedriver",
+						"/home/wjl/software/chrome-107.0.5304.87/opt/google/chrome",
+						"/usr/local/netcdf/bin",
+						"/bin",
+						"/home/wjl/software/GCC/8.4.0/lib",
+						"/home/wjl/software/oneAPI/vpl/2022.2.5/lib",
+						"/home/wjl/software/oneAPI/tbb/2021.7.1/lib/intel64/gcc4.8",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/libfabric/lib",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/lib/release",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/lib",
+						"/home/wjl/software/oneAPI/mkl/2022.2.1/lib/intel64",
+						"/home/wjl/software/oneAPI/ipp/2021.6.2/lib/intel64",
+						"/home/wjl/software/oneAPI/ippcp/2021.6.2/lib/intel64",
+						"/home/wjl/software/oneAPI/dnnl/2022.2.1/cpu_dpcpp_gpu_dpcpp/lib",
+						"/home/wjl/software/oneAPI/dal/2021.7.1/lib/intel64",
+						"/home/wjl/software/oneAPI/compiler/2022.2.1/linux/compiler/lib/intel64_lin",
+						"/home/wjl/software/oneAPI/compiler/2022.2.1/linux/lib",
+						"/home/wjl/software/oneAPI/clck/2021.7.1/lib/intel64",
+						"/home/wjl/software/oneAPI/ccl/2021.7.1/lib/cpu_gpu_dpcpp",
+						"/home/wjl/usr/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"stdc++",
+						"m",
+						"gcc_s",
+						"gcc",
+						"c",
+						"gcc_s",
+						"gcc"
+					]
+				},
+				"path" : "/home/wjl/software/GCC/8.4.0/bin/g++",
+				"version" : "8.4.0"
+			},
+			"language" : "CXX",
+			"sourceFileExtensions" : 
+			[
+				"C",
+				"M",
+				"c++",
+				"cc",
+				"cpp",
+				"cxx",
+				"mm",
+				"mpp",
+				"CPP"
+			]
+		},
+		{
+			"compiler" : 
+			{
+				"id" : "Intel",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"/home/wjl/software/GPTL/8.1.1/include",
+						"/home/wjl/software/nccl-master/build/include",
+						"/home/wjl/software/oneAPI/vpl/2022.2.5/include",
+						"/home/wjl/software/oneAPI/tbb/2021.7.1/include",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/include",
+						"/home/wjl/software/oneAPI/mkl/2022.2.1/include",
+						"/home/wjl/software/oneAPI/ipp/2021.6.2/include",
+						"/home/wjl/software/oneAPI/ippcp/2021.6.2/include",
+						"/home/wjl/software/oneAPI/dpl/2021.7.2/linux/include",
+						"/home/wjl/software/oneAPI/dpcpp-ct/2022.2.1/include",
+						"/home/wjl/software/oneAPI/dnnl/2022.2.1/cpu_dpcpp_gpu_dpcpp/include",
+						"/home/wjl/software/oneAPI/dev-utilities/2021.7.1/include",
+						"/home/wjl/software/oneAPI/dal/2021.7.1/include",
+						"/home/wjl/software/oneAPI/ccl/2021.7.1/include/cpu_gpu_dpcpp",
+						"/home/wjl/usr/include",
+						"/home/wjl/software/oneAPI/compiler/2022.2.1/linux/compiler/include/intel64",
+						"/home/wjl/software/oneAPI/compiler/2022.2.1/linux/compiler/include/icc",
+						"/home/wjl/software/oneAPI/compiler/2022.2.1/linux/compiler/include",
+						"/usr/local/include",
+						"/home/wjl/software/GCC/8.4.0/lib/gcc/x86_64-pc-linux-gnu/8.4.0/include",
+						"/home/wjl/software/GCC/8.4.0/lib/gcc/x86_64-pc-linux-gnu/8.4.0/include-fixed",
+						"/home/wjl/software/GCC/8.4.0/include",
+						"/usr/include"
+					],
+					"linkDirectories" : 
+					[
+						"/home/wjl/software/GPTL/8.1.1/bin",
+						"/lib",
+						"/home/wjl/software/chromedriver",
+						"/home/wjl/software/chrome-107.0.5304.87/opt/google/chrome",
+						"/usr/local/netcdf/bin",
+						"/bin",
+						"/home/wjl/software/GCC/8.4.0/lib64",
+						"/home/wjl/software/GCC/8.4.0/lib",
+						"/home/wjl/software/oneAPI/vpl/2022.2.5/lib",
+						"/home/wjl/software/oneAPI/tbb/2021.7.1/lib/intel64/gcc4.8",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/libfabric/lib",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/lib/release",
+						"/home/wjl/software/oneAPI/mpi/2021.7.1/lib",
+						"/home/wjl/software/oneAPI/mkl/2022.2.1/lib/intel64",
+						"/home/wjl/software/oneAPI/ipp/2021.6.2/lib/intel64",
+						"/home/wjl/software/oneAPI/ippcp/2021.6.2/lib/intel64",
+						"/home/wjl/software/oneAPI/dnnl/2022.2.1/cpu_dpcpp_gpu_dpcpp/lib",
+						"/home/wjl/software/oneAPI/dal/2021.7.1/lib/intel64",
+						"/home/wjl/software/oneAPI/compiler/2022.2.1/linux/compiler/lib/intel64_lin",
+						"/home/wjl/software/oneAPI/compiler/2022.2.1/linux/lib",
+						"/home/wjl/software/oneAPI/clck/2021.7.1/lib/intel64",
+						"/home/wjl/software/oneAPI/ccl/2021.7.1/lib/cpu_gpu_dpcpp",
+						"/home/wjl/usr/lib",
+						"/lib64",
+						"/home/wjl/software/GCC/8.4.0/lib/gcc/x86_64-pc-linux-gnu/8.4.0",
+						"/usr/lib64",
+						"/usr/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"ifport",
+						"ifcoremt",
+						"imf",
+						"svml",
+						"m",
+						"ipgo",
+						"irc",
+						"pthread",
+						"svml",
+						"c",
+						"gcc",
+						"gcc_s",
+						"irc_s",
+						"dl",
+						"c"
+					]
+				},
+				"path" : "/home/wjl/software/oneAPI/compiler/2022.2.1/linux/bin/intel64/ifort",
+				"version" : "2021.7.0.20221019"
+			},
+			"language" : "Fortran",
+			"sourceFileExtensions" : 
+			[
+				"f",
+				"F",
+				"fpp",
+				"FPP",
+				"f77",
+				"F77",
+				"f90",
+				"F90",
+				"for",
+				"For",
+				"FOR",
+				"f95",
+				"F95"
+			]
+		}
+	],
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 0
+	}
+}

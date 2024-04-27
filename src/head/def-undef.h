@@ -34,8 +34,8 @@
 #undef  SUPHIGH 
 #undef  DAILYACC
 #undef  DAILYBUGDET
-#define BLCKX   30
-#define BLCKY	22
+#define BLCKX   45
+#define BLCKY	37
 #define NJMT	218 
 #define NIMT	360
 #define NKM     30 
@@ -43,7 +43,7 @@
 
 #define LICOM_RES "100km"
 
-#define LICOM_ENABLE_TEST_TIME
+#undef LICOM_ENABLE_TEST_TIME
 
 #ifdef LICOM_ENABLE_TEST_TIME
 
@@ -51,7 +51,7 @@
 
 #endif
 
-#define LICOM_ENABLE_FORTRAN_COMPILER_GNU
+#define LICOM_ENABLE_FORTRAN_COMPILER_INTEL
 
 #define LICOM_ENABLE_KOKKOS
 
