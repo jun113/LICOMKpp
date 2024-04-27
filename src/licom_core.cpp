@@ -57,6 +57,8 @@ extern "C" void licom_core_() {
     printf ("In LICOM core\n");
     printf ("KM = %d, JMT = %d, IMT = %d\n",
         CppParamMod::KM, CppParamMod::JMT, CppParamMod::IMT);
+    printf ("JST = %d, JET = %d\n",
+        CppParamMod::JST, CppParamMod::JET);
     printf ("NY_BLOCK = %d, NX_BLOCK = %d\n",
         CppParamMod::NY_BLOCK, CppParamMod::NX_BLOCK);
     printf ("block ib = %d, ie = %d, jb = %d, je = %d\n",

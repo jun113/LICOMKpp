@@ -170,7 +170,7 @@ class FunctorReadyt2 {
       v_rict_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) 
           * od0_ * G * (rholo - rhoup) * v_odzt_(k+1);
     }
-    // jst = 1, jte = ny_block
+    // jst = 1, jet = ny_block
     // if (j >= (JST-1) && j < JET) {
       density(k, j, i);
     // }
@@ -224,6 +224,7 @@ class FunctorReadyt3 {
       * v_vit_(iblock, k, j, i);
 
     if (k != 0) {
+      // calculate pressure at T-grid
       v_ppb_(iblock, k, j, i) = v_vit_(iblock, k, j, i) *
           (v_at_(iblock, 0, k-1, j, i) -
           (v_at_(iblock, 0, k-1, j, i) - v_at_(iblock, 0, k, j, i)) *
@@ -234,6 +235,7 @@ class FunctorReadyt3 {
           (v_at_(iblock, 1, k-1, j, i) - v_at_(iblock, 1, k, j, i)) *
            v_dzp_(k-1) / (v_dzp_(k-1) + v_dzp_(k)));
     } else {
+      // calculate pressure at level 0 (Level 1 in Fortran)
       v_ppb_(iblock, 0, j, i) = v_at_(iblock, 0, 0, j, i) * 
           v_vit_(iblock, 0, j, i);
       v_ppc_(iblock, 0, j, i) = v_at_(iblock, 1, 0, j, i) * 
@@ -267,6 +269,7 @@ class FunctorReadyt4 {
         * v_vit_(iblock, 0, j, i);
 
     for (int k = 1; k < KM; ++k) {
+      // calculate pressure at T-grid
       v_pp_(iblock, k, j, i) = v_vit_(iblock, k, j, i) *
           (v_pp_(iblock, k-1, j, i) + 0.5 * 
           (v_gg_(iblock, k  , j, i) * v_dzp_(k) +
