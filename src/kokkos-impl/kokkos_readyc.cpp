@@ -93,7 +93,7 @@ void kokkos_readyc () {
     exit(0);
   }
   if (str_adv_momentum.find("centered") != str_adv_momentum.npos) {
-    parallel_for ("readyc_13_advection_momentum_centered_1", MDRangePolicy<Kokkos::Rank<3>>(
+    parallel_for ("readyc_13_advection_momentum_centered_2", MDRangePolicy<Kokkos::Rank<3>>(
         koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), 
             FuncAdvMomCen2());
   } else if (str_adv_momentum.find("flux") != str_adv_momentum.npos) {
@@ -162,20 +162,14 @@ void kokkos_readyc () {
   }
 #endif // BIHAR
 #endif // SMAG
-  parallel_for ("readyc_19", MDRangePolicy<Kokkos::Rank<2>> (
-      koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorReadyc19());
+  parallel_for ("readyc_18", MDRangePolicy<Kokkos::Rank<2>> (
+      koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorReadyc18());
+
+  parallel_for("readyc_19", MDRangePolicy<Kokkos::Rank<3>>
+          ({0, 0, 0}, {KM, JMT, IMT}, tile3D), FunctorReadyc19());
 
   parallel_for ("readyc_20", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc20());
-
-  parallel_for ("readyc_21", MDRangePolicy<Kokkos::Rank<2>> (
-      koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc21());
-
-  parallel_for ("readyc_22", MDRangePolicy<Kokkos::Rank<2>> (
-      koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc22());
-
-  parallel_for("readyc_23", MDRangePolicy<Kokkos::Rank<3>>
-          ({0, 0, 0}, {KM, JMT, IMT}, tile3D), FunctorReadyc23());
 
   parallel_for("readyc_24", MDRangePolicy<Kokkos::Rank<3>>
           ({0, 1, 1}, {KM, JMT-1, IMT-1}, tile3D), FunctorReadyc24());

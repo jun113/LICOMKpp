@@ -2926,11 +2926,13 @@ class FunctorReadyc10 {
             * v_wka_(iblock, k, j, i)
                 * v_vit_(iblock, k, j, i);
       }
+      double pre_ws = v_ws_(iblock, 0, j, i);
       for (int k = 1; k < KM; ++k) {
         v_ws_(iblock, k, j, i) = v_vit_(iblock, k, j, i) 
-            * (v_ws_(iblock, k-1, j, i  ) + v_dzp_(k-1) 
+            * (pre_ws + v_dzp_(k-1) 
                 * (v_work_(iblock, j, i) * v_ohbt_(iblock, j, i)
                     + v_wka_(iblock, k-1, j, i  )));
+        pre_ws = v_ws_(iblock, k, j, i);
       }
 
       v_work_(iblock, j, i) = 1.0 / (1.0 + v_h0wk(iblock, j, i)
@@ -2993,6 +2995,9 @@ class FunctorReadyc11 {
   const ViewDouble4D v_wka_  = *p_v_wka;
 };
 
+//-----------------------------------------------------------------
+// COMPUTE THE ADVECTIVE TERMS
+//-----------------------------------------------------------------
 // advection_momentum(u, v, wka, dlu, dlv, iblock)
 class FuncAdvMomCen1 {
  public:
@@ -3482,7 +3487,10 @@ class FunctorReadyc17 {
   const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
 };
 
-class FunctorReadyc19 {
+//-----------------------------------------------------------------
+// VERTICAL INTEGRATION
+//-----------------------------------------------------------------
+class FunctorReadyc18 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &j, const int &i) const {
@@ -3511,95 +3519,7 @@ class FunctorReadyc19 {
   const ViewDouble4D v_viv_  = *p_v_viv;
 };
 
-class FunctorReadyc20 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    const int iblock = 0;
-
-    // if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
-      const int kmb = v_kmu_(iblock, j, i) - 1;
-      if (kmb >= 0) {
-        v_sbcx_(iblock, j, i) = v_su_(iblock, j, i) * od0_;
-        v_sbcy_(iblock, j, i) = v_sv_(iblock, j, i) * od0_;
-      } else {
-        v_sbcx_(iblock, j, i) = 0.0;
-        v_sbcy_(iblock, j, i) = 0.0;
-      }
-    // }
-    return ;
-  }
- private:
-  const double od0_ = CppPconstMod::od0;
-  const ViewInt3D    v_kmu_   = *p_v_kmu;
-  const ViewDouble3D v_su_    = *p_v_su;
-  const ViewDouble3D v_sv_    = *p_v_sv;
-  const ViewDouble3D v_sbcx_  = *p_v_sbcx;
-  const ViewDouble3D v_sbcy_  = *p_v_sbcy;
-};
-
-class FunctorReadyc21 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    const int iblock = 0;
-
-    // if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
-      const int kmb = v_kmu_(iblock, j, i) - 1;
-      if (kmb >= 0) {
-        v_bbcx_(iblock, j, i) = c0f_ * sqrt(
-            v_up_(iblock, kmb, j, i) * v_up_(iblock, kmb, j, i)
-          + v_vp_(iblock, kmb, j, i) * v_vp_(iblock, kmb, j, i))
-         * (v_up_(iblock, kmb, j, i) * cag_ + v_snlat_(iblock, j, i) 
-          * v_vp_(iblock, kmb, j, i) * sag_);
-           
-        v_bbcy_(iblock, j, i) = c0f_ * sqrt(
-            v_up_(iblock, kmb, j, i) * v_up_(iblock, kmb, j, i)
-          + v_vp_(iblock, kmb, j, i) * v_vp_(iblock, kmb, j, i))
-         * (-v_snlat_(iblock, j, i) * v_up_(iblock, kmb, j, i) * sag_ 
-              + v_vp_(iblock, kmb, j, i) * cag_);
-      } else {
-        v_bbcx_(iblock, j, i) = 0.0;
-        v_bbcy_(iblock, j, i) = 0.0;
-      }
-    return ;
-  }
- private:
-  const double c0f_ = CppPconstMod::c0f;
-  const double cag_ = CppPconstMod::cag;
-  const double sag_ = CppPconstMod::sag;
-  const ViewInt3D    v_kmu_   = *p_v_kmu;
-  const ViewDouble3D v_bbcx_  = *p_v_bbcx;
-  const ViewDouble3D v_bbcy_  = *p_v_bbcy;
-  const ViewDouble3D v_snlat_ = *p_v_snlat;
-  const ViewDouble4D v_up_    = *p_v_up;
-  const ViewDouble4D v_vp_    = *p_v_vp;
-};
-
-class FunctorReadyc22 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    const int iblock = 0;
-    // if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
-      v_dlub_(iblock, j, i) += (v_sbcx_(iblock, j, i) - v_bbcx_(iblock, j, i))
-          * v_ohbu_(iblock, j, i);
-      v_dlvb_(iblock, j, i) += (v_sbcy_(iblock, j, i) - v_bbcy_(iblock, j, i))
-          * v_ohbu_(iblock, j, i);
-    // }
-    return ;
-  }
- private:
-  const ViewDouble3D v_sbcx_ = *p_v_sbcx;
-  const ViewDouble3D v_sbcy_ = *p_v_sbcy;
-  const ViewDouble3D v_bbcx_ = *p_v_bbcx;
-  const ViewDouble3D v_bbcy_ = *p_v_bbcy;
-  const ViewDouble3D v_ohbu_ = *p_v_ohbu;
-  const ViewDouble3D v_dlub_ = *p_v_dlub;
-  const ViewDouble3D v_dlvb_ = *p_v_dlvb;
-};
-
-class FunctorReadyc23 {
+class FunctorReadyc19 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
@@ -3614,6 +3534,47 @@ class FunctorReadyc23 {
   const ViewDouble4D v_up_  = *p_v_up;
   const ViewDouble4D v_vp_  = *p_v_vp;
   const ViewDouble4D v_wka_ = *p_v_wka;
+};
+
+class FunctorReadyc20 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &j, const int &i) const {
+    const int iblock = 0;
+    double sbcx(0.0), sbcy(0.0), bbcx(0.0), bbcy(0.0);
+
+    const int kmb = v_kmu_(iblock, j, i) - 1;
+
+    if (kmb >= 0) {
+      sbcx = v_su_(iblock, j, i) * od0_;
+      sbcy = v_sv_(iblock, j, i) * od0_;
+      bbcx = v_wka_(iblock, kmb, j, i) * (
+          v_up_(iblock, kmb, j, i) * cag_ + v_snlat_(iblock, j, i) 
+        * v_vp_(iblock, kmb, j, i) * sag_);
+         
+      bbcy = v_wka_(iblock, kmb, j, i) * (- v_snlat_(iblock, j, i) 
+          * v_up_(iblock, kmb, j, i) * sag_ 
+          + v_vp_(iblock, kmb, j, i) * cag_);
+    }
+    v_dlub_(iblock, j, i) += (sbcx - bbcx) * v_ohbu_(iblock, j, i);
+    v_dlvb_(iblock, j, i) += (sbcy - bbcy) * v_ohbu_(iblock, j, i);
+    return ;
+  }
+ private:
+  const double od0_ = CppPconstMod::od0;
+  const double c0f_ = CppPconstMod::c0f;
+  const double cag_ = CppPconstMod::cag;
+  const double sag_ = CppPconstMod::sag;
+  const ViewInt3D    v_kmu_   = *p_v_kmu;
+  const ViewDouble3D v_su_    = *p_v_su;
+  const ViewDouble3D v_sv_    = *p_v_sv;
+  const ViewDouble3D v_snlat_ = *p_v_snlat;
+  const ViewDouble4D v_up_    = *p_v_up;
+  const ViewDouble4D v_vp_    = *p_v_vp;
+  const ViewDouble4D v_wka_   = *p_v_wka;
+  const ViewDouble3D v_ohbu_  = *p_v_ohbu;
+  const ViewDouble3D v_dlub_  = *p_v_dlub;
+  const ViewDouble3D v_dlvb_  = *p_v_dlvb;
 };
 
 class FunctorReadyc24 {
@@ -3929,11 +3890,9 @@ KOKKOS_REGISTER_FOR_3D(FunctorReadyc14, FunctorReadyc14)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc15, FunctorReadyc15)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc16, FunctorReadyc16)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc17, FunctorReadyc17)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc19, FunctorReadyc19)
+KOKKOS_REGISTER_FOR_2D(FunctorReadyc18, FunctorReadyc18)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc19, FunctorReadyc19)
 KOKKOS_REGISTER_FOR_2D(FunctorReadyc20, FunctorReadyc20)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc21, FunctorReadyc21)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc22, FunctorReadyc22)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc23, FunctorReadyc23)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc24, FunctorReadyc24)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc25, FunctorReadyc25)
 
