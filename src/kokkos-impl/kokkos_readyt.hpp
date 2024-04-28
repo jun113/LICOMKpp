@@ -25,14 +25,14 @@
 
 #include "math.h"
 
-using CppParamMod::MAX_BLOCKS_CLINIC;
-using CppParamMod::KMP1;
+// using CppParamMod::MAX_BLOCKS_CLINIC;
+// using CppParamMod::KMP1;
 using CppParamMod::KMM1;
 using CppParamMod::KM;
 using CppParamMod::JMT;
 using CppParamMod::IMT;
-using CppParamMod::JMT_GLOBAL;
-using CppParamMod::IMT_GLOBAL;
+// using CppParamMod::JMT_GLOBAL;
+// using CppParamMod::IMT_GLOBAL;
 using CppParamMod::NX_BLOCK;
 using CppParamMod::NY_BLOCK;
 using CppParamMod::NTRA;
@@ -69,8 +69,8 @@ using KokkosForcMod::p_v_buoysol;
 // using KokkosGrid::p_v_auw;
 // using KokkosGrid::p_v_ausw;
 using KokkosGrid::p_v_kmu;
-using KokkosGrid::p_v_dxur;
-using KokkosGrid::p_v_dyur;
+// using KokkosGrid::p_v_dxur;
+// using KokkosGrid::p_v_dyur;
 using KokkosGrid::p_v_dxyur;
 
 using KokkosPconstMod::p_v_c;
@@ -298,6 +298,10 @@ class FunctorReadyt5 {
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
     const int iblock = 0;
+    // calculate the thermal expansion and the salinity contraction at T-grid
+    // PP in negative in model
+    // in PP a OD0 is mutilped and should be divided
+    // PP is in Pa to tranform to db by divided 10000.
     thermal(k, j, i, v_ppb_, v_ppc_, v_ppa_, 
         v_alpha_, v_beta_, v_vit_);
     v_gg_(iblock, k, j, i) = - od0_ * G *
@@ -359,6 +363,7 @@ class FunctorReadyt5 {
   const ViewDouble4D v_pdensity_ = *p_v_pdensity;
 };
 
+// calculate the T component minus S component of B-V frequency at T-grid
 class FunctorReadyt6 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -403,6 +408,10 @@ class FunctorReadyt6 {
   const ViewDouble4D v_beta_canuto_  = *p_v_beta_canuto;
 #endif // CANUTOMIXOUT
 };
+
+//   --------------------------------------------------------------
+//   COMPUTING HORIZONTAL GRADIENT OF BAROCLINIC PRESSURE
+//   --------------------------------------------------------------
 class FunctorReadyt7 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -461,6 +470,9 @@ class FunctorReadyt8 {
   const ViewDouble4D v_vit_     = *p_v_vit;
   const ViewDouble4D v_alpha_   = *p_v_alpha;
 };
+// --------------------------------------------------------------
+// COMPUTING VERTICALLY INTEGRATED GRADIENT OF BAROCLINIC PRESSURE
+// --------------------------------------------------------------
 class FunctorReadyt9 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -503,13 +515,12 @@ class FunctorReadyt10 {
       v_dlu_(iblock, 0, j, i) += abcd;
       v_dlu_(iblock, 1, j, i) += abcd * v_zkt_(k);
     }
-    for (int k = 0; k < KM; ++k) {
-      v_dlv_(iblock, 0, j, i) = (v_dlu_(iblock, 0, j, i) 
-          + v_dlu_(iblock, 1, j, i)
-              * v_ohbt_(iblock, j, i)) / G;
-      v_dlv_(iblock, 1, j, i) = v_dlu_(iblock, 1, j, i) 
-          * v_ohbt_(iblock, j, i) * v_ohbt_(iblock, j, i);
-    }
+
+    v_dlv_(iblock, 0, j, i) = (v_dlu_(iblock, 0, j, i) 
+        + v_dlu_(iblock, 1, j, i)
+            * v_ohbt_(iblock, j, i)) / G;
+    v_dlv_(iblock, 1, j, i) = v_dlu_(iblock, 1, j, i) 
+        * v_ohbt_(iblock, j, i) * v_ohbt_(iblock, j, i);
     return ;
   }
  private:
@@ -552,10 +563,10 @@ class FunctorReadyt11 {
            + v_tgrid(iblock, n, j  , i-1)
            + v_tgrid(iblock, n, j+1, i-1));
     // } else {
-    //   v_ugrid(iblock, j, i) = 0;
+    //   v_ugrid(iblock, j, i) = 0.0;
     }
     if (i == 0 || j == (NY_BLOCK-1)) {
-      v_ugrid(iblock, j, i) = 0;
+      v_ugrid(iblock, j, i) = C0;
     }
     return ;
   }
