@@ -4,15 +4,15 @@
 
 #include "kokkos_readyt.hpp"
 
-using CppDomain::nblocks_clinic;
-using CppParamMod::MAX_BLOCKS_CLINIC;
-using CppParamMod::KMM1;
-using CppParamMod::KM;
-using CppParamMod::JMT;
-using CppParamMod::IMT;
-using CppParamMod::NTRA;
-using CppParamMod::JST;
-using CppParamMod::JET;
+// using CppDomain::nblocks_clinic;
+// using CppParamMod::MAX_BLOCKS_CLINIC;
+// using CppParamMod::KMM1;
+// using CppParamMod::KM;
+// using CppParamMod::JMT;
+// using CppParamMod::IMT;
+// using CppParamMod::NTRA;
+// using CppParamMod::JST;
+// using CppParamMod::JET;
 
 void kokkos_readyt() {
 
@@ -91,35 +91,6 @@ void kokkos_readyt() {
   parallel_for ("readyt_13", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}), FunctorReadyt13());
 
-
-  // if (CppParamMod::mytid == 0) {
-  //   std::cout<<"FunctorReadyt1: "<<sizeof(FunctorReadyt1)<<" "<< \
-  //       (sizeof(FunctorReadyt1)<(unsigned int)(0x001000))<<std::endl;
-  //   std::cout<<"FunctorReadyt2: "<<sizeof(FunctorReadyt2)<<" "<< \
-  //       (sizeof(FunctorReadyt2)<(unsigned int)(0x001000))<<std::endl;
-  //   std::cout<<"FunctorReadyt3: "<<sizeof(FunctorReadyt3)<<" "<< \
-  //       (sizeof(FunctorReadyt3)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt4: "<<sizeof(FunctorReadyt4)<<" "<< \
-  //       (sizeof(FunctorReadyt4)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt5: "<<sizeof(FunctorReadyt5)<<" "<< \
-  //       (sizeof(FunctorReadyt5)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt6: "<<sizeof(FunctorReadyt6)<<" "<< \
-  //       (sizeof(FunctorReadyt6)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt7: "<<sizeof(FunctorReadyt7)<<" "<< \
-  //       (sizeof(FunctorReadyt7)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt8: "<<sizeof(FunctorReadyt8)<<" "<< \
-  //       (sizeof(FunctorReadyt8)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt9: "<<sizeof(FunctorReadyt9)<<" "<< \
-  //       (sizeof(FunctorReadyt9)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt10: "<<sizeof(FunctorReadyt10)<<" "<< \
-  //       (sizeof(FunctorReadyt10)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt11: "<<sizeof(FunctorReadyt11)<<" "<< \
-  //       (sizeof(FunctorReadyt11)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt12: "<<sizeof(FunctorReadyt12)<<" "<< \
-  //       (sizeof(FunctorReadyt12)<(unsigned int)0x001000)<<std::endl;
-  //   std::cout<<"FunctorReadyt13: "<<sizeof(FunctorReadyt13)<<" "<< \
-  //       (sizeof(FunctorReadyt13)<(unsigned int)0x001000)<<std::endl;
-  // }
   return ;
 }
 #endif // LICOM_ENABLE_KOKKOS

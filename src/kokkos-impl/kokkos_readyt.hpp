@@ -19,31 +19,22 @@
 
 #include "../head/kokkos_config.hpp"
 
-#include "../head/fortran_extern_functions.h"
-
 #include "Kokkos_Core.hpp"
 
 #include "math.h"
 
-// using CppParamMod::MAX_BLOCKS_CLINIC;
-// using CppParamMod::KMP1;
 using CppParamMod::KMM1;
 using CppParamMod::KM;
 using CppParamMod::JMT;
 using CppParamMod::IMT;
-// using CppParamMod::JMT_GLOBAL;
-// using CppParamMod::IMT_GLOBAL;
 using CppParamMod::NX_BLOCK;
 using CppParamMod::NY_BLOCK;
 using CppParamMod::NTRA;
-using CppParamMod::JST;
-using CppParamMod::JET;
 
 using CppConstantMod::P5;
 using CppConstantMod::P25;
 using CppConstantMod::C0;
 using CppConstantMod::G;
-
 
 using KokkosDynMod::p_v_dlu;
 using KokkosDynMod::p_v_dlv;
@@ -64,13 +55,7 @@ using KokkosForcMod::p_v_nswv;
 using KokkosForcMod::p_v_buoytur;
 using KokkosForcMod::p_v_buoysol;
 
-// using KokkosGrid::p_v_au0;
-// using KokkosGrid::p_v_aus;
-// using KokkosGrid::p_v_auw;
-// using KokkosGrid::p_v_ausw;
 using KokkosGrid::p_v_kmu;
-// using KokkosGrid::p_v_dxur;
-// using KokkosGrid::p_v_dyur;
 using KokkosGrid::p_v_dxyur;
 
 using KokkosPconstMod::p_v_c;
@@ -92,12 +77,10 @@ using KokkosPconstMod::p_v_alpha_canuto;
 using KokkosPconstMod::p_v_beta_canuto;
 #endif // CANUTOMIXOUT
 
-// using KokkosPmixMod::p_v_ric;
 using KokkosPmixMod::p_v_rit;
 using KokkosPmixMod::p_v_rict;
 using KokkosPmixMod::p_v_ricdt;
 using KokkosPmixMod::p_v_ricdttms;
-// using KokkosPmixMod::p_v_rict_replace;
 
 using KokkosWorkMod::p_v_pax;
 using KokkosWorkMod::p_v_pay;
@@ -108,9 +91,6 @@ using KokkosWorkMod::p_v_why;
 using KokkosWorkMod::p_v_wgp;
 using KokkosWorkMod::p_v_work;
 
-using KokkosTracerMod::p_v_ax;
-using KokkosTracerMod::p_v_ay;
-using KokkosTracerMod::p_v_az;
 using KokkosTracerMod::p_v_at;
 using KokkosTracerMod::p_v_atb;
 using KokkosTracerMod::p_v_pdensity;
@@ -123,7 +103,6 @@ using KokkosTmpVar::p_v_work1;
 using KokkosTmpVar::p_v_work2;
 using KokkosTmpVar::p_v_alpha;
 using KokkosTmpVar::p_v_beta;
-
 
 class FunctorReadyt1 {
  public:
