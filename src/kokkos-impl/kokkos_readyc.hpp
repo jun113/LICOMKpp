@@ -56,39 +56,13 @@
 #include <cstdlib>
 #include <string>
 
-
-#include "../head/cpp_blocks.h"
-#include "../head/cpp_canuto_mod.h"
-#include "../head/cpp_constant_mod.h"
-#include "../head/cpp_domain.h"
-#include "../head/cpp_dyn_mod.h"
-#include "../head/cpp_forc_mod.h"
-#include "../head/cpp_grid.h"
-#include "../head/cpp_hmix_del2.h"
-#include "../head/cpp_hmix_del4.h"
-#include "../head/cpp_param_mod.h"
-#include "../head/cpp_pconst_mod.h"
-#include "../head/cpp_pmix_mod.h"
-#include "../head/cpp_tracer_mod.h"
-#include "../head/cpp_work_mod.h"
-#include "../head/fortran_blocks.h"
-#include "../head/fortran_canuto_mod.h"
-
-#include "../head/cpp_extern_functions.h"
-#include "../head/fortran_extern_functions.h"
-using CppDomain  ::nblocks_clinic;
 using CppParamMod::mytid;
 using CppParamMod::KM;
 using CppParamMod::JMT;
 using CppParamMod::IMT;
-using CppParamMod::JST;
-using CppParamMod::JET;
 using CppParamMod::KMM1;
-using CppParamMod::KMP1;
-using CppParamMod::NTRA;
 using CppParamMod::NX_BLOCK;
 using CppParamMod::NY_BLOCK;
-using CppParamMod::MAX_BLOCKS_CLINIC;
 
 using CppConstantMod::C0;
 using CppConstantMod::P5;
@@ -131,28 +105,17 @@ using KokkosDynMod::    p_v_v;
 using KokkosDynMod::    p_v_up;
 using KokkosDynMod::    p_v_vp;
 using KokkosDynMod::    p_v_ws;
-using KokkosDynMod::    p_v_bbcx;
-using KokkosDynMod::    p_v_bbcy;
-using KokkosDynMod::    p_v_sbcx;
-using KokkosDynMod::    p_v_sbcy;
 using KokkosForcMod::   p_v_buoysol;
 using KokkosForcMod::   p_v_buoytur;
 using KokkosForcMod::   p_v_su;
 using KokkosForcMod::   p_v_sv;
-//using KokkosForcMod::   p_v_ustar;
 using KokkosForcMod::   p_v_wave_dis;
-// using KokkosGrid::      p_v_au0;
-// using KokkosGrid::      p_v_aus;
-// using KokkosGrid::      p_v_auw;
-// using KokkosGrid::      p_v_ausw;
 using KokkosGrid::      p_v_at0;
 using KokkosGrid::      p_v_atn;
 using KokkosGrid::      p_v_ate;
 using KokkosGrid::      p_v_atne;
 using KokkosGrid::      p_v_dxu;
 using KokkosGrid::      p_v_dyu;
-using KokkosGrid::      p_v_dxur;
-using KokkosGrid::      p_v_dyur;
 using KokkosGrid::      p_v_dxyur;
 using KokkosGrid::      p_v_hue;
 using KokkosGrid::      p_v_hun;
@@ -184,15 +147,10 @@ using KokkosPconstMod:: p_v_so;
 using KokkosPconstMod:: p_v_snlat;
 using KokkosPconstMod:: p_v_wp3_tidal;
 using KokkosPconstMod:: p_v_zkp;
-// using KokkosPmixMod::   p_v_ric;
-// using KokkosPmixMod::   p_v_riu;
 using KokkosPmixMod::   p_v_rit;
 using KokkosPmixMod::   p_v_rict;
-// using KokkosPmixMod::   p_v_rict_ref;
-// using KokkosPmixMod::   p_v_ridt;
 using KokkosPmixMod::   p_v_ricdttms;
 using KokkosPmixMod::   p_v_s2t;
-// using KokkosPmixMod::   p_v_s2u;
 using KokkosTracerMod:: p_v_amld;
 using KokkosTracerMod:: p_v_at;
 using KokkosTracerMod:: p_v_pdensity;
@@ -203,17 +161,6 @@ using KokkosWorkMod::   p_v_wkb;
 using KokkosWorkMod::   p_v_work;
 #ifdef BIHAR
 using KokkosHmixDel4::  p_v_amf;
-using KokkosHmixDel4::  p_v_duc;
-using KokkosHmixDel4::  p_v_dum;
-using KokkosHmixDel4::  p_v_dun;
-using KokkosHmixDel4::  p_v_dus;
-using KokkosHmixDel4::  p_v_due;
-using KokkosHmixDel4::  p_v_duw;
-using KokkosHmixDel4::  p_v_dmc;
-using KokkosHmixDel4::  p_v_dmn;
-using KokkosHmixDel4::  p_v_dms;
-using KokkosHmixDel4::  p_v_dme;
-using KokkosHmixDel4::  p_v_dmw;
 
 using KokkosHmixDel4::  p_v_du_cnsewm;
 using KokkosHmixDel4::  p_v_dm_cnsew;
@@ -231,12 +178,9 @@ using KokkosHmixDel2::  p_v_dme;
 using KokkosHmixDel2::  p_v_dmw;
 #endif // BIHAR
 
-using KokkosTmpVar::p_v_cc;
 using KokkosTmpVar::p_v_curl;
 using KokkosTmpVar::p_v_wp12;
 using KokkosTmpVar::p_v_wp13;
-using KokkosTmpVar::p_v_riv1;
-using KokkosTmpVar::p_v_riv2;
 using KokkosTmpVar::p_v_d2uk;
 using KokkosTmpVar::p_v_d2vk;
 using KokkosTmpVar::p_v_uv_ws_face;
@@ -3577,43 +3521,41 @@ class FunctorReadyc20 {
   const ViewDouble3D v_dlvb_  = *p_v_dlvb;
 };
 
-class FunctorReadyc24 {
+class FunctorReadyc21 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
     const int iblock = 0;
     // d0 = 1026.0D0, od0 = 1 / d0
-    const double od0 = 1 / 1026.0;
-    // if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
-      // const double aidif = 0.5;
-      // aidifm1 = 1.0 - aidif
-      const double aidifm1 = 0.5;
-      double diff_u1, diff_u2;
-      if (k == 0) {
-        diff_u1 = v_su_(iblock, j, i) * od0 * aidifm1;
-      } else {
-        diff_u1 = v_akmu_(iblock, k-1, j, i  ) * aidifm1 
-            * (v_up_(iblock, k-1, j, i  ) - v_up_(iblock, k, j, i)) 
-            * v_odz_pt_(k, 1) * v_viv_(iblock, k, j, i) 
-            + (1.0 - v_viv_(iblock, k, j, i)) 
-            * v_wka_(iblock, k-1, j, i  ) * aidifm1 
-            * (v_up_(iblock, k-1, j, i  ) * cag_ + v_snlat_(iblock, j, i) 
-            * v_vp_(iblock, k-1, j, i  ) * sag_);
-      }
-      if (k == KM-1) {
-        diff_u2 = v_wka_(iblock, k, j, i) * (v_up_(iblock, k, j, i) * cag_ 
-            + v_snlat_(iblock, j, i) * v_vp_(iblock, k, j, i) * sag_) 
-            * aidifm1;
-      } else {
-        diff_u2 = v_akmu_(iblock, k, j, i) * aidifm1 
-            * (v_up_(iblock, k, j, i) - v_up_(iblock, k+1, j, i)) 
-            * v_odz_pt_(k+1, 1) * v_viv_(iblock, k+1, j, i) 
-            + (1.0 - v_viv_(iblock, k+1, j, i)) * v_wka_(iblock, k, j, i) 
-            * aidifm1 * (v_up_(iblock, k, j, i) * cag_ 
-            + v_snlat_(iblock, j, i) * v_vp_(iblock, k, j, i) * sag_);
-      }
-      v_dlu_(iblock, k, j, i) += v_odz_pt_(k, 0) * (diff_u1 - diff_u2);
-    // }
+    const double od0 = 1.0 / 1026.0;
+    // const double aidif = 0.5;
+    // aidifm1 = 1.0 - aidif
+    const double aidifm1 = 0.5;
+    double diff_u1, diff_u2;
+    if (k == 0) {
+      diff_u1 = v_su_(iblock, j, i) * od0 * aidifm1;
+    } else {
+      diff_u1 = v_akmu_(iblock, k-1, j, i) * aidifm1 
+          * (v_up_(iblock, k-1, j, i) - v_up_(iblock, k, j, i)) 
+          * v_odz_pt_(k, 1) * v_viv_(iblock, k, j, i) 
+          + (1.0 - v_viv_(iblock, k, j, i)) 
+          * v_wka_(iblock, k-1, j, i) * aidifm1 
+          * (v_up_(iblock, k-1, j, i) * cag_ + v_snlat_(iblock, j, i) 
+          * v_vp_(iblock, k-1, j, i) * sag_);
+    }
+    if (k == KM-1) {
+      diff_u2 = v_wka_(iblock, k, j, i) * (v_up_(iblock, k, j, i) * cag_ 
+          + v_snlat_(iblock, j, i) * v_vp_(iblock, k, j, i) * sag_) 
+          * aidifm1;
+    } else {
+      diff_u2 = v_akmu_(iblock, k, j, i) * aidifm1 
+          * (v_up_(iblock, k, j, i) - v_up_(iblock, k+1, j, i)) 
+          * v_odz_pt_(k+1, 1) * v_viv_(iblock, k+1, j, i) 
+          + (1.0 - v_viv_(iblock, k+1, j, i)) * v_wka_(iblock, k, j, i) 
+          * aidifm1 * (v_up_(iblock, k, j, i) * cag_ 
+          + v_snlat_(iblock, j, i) * v_vp_(iblock, k, j, i) * sag_);
+    }
+    v_dlu_(iblock, k, j, i) += v_odz_pt_(k, 0) * (diff_u1 - diff_u2);
     return ;
   }
  private:
@@ -3629,42 +3571,40 @@ class FunctorReadyc24 {
   const ViewDouble4D v_wka_     = *p_v_wka;
   const ViewDouble4D v_akmu_    = *p_v_akmu;
 };
-class FunctorReadyc25 {
+class FunctorReadyc22 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
     const int iblock = 0;
-    const double od0 = 1 / 1026.0;
-    // if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
-      // const double aidif = 0.5;
-      // aidifm1 = 1.0 - aidif
-      const double aidifm1 = 0.5;
-      double diff_v1, diff_v2;
-      if (k == 0) {
-        diff_v1 = v_sv_(iblock, j, i) * od0 * aidifm1;
-      } else {
-        diff_v1 = v_akmu_(iblock, k-1, j, i  ) * aidifm1 
-            * (v_vp_(iblock, k-1, j, i  ) - v_vp_(iblock, k, j, i)) 
-            * v_odz_pt_(k, 1) * v_viv_(iblock, k, j, i) 
-            + (1.0 - v_viv_(iblock, k, j, i)) 
-            * v_wka_(iblock, k-1, j, i  ) * aidifm1 
-            * (-v_snlat_(iblock, j, i) * v_up_(iblock, k-1, j, i  ) 
-            * sag_ + v_vp_(iblock, k-1, j, i  ) * cag_);
-      }
-      if (k == KM-1) {
-        diff_v2 = v_wka_(iblock, k, j, i) * (-v_snlat_(iblock, j, i) 
-            * v_up_(iblock, k, j, i) * sag_ 
-            + v_vp_(iblock, k, j, i) * cag_) * aidifm1;
-      } else {
-        diff_v2 = v_akmu_(iblock, k, j, i) * aidifm1 * 
-            (v_vp_(iblock, k, j, i) - v_vp_(iblock, k+1, j, i)) 
-            * v_odz_pt_(k+1, 1) * v_viv_(iblock, k+1, j, i) 
-            + (1.0 - v_viv_(iblock, k+1, j, i)) * v_wka_(iblock, k, j, i) 
-            * aidifm1 * (-v_snlat_(iblock, j, i) 
-            * v_up_(iblock, k, j, i) * sag_ + v_vp_(iblock, k, j, i) * cag_);
-      }
-      v_dlv_(iblock, k, j, i) += v_odz_pt_(k, 0) * (diff_v1 - diff_v2);
-    // }
+    const double od0 = 1.0 / 1026.0;
+    // const double aidif = 0.5;
+    // aidifm1 = 1.0 - aidif
+    const double aidifm1 = 0.5;
+    double diff_v1, diff_v2;
+    if (k == 0) {
+      diff_v1 = v_sv_(iblock, j, i) * od0 * aidifm1;
+    } else {
+      diff_v1 = v_akmu_(iblock, k-1, j, i) * aidifm1 
+          * (v_vp_(iblock, k-1, j, i) - v_vp_(iblock, k, j, i)) 
+          * v_odz_pt_(k, 1) * v_viv_(iblock, k, j, i) 
+          + (1.0 - v_viv_(iblock, k, j, i)) 
+          * v_wka_(iblock, k-1, j, i) * aidifm1 
+          * (- v_snlat_(iblock, j, i) * v_up_(iblock, k-1, j, i) 
+          * sag_ + v_vp_(iblock, k-1, j, i) * cag_);
+    }
+    if (k == KM-1) {
+      diff_v2 = v_wka_(iblock, k, j, i) * (- v_snlat_(iblock, j, i) 
+          * v_up_(iblock, k, j, i) * sag_ 
+          + v_vp_(iblock, k, j, i) * cag_) * aidifm1;
+    } else {
+      diff_v2 = v_akmu_(iblock, k, j, i) * aidifm1 * 
+          (v_vp_(iblock, k, j, i) - v_vp_(iblock, k+1, j, i)) 
+          * v_odz_pt_(k+1, 1) * v_viv_(iblock, k+1, j, i) 
+          + (1.0 - v_viv_(iblock, k+1, j, i)) * v_wka_(iblock, k, j, i) 
+          * aidifm1 * (-v_snlat_(iblock, j, i) 
+          * v_up_(iblock, k, j, i) * sag_ + v_vp_(iblock, k, j, i) * cag_);
+    }
+    v_dlv_(iblock, k, j, i) += v_odz_pt_(k, 0) * (diff_v1 - diff_v2);
     return ;
   }
  private:
@@ -3681,190 +3621,6 @@ class FunctorReadyc25 {
   const ViewDouble4D v_akmu_  = *p_v_akmu;
 };
 //===========================
-
-
-#ifdef BCKMEX
-class functor_readyc_7 {
- public:
-  functor_readyc_7(
-      const ViewDouble3D &v_diff_back,
-      const ViewDouble3D &v_diff_back_sh,
-      const ViewDouble3D &v_diff_back_nh) 
-      : v_diff_back_(v_diff_back), v_diff_back_sh_(v_diff_back_sh),
-          v_diff_back_nh_(v_diff_back_nh) {}
-  KOKKOS_INLINE_FUNCTION void
-      operator() (const int &j, const int &i) const {
-    const int iblock = 0;
-    v_diff_back_(iblock, j, i) = 0.0;
-    v_diff_back_sh_(iblock, j, i) = 0.0;
-    v_diff_back_nh_(iblock, j, i) = 0.0;
-    return ;
-  };
-
- private:
-  const ViewDouble3D v_diff_back_;
-  const ViewDouble3D v_diff_back_sh_;
-  const ViewDouble3D v_diff_back_nh_;
-};
-
-class functor_readyc_8 {
- public:
-  functor_readyc_8(
-      const ViewDouble3D &v_diff_back,
-      const ViewDouble3D &v_diff_back_sh,
-      const ViewDouble3D &v_diff_back_nh) 
-      : v_diff_back_(v_diff_back), v_diff_back_sh_(v_diff_back_sh),
-          v_diff_back_nh_(v_diff_back_nh) {}
-  KOKKOS_INLINE_FUNCTION void
-      operator() (const int &j, const int &i) const {
-    const int iblock = 0;
-    if (v_tlat_(iblock, j, i) < 0.0) {
-      v_diff_back_sh_(iblock, j, i) = diff_back_coef_max_ * 
-          exp(-pow(0.4e0 * (v_tlat_(iblock, j, i) / DEGtoRAD + 28.9), 2); 
-    } else {
-      v_diff_back_nh_(iblock, j, i) = diff_back_coef_max_ * 
-          exp(-pow(0.4e0 * (v_tlat_(iblock, j, i) / DEGtoRAD - 28.9), 2);
-    }
-    v_diff_back_(iblock, j, i) = diff_back_eq_ + 
-        v_diff_back_sh_(iblock, j, i) + v_diff_back_nh_(iblock, j, i);
-
-    if (v_tlat_(iblock, j, i) < -10.0 * DEGtoRAD) {
-      v_diff_back_(iblock, j, i) += diff_back_coef_;
-    } else if (fabs(v_tlat_(iblock, j, i)) <= 10.0 * DEGtoRAD) {
-      v_diff_back_(iblock, j, i) += diff_back_coef_ *
-          pow((fabs(v_tlat_(iblock, j, i) / DEGtoRAD) / 10.0), 2);
-    } else {
-      v_diff_back_(iblock, j, i) += diff_back_coef_;
-    }
-    return ;
-  };
- private:
-  const double diff_back_eq_ = diff_back_eq;
-  const double diff_back_coef_max_ = diff_back_coef_max;
-  const double diff_back_coef_ = diff_back_coef;
-  const ViewDouble3D v_tlat_ = *p_v_tlat;
-  const ViewDouble3D v_diff_back_;
-  const ViewDouble3D v_diff_back_sh_;
-  const ViewDouble3D v_diff_back_nh_;
-};
-#endif // BCKMEX
-
-#ifndef SMAG
-// class functor_readyc_15 {
-//  public:
-//   functor_readyc_15(const int &k, const int &iblock)
-//     : k_(k), iblock_(iblock) {}
-//   KOKKOS_INLINE_FUNCTION void operator() 
-//       (const int &j, const int &i) const {
-//     v_dlu_(i, j, k_, iblock_) += v_hduk_(j, i);
-//     v_dlv_(i, j, k_, iblock_) += v_hdvk_(j, i);
-//     return ;
-//   };
-//  private:
-//   const int k_, iblock_;
-//   const ViewDouble2D v_hduk_ = *p_v_hduk;
-//   const ViewDouble2D v_hdvk_ = *p_v_hdvk;
-//   const ViewDouble4D v_dlu_  = *p_v_dlu;
-//   const ViewDouble4D v_dlv_  = *p_v_dlv;
-// };
-#endif // SMAG
-
-#ifdef SMAG
-  // call smag2(k);
-//------------------
-#ifdef SMAG_FZ
-#else  // SMAG_FZ
-#endif // SMAG_FZ
-//-----------------
-#else // SMAG
-#ifdef BIHAR
-#else // BIHAR
-// hdiffu_del2(k, hduk, hdvk, up[iblock][k], vp[iblock][k], this_block)
-class functor_readyc_hdiffu_del2_1 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator() 
-      (const int &j, const int &i) const {
-    v_hduk_(j, i) = C0;
-    v_hdvk_(j, i) = C0;
-    return ;
-  };
- private:
-  const ViewDouble2D v_hduk_ = *p_v_hduk;
-  const ViewDouble2D v_hdvk_ = *p_v_hdvk;
-};
-class functor_readyc_hdiffu_del2_2 {
- public:
-  functor_readyc_hdiffu_del2_2(const int &k, const int &iblock)
-    : k_(k), iblock_(iblock) {}
-  KOKKOS_INLINE_FUNCTION void operator() 
-      (const int &j, const int &i) const {
-    const int bid = 0;
-    const double cc = v_duc_(bid, j, i) + v_dum_(bid, j, i);
-    v_hduk_(j, i) = am_ * ((cc * v_up_(i  , j  , k_, iblock_)
-           + v_dun_(bid, j, i) * v_up_(i  , j-1, k_, iblock_)
-           + v_dus_(bid, j, i) * v_up_(i  , j+1, k_, iblock_)
-           + v_due_(bid, j, i) * v_up_(i+1, j  , k_, iblock_)
-           + v_duw_(bid, j, i) * v_up_(i-1, j  , k_, iblock_))
-          + (v_dmc_(bid, j, i) * v_vp_(i  , j  , k_, iblock_)
-           + v_dmn_(bid, j, i) * v_vp_(i  , j-1, k_, iblock_)
-           + v_dms_(bid, j, i) * v_vp_(i  , j+1, k_, iblock_)
-           + v_dme_(bid, j, i) * v_vp_(i+1, j  , k_, iblock_)
-           + v_dmw_(bid, j, i) * v_vp_(i-1, j  , k_, iblock_))
-               * v_viv_(i, j, k_, bid));
-    v_hdvk_(j, i) = am_ * ((cc * v_vp_(i  , j  , k_, iblock_)
-           + v_dun_(bid, j, i) * v_vp_(i  , j-1, k_, iblock_)
-           + v_dus_(bid, j, i) * v_vp_(i  , j+1, k_, iblock_)
-           + v_due_(bid, j, i) * v_vp_(i+1, j  , k_, iblock_)
-           + v_duw_(bid, j, i) * v_vp_(i-1, j  , k_, iblock_))
-          + (v_dmc_(bid, j, i) * v_up_(i  , j  , k_, iblock_)
-           + v_dmn_(bid, j, i) * v_up_(i  , j-1, k_, iblock_)
-           + v_dms_(bid, j, i) * v_up_(i  , j+1, k_, iblock_)
-           + v_dme_(bid, j, i) * v_up_(i+1, j  , k_, iblock_)
-           + v_dmw_(bid, j, i) * v_up_(i-1, j  , k_, iblock_))
-               * v_viv_(i, j, k_, bid));
-    return ;
-  };
- private:
-  const int k_, iblock_;
-  const double am_ = CppHmixDel2::am;
-  const ViewDouble2D v_hduk_ = *p_v_hduk;
-  const ViewDouble2D v_hdvk_ = *p_v_hdvk;
-  const ViewDouble3D v_dun_ = *p_v_dun;
-  const ViewDouble3D v_dus_ = *p_v_dus;
-  const ViewDouble3D v_due_ = *p_v_due;
-  const ViewDouble3D v_duw_ = *p_v_duw;
-  const ViewDouble3D v_dmc_ = *p_v_dmc;
-  const ViewDouble3D v_dmn_ = *p_v_dmn;
-  const ViewDouble3D v_dms_ = *p_v_dms;
-  const ViewDouble3D v_dme_ = *p_v_dme;
-  const ViewDouble3D v_dmw_ = *p_v_dmw;
-  const ViewDouble4D v_up_  = *p_v_up;
-  const ViewDouble4D v_vp_  = *p_v_vp;
-  const ViewDouble4D v_viv_ = *p_v_viv;
-};
-class functor_readyc_hdiffu_del2_3 {
- public:
-  functor_readyc_hdiffu_del2_3(const int &k)
-    : k_(k) {}
-  KOKKOS_INLINE_FUNCTION void operator() 
-      (const int &j, const int &i) const {
-    const int bid = 0;
-    if (k_ > v_kmu_(bid, j, i) - 1) {
-      v_hduk_(j, i) = C0;
-      v_hdvk_(j, i) = C0;
-    }
-    return ;
-  };
- private:
-  const int k_;
-  const ViewDouble2D v_hduk_ = *p_v_hduk;
-  const ViewDouble2D v_hdvk_ = *p_v_hdvk;
-  const ViewDouble3D v_kmu_ = *p_v_kmu;
-};
-// End hdiffu_del2(k, hduk, hdvk, up[iblock][k], vp[iblock][k], this_block)
-#endif // BIHAR
-#endif // SMAG
-
 
 KOKKOS_REGISTER_FOR_2D(FunctorReadyc1,  FunctorReadyc1)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc2,  FunctorReadyc2)
@@ -3893,7 +3649,7 @@ KOKKOS_REGISTER_FOR_3D(FunctorReadyc17, FunctorReadyc17)
 KOKKOS_REGISTER_FOR_2D(FunctorReadyc18, FunctorReadyc18)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc19, FunctorReadyc19)
 KOKKOS_REGISTER_FOR_2D(FunctorReadyc20, FunctorReadyc20)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc24, FunctorReadyc24)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc25, FunctorReadyc25)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc21, FunctorReadyc21)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc22, FunctorReadyc22)
 
 #endif // LICOM3_KOKKKOS_SRC_KOKKOS_IMPL_KOKKOS_READYC_HPP_

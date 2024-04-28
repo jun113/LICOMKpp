@@ -8,8 +8,8 @@ void kokkos_readyc () {
   using Kokkos::parallel_for;
   using Kokkos::MDRangePolicy;
 
-  using CppDomain::    blocks_clinic;
-  using CppPconstMod:: adv_momentum;
+  // using CppDomain::    blocks_clinic;
+  using CppPconstMod::adv_momentum;
 
 #ifdef BCKMEX
   ViewDouble3D v_diff_back("view_diff_back", IMT, JMT, MAX_BLOCKS_CLINIC);
@@ -171,11 +171,11 @@ void kokkos_readyc () {
   parallel_for ("readyc_20", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc20());
 
-  parallel_for("readyc_24", MDRangePolicy<Kokkos::Rank<3>>
-          ({0, 1, 1}, {KM, JMT-1, IMT-1}, tile3D), FunctorReadyc24());
+  parallel_for("readyc_21", MDRangePolicy<Kokkos::Rank<3>>
+          ({0, 1, 1}, {KM, JMT-1, IMT-1}, tile3D), FunctorReadyc21());
 
-  parallel_for("readyc_25", MDRangePolicy<Kokkos::Rank<3>>
-          ({0, 1, 1}, {KM, JMT-1, IMT-1}, tile3D), FunctorReadyc25());
+  parallel_for("readyc_22", MDRangePolicy<Kokkos::Rank<3>>
+          ({0, 1, 1}, {KM, JMT-1, IMT-1}, tile3D), FunctorReadyc22());
 #ifdef CANUTO
 #else  // CANUTO
   if (mytid == 0) {
