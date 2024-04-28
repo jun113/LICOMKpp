@@ -42,18 +42,18 @@ void kokkos_readyc () {
 
 #ifdef CANUTO
   // turb_2
-  parallel_for ("readyc_5", MDRangePolicy<Kokkos::Rank<2>> (
-      koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc5());
-  // parallel_for ("readyc_51", MDRangePolicy<Kokkos::Rank<3>> (
-  //     koArr3D{0, 1, 1}, koArr3D{KM, JMT-1, IMT-1}, tile3D), FunctorReadyc51());
-  // parallel_for ("readyc_52", MDRangePolicy<Kokkos::Rank<2>> (
-  //     koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc52());
-  // parallel_for ("readyc_53", MDRangePolicy<Kokkos::Rank<3>> (
-  //     koArr3D{0, 1, 1}, koArr3D{KM, JMT-1, IMT-1}, tile3D), FunctorReadyc53());
-  // parallel_for ("readyc_54", MDRangePolicy<Kokkos::Rank<2>> (
-  //     koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc54());
-  // parallel_for ("readyc_55", MDRangePolicy<Kokkos::Rank<3>> (
-  //     koArr3D{0, 1, 1}, koArr3D{KM-1, JMT-1, IMT-1}, tile3D), FunctorReadyc55());
+  // parallel_for ("readyc_5", MDRangePolicy<Kokkos::Rank<2>> (
+  //     koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc5());
+  parallel_for ("readyc_51", MDRangePolicy<Kokkos::Rank<3>> (
+      koArr3D{0, 1, 1}, koArr3D{KM, JMT-1, IMT-1}, tile3D), FunctorReadyc51());
+  parallel_for ("readyc_52", MDRangePolicy<Kokkos::Rank<2>> (
+      koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc52());
+  parallel_for ("readyc_53", MDRangePolicy<Kokkos::Rank<3>> (
+      koArr3D{0, 1, 1}, koArr3D{KM, JMT-1, IMT-1}, tile3D), FunctorReadyc53());
+  parallel_for ("readyc_54", MDRangePolicy<Kokkos::Rank<2>> (
+      koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc54());
+  parallel_for ("readyc_55", MDRangePolicy<Kokkos::Rank<3>> (
+      koArr3D{0, 1, 1}, koArr3D{KM-1, JMT-1, IMT-1}, tile3D), FunctorReadyc55());
   // End turb_2
 
   parallel_for ("readyc_6", MDRangePolicy<Kokkos::Rank<3>> (

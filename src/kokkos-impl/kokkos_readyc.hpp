@@ -263,15 +263,18 @@ class FunctorReadyc1 {
   const ViewDouble3D v_h0bl_ = *p_v_h0bl;
 };
 
-/*
-  FunctorReadyc2: ugrid_to_tgrid
-  vit[iblock][k][j][i] / 
-      (viv[iblock][k][j  ][i  ] * at0 [iblock][j][i] +
-       viv[iblock][k][j-1][i  ] * atn [iblock][j][i] +
-       viv[iblock][k][j  ][i+1] * ate [iblock][j][i] +
-       viv[iblock][k][j-1][i+1] * atne[iblock][j][i] + 
-          epsln);
-*/
+//---------------------------------------------------------------------
+// Calculating Richardson number riu (at U/V-point);
+//-------------------------------------------------------------------
+// using wka for ...
+// FunctorReadyc2: ugrid_to_tgrid
+// vit[iblock][k][j][i] / 
+//     (viv[iblock][k][j  ][i  ] * at0 [iblock][j][i] +
+//      viv[iblock][k][j-1][i  ] * atn [iblock][j][i] +
+//      viv[iblock][k][j  ][i+1] * ate [iblock][j][i] +
+//      viv[iblock][k][j-1][i+1] * atne[iblock][j][i] + 
+//         epsln);
+// -------------------------------------------------------------------
 class FunctorReadyc2 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -279,11 +282,12 @@ class FunctorReadyc2 {
     const int iblock = 0;
     const double epsln = 1.e-25;
     if (i < (NX_BLOCK-1) && j >= 1) {
-      v_wka(iblock, k, j, i) = v_vit_(iblock, k, j, i) / (epsln +
+      v_wka(iblock, k, j, i) = v_vit_(iblock, k, j, i) / (
           v_viv_(iblock, k, j  , i  ) * v_at0_ (iblock, j, i) +
           v_viv_(iblock, k, j-1, i  ) * v_atn_ (iblock, j, i) +
           v_viv_(iblock, k, j  , i+1) * v_ate_ (iblock, j, i) +
-          v_viv_(iblock, k, j-1, i+1) * v_atne_(iblock, j, i));
+          v_viv_(iblock, k, j-1, i+1) * v_atne_(iblock, j, i)
+              + epsln);
     }
     return ;
   }
@@ -366,8 +370,6 @@ class FunctorReadyc4 {
   }
  private:
   const ViewDouble1D v_odzt_ = *p_v_odzt; 
-  const ViewDouble4D v_up_   = *p_v_up;
-  const ViewDouble4D v_vp_   = *p_v_vp;
   const ViewDouble4D v_vit_  = *p_v_vit; 
   const ViewDouble4D v_s2t_  = *p_v_s2t; 
   const ViewDouble4D v_rit_  = *p_v_rit; 
@@ -424,7 +426,8 @@ class FunctorReadyc52 {
       for (int k = 0; k < kmt_m1; ++k) {
         if (v_vit_(iblock, k+1, j, i) > 0.0) {
           const double tmp = v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
-          wp1[k] = v_at_(iblock, 0, k, j, i) - (v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) * tmp;
+          wp1[k] = v_at_(iblock, 0, k, j, i) - 
+              (v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) * tmp;
           wp4[k] = v_rit_(iblock, k, j, i);
           wp5[k] = v_ricdttms_(iblock, k, j, i);
           wp6[k] = v_s2t_(iblock, k, j, i);
@@ -456,25 +459,6 @@ class FunctorReadyc52 {
                           kmt_m1, KM-1, 1, 0, j, i);
 
       v_amld_(iblock, j, i) = mldtmp * 1.0e-2;
-
-// #ifdef TIDEMIX
-//       for (int k = 0; k < KM; ++k) {
-//         v_ak_tide_(iblock, k, j, i) = 0.0;
-//       }
-//       for (int k = 0; k < kmt_m1; ++k) {
-//         v_ak_tide_(iblock, k, j, i) = BACK_TIDALMIXING + MIXING_EF * 
-//             LOCAL_MIXING_FRACTION * v_wave_dis_(iblock, j, i) * 
-//             v_fz_tide_(iblock, k, j, i) /
-//             (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * v_wp3_(k, j, i) * 1000.0);
-
-//         v_ak_tide_(iblock, k, j, i) = fmin(v_ak_tide_(iblock, k, j, i),
-//             MAX_TIDALMIXING);
-
-//         v_richardson_(iblock, k, j, i) = v_rict_(iblock, k, j, i);
-//         v_fztidal_(iblock, k, j, i)    = v_fz_tide_(iblock, k, j, i);
-//         v_wp3_tidal_(iblock, k, j, i)  = v_wp3_(k, j, i);
-//       }
-// #endif // TIDEMIX
     }
     return ;
   };
@@ -1471,8 +1455,8 @@ class FunctorReadyc53 {
             MAX_TIDALMIXING);
 
         v_richardson_(iblock, k, j, i) = v_rict_(iblock, k, j, i);
-        v_fztidal_(iblock, k, j, i)    = v_fz_tide_(iblock, k, j, i);
-        v_wp3_tidal_(iblock, k, j, i)  = v_wp3_(k, j, i);
+        v_fztidal_   (iblock, k, j, i) = v_fz_tide_(iblock, k, j, i);
+        v_wp3_tidal_ (iblock, k, j, i) = v_wp3_(k, j, i);
       }
 #endif // TIDEMIX
     }
@@ -1501,9 +1485,11 @@ class FunctorReadyc54 {
 #endif // CANUTOMIXOUT
       const int iblock = 0;
       const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
+      double pre_ak_tide = v_ak_tide_(iblock, kmt_m1-1, j, i);
       for (int k = kmt_m1 - 2; k >= 0; --k) {
-        v_ak_tide_(iblock, k, j, i) = fmin(v_ak_tide_(iblock, k, j, i),
-            v_ak_tide_(iblock, k+1, j, i));
+        v_ak_tide_(iblock, k, j, i) = fmin(
+            v_ak_tide_(iblock, k, j, i), pre_ak_tide);
+        pre_ak_tide = v_ak_tide_(iblock, k, j, i);
       }
 #endif // TIDEMIX
     }
@@ -1557,7 +1543,7 @@ class FunctorReadyc55 {
     return ;
   };
  private:
-  const double ncc_ = CppPconstMod::ncc;
+  const int ncc_ = CppPconstMod::ncc;
   const ViewDouble3D v_wk1_     = *p_v_wk1;
   const ViewDouble3D v_wk2_     = *p_v_wk2;
   const ViewDouble3D v_wk3_     = *p_v_wk3;
@@ -1750,7 +1736,7 @@ class FunctorReadyc5 {
     return ;
   };
  private:
-  const double ncc_     = CppPconstMod::ncc;
+  const int ncc_     = CppPconstMod::ncc;
   const double dfricmx_ = CppPconstMod::dfricmx;
   const double dwndmix_ = CppPconstMod::dwndmix;
 
@@ -2754,6 +2740,7 @@ class FunctorReadyc5 {
 
 #endif // CANUTO
 
+// calculate the vertical mixing on U-grid
 class FunctorReadyc6 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -2801,6 +2788,9 @@ class FunctorReadyc6 {
   const ViewDouble4D v_akmu_ = *p_v_akmu;
   const ViewDouble4D v_akmt_ = *p_v_akmt;
 };
+//-----------------------------------------------------------------
+// COMPUTE THE ADVECTIVE TERM: ZONAL COMPONENT
+//-----------------------------------------------------------------
 class FunctorReadyc7 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
