@@ -342,8 +342,8 @@ class FunctorReadyc51 {
   const ViewInt3D    v_kmt_      = *p_v_kmt;
   const ViewDouble1D v_dzp_      = *p_v_dzp;
   const ViewDouble3D v_wp3_      = *p_v_wp3;
-  const ViewDouble4D v_pdensity_ = *p_v_pdensity;
   const ViewDouble4D v_vit_      = *p_v_vit;
+  const ViewDouble4D v_pdensity_ = *p_v_pdensity;
 };
 
 class FunctorReadyc52 {
@@ -500,6 +500,8 @@ class FunctorReadyc52 {
  
     // if (ifextermld == 0) {
       if (n > 0) {
+          // if idefmld == 0
+          // idefmld = 0 in canuto_mod_2002
           formld(z, t, amld, n);
       } else if (n == 0) {
         amld = z[0];
@@ -1046,6 +1048,7 @@ class FunctorReadyc52 {
         lx1 = 1;
       }
     }
+    // 252
     if ((x > 0.0 && (x < v_and2on2a1_(MT + lx0) || x > v_and2on2a1_(MT + lx1))) ||
         (x < 0.0 && (x > v_and2on2a1_(MT + lx0) || x < v_and2on2a1_(MT + lx1)))) {
       return;
@@ -1094,7 +1097,6 @@ class FunctorReadyc52 {
   KOKKOS_INLINE_FUNCTION void interp2d_expabs(double &ri, double &rid,
       double &slq2, double &sm, double &sh, double &ss) const {
 
-    // printf ("interp2d_expabs\n");
     const double tmp_ri  = 1.0 /ri;
     const double tmp_rid = 1.0 /rid;
 
@@ -1107,12 +1109,13 @@ class FunctorReadyc52 {
         // ri  = v_ridb_(MT + MT) * (ri / rid);
         ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
         rid = v_ridb_(MT + MT);
-      } else if (rid > -ri) {
-        ri  = v_ridb_(0) * (ri / rid);
+      } else if (rid < -ri) {
+        // ri  = v_ridb_(0) * (ri / rid);
+        ri  = v_ridb_(0) * (ri * tmp_rid);
         rid = v_ridb_(0);
       }
     } else if (ri < v_rib_(0)) {
-      if (fabs(rid) < -ri) {
+      if (fabs(rid) <= -ri) {
         // rid = v_rib_(0) * (rid / ri);
         rid = v_rib_(0) * (rid * tmp_ri);
         ri  = v_rib_(0);
@@ -1156,11 +1159,11 @@ class FunctorReadyc52 {
 #ifdef D_PRECISION
       const double tabindrid = sign_double(static_cast<double>(MT0)
           + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-              / log(rri_)), ri);
+              / log(rri_)), rid);
 #else // D_PRECISION
       const double tabindrid = sign_float(static_cast<float>(MT0)
           + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-              / log(rri)), ri);
+              / log(rri)), rid);
 #endif // D_PRECISION
 
 #ifdef D_PRECISION
@@ -1194,6 +1197,7 @@ class FunctorReadyc52 {
       }
     }
 
+    // 252
     if ((rid > 0.0 && (rid < v_ridb_(MT + lrid0) || rid > v_ridb_(MT + lrid1))) ||
         (rid < 0.0 && (rid > v_ridb_(MT + lrid0) || rid < v_ridb_(MT + lrid1)))) {
       return ;
@@ -1274,7 +1278,7 @@ class FunctorReadyc52 {
     const double deltaridta = 1.0 / (v_ridb_(MT + lrid1) - v_ridb_(MT + lrid0));
     const double deltarita  = 1.0 / (v_rib_(MT + lri1) - v_rib_(MT + lri0));
     const double deltarid = rid - v_ridb_(MT + lrid0);
-    const double deltari = ri - v_rib_(MT + lri0);
+    const double deltari  = ri  - v_rib_(MT + lri0);
 
     double dslq2_rid;
 
@@ -1810,6 +1814,7 @@ class FunctorReadyc5 {
     double epsy[KM];
     bool lifepsy[KM];
 
+    // !020219D REFERENCE NOTE: START OF PRIMARY LOOP OVER DEPTH LEVELS.
     for (int k = 0; k < n; ++k) {
   
       double amtaun2(0.0);
@@ -1824,6 +1829,8 @@ class FunctorReadyc5 {
   
       ri1 = ri[k];
   
+      // if (ifsali == 1), ifsali = 1 in canuto_mod_2002
+      // 981104 Use Ri_d = Ri_C - Ri_T in salinity-temperature turbulence model.
       rid1 = rid[k];
       const double and2 = rid[k] / (ri[k] + 1.0e-25) * an2[k];
       double and2on2 = and2 / (an2[k] + 1.0e-25);
@@ -1834,6 +1841,7 @@ class FunctorReadyc5 {
         ifpureshear = 0;
       }
 
+      // ifastexpabs = 1 in canuto_mod_2002
       if (ifpureshear == 1) {
         const int imax = MT;
   
@@ -1879,12 +1887,14 @@ class FunctorReadyc5 {
         }
         lifepsy[k] = ((epsy[k] >= 0.0) && lifupper);
         // if ((epsy[k] < 0.0) && lifupper) {
-        //   // ++iproblem;
-        //   // if (ri1 < 0.0) {
-        //   //   ++inegproblem;
-        //   // }
+        //   ++iproblem;
+        //   if (ri1 < 0.0) {
+        //     ++inegproblem;
+        //   }
         // }
       }
+
+      // if ilomega == 1, ilomega = 0 in canuto_mod_2002
   
       double akz = 0.4 * z[k];
       double al = akz * al0 / (al0 + akz);
@@ -1896,7 +1906,8 @@ class FunctorReadyc5 {
         if (ri1 > 0.0) {
           const double anlq2 = slq2 * ri1;
           if (anlq2 > 0.281) {
-            al2 = 0.281 / anlq2 * al2;
+            al2  = 0.281 / anlq2 * al2;
+            // if icondear == 0, icondear = 0 in canuto_mod_2002
             slq2 = 0.281 / (ri1 + 1.0e-20);
           }
         }
@@ -1904,9 +1915,11 @@ class FunctorReadyc5 {
   
       double epson2_;
       if (an2[k] < 0.0) {
+        // Just to "hold the place". Value irrelevent here.
         epson2_ = EPSON2__;
       } else {
         double eplatidepend;
+        // if ifdeeplat, ifdeeplat = 1 in canuto_mod_2002
         if (ifnofsmall == 1) {
           eplatidepend = 0.0;
         } else {
@@ -1918,8 +1931,17 @@ class FunctorReadyc5 {
         epson2_ = EPSON2__ * eplatidepend;
       }
   
+      // if ifepson2 >= 1, ifepson2 = 2 in canuto_mod_2002
+      // if ifbotenhance == 0, ifbotenhance = 0 in canuto_mod_2002
       epson2 = epson2_;
   
+      // if ifback >= 4 and ifsali == 0, ifback = 5 and ifsali = 1 in canuto_mod_2002
+      // if ifsali > 0, ifsali = 1 in canuto_mod_2002
+      // if ifsalback == 1, 2, 3, ifsaliback = 5 in canuto_mod_2002
+      // if ifsalback >= 4, ifsaliback = 5 in canuto_mod_2002
+      // if ifsalback == 4, ifsaliback = 5 in canuto_mod_2002
+      // else
+
       int ifrafglt = 0;
   
       double rit(0.0), ric(0.0);
@@ -2010,6 +2032,8 @@ class FunctorReadyc5 {
             + deltheta_r1 * dback_ra_r_o_dtheta;
   
         ifrafglt = 0;
+
+        // if ifrafgmax == 1, ifrafgmax = 1 in canuto_mod_2002
   
         if ((theta_r <= theta_rcrp_) ||
             (theta_r >= theta_rcrn_)) {
@@ -2027,16 +2051,22 @@ class FunctorReadyc5 {
         back_ri1  = back_rit1 + back_ric1;
         back_rid1 = back_rit1 - back_ric1;
       }
+      // End if ifsalback > 4
   
-      if ((IFSALBACK != 4) && (ri[k] > 0.0)) {
+      if (ri[k] > 0.0) {
   
+        // ifbg_theta_interp = 1 in canuto_mod_2002
         // if ((IFBG_THETA_INTERP == 0) ||
         //     (ifrafglt == 1)) {
         if (ifrafglt == 1) {
+          // if ifastexpabs == 1, ifastexpabs = 1 in canuto_mod_2002
           interp2d_expabs(back_ri1, back_rid1,
               slq2_back, sm_back, sh_back, ss_back);
+
+        // ifbg_theta_interp = 1 in canuto_mod_2002
         // } else if(IFBG_THETA_INTERP == 1) {
         } else if(true) {
+          // !000315 Interpolate 1D table of background vs. theta_r instead.
           deltheta_r1 = theta_r - itheta_r0 * deltheta_r_;
   
           const double delsm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r1)
@@ -2095,7 +2125,9 @@ class FunctorReadyc5 {
       }
       
       //double tmp_back;
-  
+
+      // if ifepson2 == 0, ifepson2 = 2 in canuto_mod_2002
+      // if ifepson2 >  0, ifepson2 = 2 in canuto_mod_2002
       const double tmp_back = 0.5 * b1_ * b1_
           * back_ri1 * slq2_back * epson2;
   
@@ -2118,6 +2150,7 @@ class FunctorReadyc5 {
   
       double tmp(0.0);
   
+      // if ifepson2 == 2, ifepson2 = 2 in canuto_mod_2002
       // if ((IFEPSON2 == 2) && (ifbelow == 1)) {
       //   if ((ri1 >= 0.0) || ((IFDEEPLAT == 2) && (ifnofsmall == 1))) {
       if (ifbelow == 1) {
@@ -2126,12 +2159,12 @@ class FunctorReadyc5 {
         } else if (k > 1) {
           double delz, delrh, del2rh;
           if (k == n - 1) {
-            delz = z[k] - z[k-1];
-            delrh = rh[k] - rh[k-1];
+            delz   = z [k] - z [k-1];
+            delrh  = rh[k] - rh[k-1];
             del2rh = rh[k] - 2.0 * rh[k-1] + rh[k-2];
           } else {
-            delz = z[k+1] - z[k-1];
-            delrh = rh[k+1] - rh[k-1];
+            delz   = z [k+1] - z [k-1];
+            delrh  = rh[k+1] - rh[k-1];
             del2rh = rh[k+1] - 2.0 * rh[k] + rh[k-1];
           }
   
@@ -2156,7 +2189,6 @@ class FunctorReadyc5 {
                 diff_cbt_limit1);
             continue ;
           } else if (IFSHEARMIN) {
-            // s2[k] = fmax(s2[k], S2MIN);
             s2[k] = fmax(s2[k], S2MIN);
           }
           tmp = 0.5 * b1_ * al2
@@ -2186,6 +2218,7 @@ class FunctorReadyc5 {
         }
       } else {
         if (ifpureshear == 1) {
+            // GO TO 21
             tmp = 0.5 * (b1_ * b1_) * al2
                 * sqrt(-an2[k] / amtaun2);
             akm[k] = fmin(tmp * sm + v_back[k],
@@ -2205,7 +2238,6 @@ class FunctorReadyc5 {
               * sqrt(s2[k] / (slq2 + 1.0e-40));
         }
       }
-  
       // 21
       if (ifpureshear == 1) {
         tmp = 0.5 * (b1_ * b1_) * al2
@@ -2239,12 +2271,10 @@ class FunctorReadyc5 {
     }
     return ;
   }
+
   KOKKOS_INLINE_FUNCTION void formld(
       const double (&z)[KM], const double (&t)[KM],
           double &amld, const int &n) const {
-  // KOKKOS_INLINE_FUNCTION void formld(
-  //     const double* z, const double* t,
-  //         double &amld, const int &n) const {
     for (int k = 0; k < n; ++k) {
       if (fabs(t[k] - t[0]) > 0.1) {
 #ifdef D_PRECISION
@@ -2267,12 +2297,12 @@ class FunctorReadyc5 {
   }
 
   KOKKOS_INLINE_FUNCTION int sign_float(const double &x, const double &y) const {
-    return y >= 0 ? std::abs(static_cast<float>(x)) 
+    return y >= 0.0 ? std::abs(static_cast<float>(x)) 
        : - std::abs(static_cast<float>(x));
   }
 
   KOKKOS_INLINE_FUNCTION double sign_double(const double &x, const double &y) const {
-    return y >= 0.e0 ? fabs(x) : - fabs(x);
+    return y >= 0.0 ? fabs(x) : - fabs(x);
   }
 
   KOKKOS_INLINE_FUNCTION void interp1d_expabs(
@@ -2391,7 +2421,6 @@ class FunctorReadyc5 {
   KOKKOS_INLINE_FUNCTION void interp2d_expabs(double &ri, double &rid,
       double &slq2, double &sm, double &sh, double &ss) const {
 
-    // printf ("interp2d_expabs\n");
     const double tmp_ri  = 1.0 /ri;
     const double tmp_rid = 1.0 /rid;
 
@@ -2404,12 +2433,13 @@ class FunctorReadyc5 {
         // ri  = v_ridb_(MT + MT) * (ri / rid);
         ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
         rid = v_ridb_(MT + MT);
-      } else if (rid > -ri) {
-        ri  = v_ridb_(0) * (ri / rid);
+      } else if (rid < -ri) {
+        // ri  = v_ridb_(0) * (ri / rid);
+        ri  = v_ridb_(0) * (ri * tmp_rid);
         rid = v_ridb_(0);
       }
     } else if (ri < v_rib_(0)) {
-      if (fabs(rid) < -ri) {
+      if (fabs(rid) <= -ri) {
         // rid = v_rib_(0) * (rid / ri);
         rid = v_rib_(0) * (rid * tmp_ri);
         ri  = v_rib_(0);
@@ -2453,11 +2483,11 @@ class FunctorReadyc5 {
 #ifdef D_PRECISION
       const double tabindrid = sign_double(static_cast<double>(MT0)
           + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-              / log(rri_)), ri);
+              / log(rri_)), rid);
 #else // D_PRECISION
       const double tabindrid = sign_float(static_cast<float>(MT0)
           + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-              / log(rri)), ri);
+              / log(rri)), rid);
 #endif // D_PRECISION
 
 #ifdef D_PRECISION
@@ -2491,6 +2521,7 @@ class FunctorReadyc5 {
       }
     }
 
+    // 252
     if ((rid > 0.0 && (rid < v_ridb_(MT + lrid0) || rid > v_ridb_(MT + lrid1))) ||
         (rid < 0.0 && (rid > v_ridb_(MT + lrid0) || rid < v_ridb_(MT + lrid1)))) {
       return ;
@@ -2571,7 +2602,7 @@ class FunctorReadyc5 {
     const double deltaridta = 1.0 / (v_ridb_(MT + lrid1) - v_ridb_(MT + lrid0));
     const double deltarita  = 1.0 / (v_rib_(MT + lri1) - v_rib_(MT + lri0));
     const double deltarid = rid - v_ridb_(MT + lrid0);
-    const double deltari = ri - v_rib_(MT + lri0);
+    const double deltari  = ri  - v_rib_(MT + lri0);
 
     double dslq2_rid;
 
