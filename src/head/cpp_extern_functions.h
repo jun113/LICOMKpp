@@ -68,7 +68,7 @@ extern void daily_update_d2h();
 
 extern void kokkos_nextstep();
 
-extern void pop_haloupdate_barotr_1(const int &, const int &);
+extern void pop_haloupdate_barotr_work(const int &, const int &);
 extern void pop_haloupdate_barotr_2(const int &, const int &);
 
 extern void pop_haloupdate_bclinc_2(const int &, const int &);

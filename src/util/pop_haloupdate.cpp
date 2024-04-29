@@ -36,7 +36,7 @@ static double halo_buffer[8 * KM * (IMT + JMT)];
 
 
 // For heterogeneous system
-void pop_haloupdate_barotr_1(const int &len_k, const int &n_layers) {
+void pop_haloupdate_barotr_work(const int &len_k, const int &n_layers) {
   /*
   POP Halo Update: work
 
