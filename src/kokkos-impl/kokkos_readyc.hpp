@@ -332,9 +332,8 @@ class FunctorReadyc51 {
       v_wp3_(k, j, i) = 0.0;
       const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
       if (k < kmt_m1 && v_vit_(iblock, k+1, j, i) > 0.0) {
-        const double tmp = v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
         v_wp3_(k, j, i) = (v_pdensity_(iblock, k, j, i) + (v_pdensity_(iblock, k+1, j, i) 
-            -  v_pdensity_(iblock, k, j, i)) * tmp) * 1.e-3;
+            -  v_pdensity_(iblock, k, j, i)) * v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1))) * 1.e-3;
       }
     }
     return ;
