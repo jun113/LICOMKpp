@@ -68,13 +68,13 @@ void kokkos_barotr() {
 #ifdef BIHAR
 
     parallel_for ("barotr_5_hdiffu_del4_1", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr5());
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr5());
 
     parallel_for ("barotr_6_hdiffu_del4_2", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr6());
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr6());
 
     parallel_for ("barotr_7_hdiffu_del4_3", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr7());
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr7());
 
     parallel_for ("readyc_8_hdiffu_del4_4", MDRangePolicy<Kokkos::Rank<2>> (
         koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr8());
@@ -110,17 +110,17 @@ void kokkos_barotr() {
 #endif // BIHAR
 #endif // SMAG1
 
+    parallel_for ("barotr_9", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr9());
+
     parallel_for ("barotr_10", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr10());
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr10());
 
-    parallel_for ("barotr_13", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr13());
+    parallel_for ("barotr_11", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr11());
 
-    parallel_for ("barotr_14", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr14());
-
-    parallel_for ("barotr_15", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr15());
+    parallel_for ("barotr_12", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr12());
 
     //-----------------------------
 #ifdef LICOM_ENABLE_TEST_BAROTR
@@ -128,7 +128,7 @@ void kokkos_barotr() {
 #endif // LICOM_ENABLE_TEST_BAROTR
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
     // CUDA HIP memcpy
-    pop_haloupdate_barotr_2(2, 2);
+    pop_haloupdate_barotr_wka(2, 2);
 #else
     CppPOPHaloMod::pop_halo_update(&((*p_v_wka).data())[2*JMT*IMT], 2, JMT, IMT,
         CppDomain::POP_haloClinic_C, 
@@ -140,24 +140,24 @@ void kokkos_barotr() {
 #endif // LICOM_ENABLE_TEST_BAROTR
     //-----------------------------
 
-    parallel_for ("barotr_16", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr16());
+    parallel_for ("barotr_13", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr13());
 
     for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
       // ===========================
       // merge and original versions need
       // div(0, div_out, wka[iblock][0], wka[iblock][1]);
-      parallel_for ("barotr_17_div", MDRangePolicy<Kokkos::Rank<2>> (
-          koArr2D{0, 0}, koArr2D{NY_BLOCK, NX_BLOCK}, tile2D), FunctorBarotr17(iblock));
+      parallel_for ("barotr_14_div", MDRangePolicy<Kokkos::Rank<2>> (
+          koArr2D{0, 0}, koArr2D{NY_BLOCK, NX_BLOCK}, tile2D), FunctorBarotr14(iblock));
       // End div
       // ============================
       if (nc % 4 == 0) {
 #ifdef BIHAR
-        parallel_for ("barotr_18_hdifft_del4_1", MDRangePolicy<Kokkos::Rank<2>> (
-            koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr18());
+        parallel_for ("barotr_15_hdifft_del4_1", MDRangePolicy<Kokkos::Rank<2>> (
+            koArr2D{1, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr15());
 
-        parallel_for ("barotr_19_hdifft_del4_2", MDRangePolicy<Kokkos::Rank<2>> (
-            koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr19());
+        parallel_for ("barotr_16_hdifft_del4_2", MDRangePolicy<Kokkos::Rank<2>> (
+            koArr2D{1, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr16());
 #else  // BIHAR
         // hdifft_del2(0, dt2k, hdtk, h0p[iblock], this_block)
         // parallel_for("barotr_hdifft_del2_1", MDRangePolicy<Kokkos::Rank<2>>
@@ -177,8 +177,8 @@ void kokkos_barotr() {
                 functor_barotr_13(iblock));
 #endif // BIHAR
       } else {
-        parallel_for("barotr_20", MDRangePolicy<Kokkos::Rank<2>> (
-            koArr2D{1, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr20());
+        parallel_for("barotr_17", MDRangePolicy<Kokkos::Rank<2>> (
+            koArr2D{1, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr17());
       }
     } // End for iblock
     //---------------------------------------
@@ -187,7 +187,7 @@ void kokkos_barotr() {
 #endif // LICOM_ENABLE_TEST_BAROTR
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
     // CUDA HIP memcpy
-    pop_haloupdate_barotr_1(1, 2);
+    pop_haloupdate_barotr_work(1, 2);
 #else
     CppPOPHaloMod::pop_halo_update((*p_v_work).data(), IMT,
         CppDomain::POP_haloClinic_C, 
@@ -199,8 +199,8 @@ void kokkos_barotr() {
 #endif // LICOM_ENABLE_TEST_BAROTR
     //-----------------------------------
 
-    parallel_for ("barotr_21", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr21());
+    parallel_for ("barotr_18", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr18());
 
     ++isb;
   }

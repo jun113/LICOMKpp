@@ -157,7 +157,7 @@ void pop_haloupdate_barotr_work(const int &len_k, const int &n_layers) {
   return ;
 }
 
-void pop_haloupdate_barotr_2(const int &len_k, const int &n_layers) {
+void pop_haloupdate_barotr_wka(const int &len_k, const int &n_layers) {
 /*
 POP Halo Update: wka[3], wka[4]
 

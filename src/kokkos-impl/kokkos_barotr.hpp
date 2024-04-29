@@ -471,7 +471,7 @@ class FunctorBarotr8 {
   const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
 };
 
-class FunctorBarotr10 {
+class FunctorBarotr9 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &j, const int &i) const {
@@ -534,19 +534,19 @@ class FunctorBarotr10 {
   const ViewDouble4D v_dxyur_ = *p_v_dxyur;
 };
 
-class FunctorBarotr13 {
+// !---------------------------------------------------------------------
+// !     COMPUTING DU & DV
+// !---------------------------------------------------------------------
+class FunctorBarotr10 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (const int &j, const int &i) 
-      const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     const int iblock = 0;
-
-    // if (i >= 2 && i < (IMT-2) && j >= 2 && j < (JMT-2)) {
-      v_wka_(iblock, 0, j, i) = v_viv_(iblock, 0, j, i)
-          * (v_wka_(iblock, 0, j, i) + v_dlub_(iblock, j, i)
-              - v_fcor_(iblock, j, i) * v_vbp_(iblock, j, i)
-                  + v_pax_(iblock, j, i) + v_pxb_(iblock, j, i)
-                      - v_work_(iblock, j, i) * v_whx_(iblock, j, i));
-    // }
+    v_wka_(iblock, 0, j, i) = v_viv_(iblock, 0, j, i)
+        * (v_wka_(iblock, 0, j, i) + v_dlub_(iblock, j, i)
+            - v_fcor_(iblock, j, i) * v_vbp_(iblock, j, i)
+                + v_pax_(iblock, j, i) + v_pxb_(iblock, j, i)
+                    - v_work_(iblock, j, i) * v_whx_(iblock, j, i));
     return ;
   }
  private:
@@ -560,19 +560,16 @@ class FunctorBarotr13 {
   const ViewDouble4D v_wka_  = *p_v_wka;
   const ViewDouble4D v_viv_  = *p_v_viv;
 };
-class FunctorBarotr14 {
+class FunctorBarotr11 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &j, const int &i) const {
     const int iblock = 0;
-
-    // if (i >= 2 && i < (IMT-2) && j >= 2 && j < (JMT-2)) {
-      v_wka_(iblock, 1, j, i) = v_viv_(iblock, 0, j, i)
-          * (v_wka_(iblock, 1, j, i) + v_dlvb_(iblock, j, i)
-              + v_fcor_(iblock, j, i) * v_ubp_(iblock, j, i)
-                  + v_pay_(iblock, j, i) + v_pyb_(iblock, j, i)
-                      - v_work_(iblock, j, i) * v_why_(iblock, j, i));
-    // }
+    v_wka_(iblock, 1, j, i) = v_viv_(iblock, 0, j, i)
+        * (v_wka_(iblock, 1, j, i) + v_dlvb_(iblock, j, i)
+            + v_fcor_(iblock, j, i) * v_ubp_(iblock, j, i)
+                + v_pay_(iblock, j, i) + v_pyb_(iblock, j, i)
+                    - v_work_(iblock, j, i) * v_why_(iblock, j, i));
     return ;
   }
  private:
@@ -587,19 +584,18 @@ class FunctorBarotr14 {
   const ViewDouble4D v_viv_  = *p_v_viv;
 };
 
-class FunctorBarotr15 {
+// !---------------------------------------------------------------------
+// !     CORIOLIS ADJUSTMENT
+// !---------------------------------------------------------------------
+class FunctorBarotr12 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &j, const int &i) const {
     const int iblock = 0;
-
-    // if (i >= 2 && i < (IMT-2) && j >= 2 && j < (JMT-2)) {
-
-      v_wka_(iblock, 2, j ,i) = v_ebea_(iblock, j, i) * v_wka_(iblock, 0, j ,i)
-                              - v_ebeb_(iblock, j, i) * v_wka_(iblock, 1, j ,i);
-      v_wka_(iblock, 3, j ,i) = v_ebea_(iblock, j, i) * v_wka_(iblock, 1, j ,i)
-                              + v_ebeb_(iblock, j, i) * v_wka_(iblock, 0, j ,i);
-    // }
+    v_wka_(iblock, 2, j ,i) = v_ebea_(iblock, j, i) * v_wka_(iblock, 0, j ,i)
+                            - v_ebeb_(iblock, j, i) * v_wka_(iblock, 1, j ,i);
+    v_wka_(iblock, 3, j ,i) = v_ebea_(iblock, j, i) * v_wka_(iblock, 1, j ,i)
+                            + v_ebeb_(iblock, j, i) * v_wka_(iblock, 0, j ,i);
     return ;
   }
  private:
@@ -608,10 +604,13 @@ class FunctorBarotr15 {
   const ViewDouble4D v_wka_  = *p_v_wka;
 };
 
-class FunctorBarotr16 {
+// !---------------------------------------------------------------------
+// !     COMPUTING DH0
+// !---------------------------------------------------------------------
+class FunctorBarotr13 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     const int iblock = 0;
     v_ub_(iblock, j, i) = v_ubp_(iblock, j, i)
         + v_wka_(iblock, 2, j ,i) * dtb_;
@@ -638,9 +637,9 @@ class FunctorBarotr16 {
   const ViewDouble4D v_wka_  = *p_v_wka;
 };
 
-class FunctorBarotr17 {
+class FunctorBarotr14 {
  public:
-  FunctorBarotr17 (const int &iblock) : iblock_(iblock) {}
+  FunctorBarotr14 (const int &iblock) : iblock_(iblock) {}
   KOKKOS_INLINE_FUNCTION void operator() (
       const int &j, const int &i) const {
     div(iblock_, 0, j, i, v_div_out_, v_wka_, v_wka_);
@@ -674,7 +673,7 @@ class FunctorBarotr17 {
   const ViewDouble4D v_wka_     = *p_v_wka;
 };
 
-class FunctorBarotr18 {
+class FunctorBarotr15 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (const int &j, const int &i) const {
     const int iblock = 0;
@@ -724,20 +723,14 @@ class FunctorBarotr18 {
   const ViewDouble4D v_dt_nsew_ = *p_v_dt_nsew;
 };
 
-class FunctorBarotr19 {
+class FunctorBarotr16 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &j, const int &i) const {
     const int iblock = 0;
-
     double hdtk;
-
     hdifft_del4_2 (j, i, v_dt2k_, hdtk);
-
-    if (i >= 2 && i < (IMT - 2) && j >= 1 && j < (JMT - 2)) {
-      v_work_(iblock, j, i) = v_vit_(iblock, 0, j, i) * (hdtk - v_div_out_(j, i));
-    }
-
+    v_work_(iblock, j, i) = v_vit_(iblock, 0, j, i) * (hdtk - v_div_out_(j, i));
     return;
   }
   KOKKOS_INLINE_FUNCTION void hdifft_del4_2 (const int &j, const int &i,
@@ -766,24 +759,24 @@ class FunctorBarotr19 {
   const ViewDouble4D v_vit_     = *p_v_vit;
 };
 
-class FunctorBarotr20 {
+class FunctorBarotr17 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator() (
-      const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator() (const int &j, const int &i) const {
     const int iblock = 0;
-    // const double hdtk = C0;
-    // v_work_(iblock, j, i) = v_vit_(iblock, 0, j, i) * (hdtk - v_div_out_(j, i));
     v_work_(iblock, j, i) = - v_vit_(iblock, 0, j, i) * v_div_out_(j, i);
     return;
   }
-
  private:
   const ViewDouble2D v_div_out_ = *p_v_div_out;
   const ViewDouble3D v_work_    = *p_v_work;
   const ViewDouble4D v_vit_     = *p_v_vit;
 };
 
-class FunctorBarotr21 {
+// !---------------------------------------------------------------------
+// !     PREDICTING VB , UB & H0
+// !---------------------------------------------------------------------
+class FunctorBarotr18 {
 public:
   KOKKOS_INLINE_FUNCTION void operator() (
       const int &j, const int &i) const {
@@ -794,10 +787,10 @@ public:
     v_vbp_(iblock, j, i) = v_vb_(iblock, j, i);
     v_h0p_(iblock, j, i) = v_h0_(iblock, j, i);
 
-    if (j >= (JST - 1) && j < JET) {
+    // if (j >= (JST - 1) && j < JET) {
       v_h0f_(iblock, j, i)  += v_h0_(iblock, j, i);
       v_h0bf_(iblock, j, i) += v_h0_(iblock, j, i);
-    }
+    // }
     return;
   }
  private:
@@ -812,41 +805,6 @@ public:
   const ViewDouble3D v_h0bf_ = *p_v_h0bf;
   const ViewDouble3D v_work_ = *p_v_work;
 };
-//===========================
-
-// class functor_barotr_6 {
-//  public:
-//   functor_barotr_6 (const int &iblock) : iblock_(iblock) {}
-
-//   KOKKOS_INLINE_FUNCTION void
-//       operator() (const int &j, const int &i) const {
-//     v_wka_(i, j, 4, iblock_) = v_hduk_(j, i);
-//     v_wka_(i, j, 5, iblock_) = v_hdvk_(j, i);
-//     return;
-//   }
-
-//  private:
-//   const int iblock_;
-//   const ViewDouble2D v_hduk_ = *p_v_hduk;
-//   const ViewDouble2D v_hdvk_ = *p_v_hdvk;
-//   const ViewDouble4D v_wka_ = *p_v_wka;
-// };
-
-// class functor_barotr_13 {
-//  public:
-//   functor_barotr_13 (const int &iblock) : iblock_(iblock) {}
-//   KOKKOS_INLINE_FUNCTION void operator() (const int &j, const int &i) const {
-//     v_work_(iblock_, j, i) = v_vit_(iblock_, 0, j, i) * (v_hdtk_(j, i) * 1.0 - v_div_out_(j, i));
-//     return;
-//   }
-
-//  private:
-//   const int iblock_;
-//   const ViewDouble2D v_hdtk_ = *p_v_hdtk;
-//   const ViewDouble2D v_div_out_ = *p_v_div_out;
-//   const ViewDouble3D v_work_ = *p_v_work;
-//   const ViewDouble4D v_vit_ = *p_v_vit;
-// };
 
 #ifdef SMAG1
 #else // SMAG1
@@ -998,15 +956,15 @@ KOKKOS_REGISTER_FOR_2D(FunctorBarotr5,  FunctorBarotr5)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr6,  FunctorBarotr6)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr7,  FunctorBarotr7)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr8,  FunctorBarotr8)
+KOKKOS_REGISTER_FOR_2D(FunctorBarotr9,  FunctorBarotr9)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr10, FunctorBarotr10)
+KOKKOS_REGISTER_FOR_2D(FunctorBarotr11, FunctorBarotr11)
+KOKKOS_REGISTER_FOR_2D(FunctorBarotr12, FunctorBarotr12)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr13, FunctorBarotr13)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr14, FunctorBarotr14)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr15, FunctorBarotr15)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr16, FunctorBarotr16)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr17, FunctorBarotr17)
 KOKKOS_REGISTER_FOR_2D(FunctorBarotr18, FunctorBarotr18)
-KOKKOS_REGISTER_FOR_2D(FunctorBarotr19, FunctorBarotr19)
-KOKKOS_REGISTER_FOR_2D(FunctorBarotr20, FunctorBarotr20)
-KOKKOS_REGISTER_FOR_2D(FunctorBarotr21, FunctorBarotr21)
 
 #endif // LICOM3_KOKKKOS_SRC_KOKKOS_IMPL_KOKKOS_BAROTR_HPP_
