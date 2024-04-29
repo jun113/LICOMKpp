@@ -175,12 +175,10 @@ class FunctorBarotr3 {
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &j, const int &i) const {
     const int iblock = 0;
-    // if (i < (IMT-1) && j >= 1) {
-      v_wka_(iblock, 0, j, i) = v_ub_(iblock, j, i)
-          * (v_dzph_(iblock, j, i) + v_work_(iblock, j, i));
-      v_wka_(iblock, 1, j, i) = v_vb_(iblock, j, i)
-          * (v_dzph_(iblock, j, i) + v_work_(iblock, j, i));
-    // }
+    v_wka_(iblock, 0, j, i) = v_ub_(iblock, j, i)
+        * (v_dzph_(iblock, j, i) + v_work_(iblock, j, i));
+    v_wka_(iblock, 1, j, i) = v_vb_(iblock, j, i)
+        * (v_dzph_(iblock, j, i) + v_work_(iblock, j, i));
     return ;
   }
  private:
@@ -197,8 +195,13 @@ class FunctorBarotr4 {
       const int &j, const int &i) const {
     const int iblock = 0;
     div(iblock, 0, j, i, v_div_out_, v_wka_, v_wka_);
-    v_work_(iblock, j, i) = - v_vit_(iblock, 0, j, i)
-        * v_div_out_(j, i) * P25; 
+
+    if (i >= 2 && i < IMT-2 && j >= 2 && j < JMT-2) {
+      v_work_(iblock, j, i) = - v_vit_(iblock, 0, j, i)
+          * v_div_out_(j, i) * P25; 
+    } else {
+      v_work_(iblock, j, i) = 0.0;
+    }
     return ;
   }
   KOKKOS_INLINE_FUNCTION void div (const int &iblock, const int &k, const int &j, 
