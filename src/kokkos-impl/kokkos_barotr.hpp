@@ -474,7 +474,7 @@ class FunctorBarotr9 {
           + v_du_cnsewm_(bid, j, i, 2) * v_d2vk_(0, j+1, i  )
           + v_du_cnsewm_(bid, j, i, 3) * v_d2vk_(0, j  , i+1)
           + v_du_cnsewm_(bid, j, i, 4) * v_d2vk_(0, j  , i-1))
-          + (v_dm_cnsew_(bid, j, i, 0) * v_d2uk_(0, j  , i  )
+          - (v_dm_cnsew_(bid, j, i, 0) * v_d2uk_(0, j  , i  )
           +  v_dm_cnsew_(bid, j, i, 1) * v_d2uk_(0, j-1, i  )
           +  v_dm_cnsew_(bid, j, i, 2) * v_d2uk_(0, j+1, i  )
           +  v_dm_cnsew_(bid, j, i, 3) * v_d2uk_(0, j  , i+1)
