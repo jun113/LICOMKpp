@@ -13,9 +13,6 @@
 #endif // BIHAR
 #include "../head/cpp_param_mod.h"
 #include "../head/cpp_pconst_mod.h"
-#include "../head/fortran_extern_functions.h"
-
-#include "../head/cpp_extern_functions.h"
 
 #include "../head/kokkos_dyn_mod.h"
 #include "../head/kokkos_grid.h"
@@ -32,9 +29,6 @@
 
 #include "../head/kokkos_config.hpp"
 
-#include "../head/cpp_extern_functions.h"
-#include "../head/fortran_extern_functions.h"
-
 #include "Kokkos_Core.hpp"
 
 using CppParamMod::IMT;
@@ -43,7 +37,6 @@ using CppParamMod::JST;
 using CppParamMod::JET;
 using CppParamMod::NX_BLOCK;
 using CppParamMod::NY_BLOCK;
-using CppParamMod::MAX_BLOCKS_CLINIC;
 
 using CppConstantMod::G;
 using CppConstantMod::C0;
@@ -60,24 +53,14 @@ using KokkosDynMod   ::p_v_vbp;
 using KokkosDynMod   ::p_v_ubp;
 using KokkosDynMod   ::p_v_dlub;
 using KokkosDynMod   ::p_v_dlvb;
-using KokkosGrid     ::p_v_au0;
-using KokkosGrid     ::p_v_aus;
-using KokkosGrid     ::p_v_auw;
-using KokkosGrid     ::p_v_ausw;
 using KokkosGrid     ::p_v_dxu;
 using KokkosGrid     ::p_v_dyu;
-using KokkosGrid     ::p_v_dxur;
-using KokkosGrid     ::p_v_dyur;
 using KokkosGrid     ::p_v_dxyur;
 using KokkosGrid     ::p_v_fcor;
 using KokkosGrid     ::p_v_htw;
 using KokkosGrid     ::p_v_hts;
 using KokkosGrid     ::p_v_kmt;
 using KokkosGrid     ::p_v_kmu;
-using KokkosGrid     ::p_v_kmtn;
-using KokkosGrid     ::p_v_kmts;
-using KokkosGrid     ::p_v_kmte;
-using KokkosGrid     ::p_v_kmtw;
 using KokkosGrid     ::p_v_kmt_nsew;
 using KokkosGrid     ::p_v_uarea;
 using KokkosGrid     ::p_v_tarea_r;
@@ -98,21 +81,6 @@ using KokkosWorkMod  ::p_v_work;
 #ifdef BIHAR
 using KokkosHmixDel4::  p_v_ahf;
 using KokkosHmixDel4::  p_v_amf;
-using KokkosHmixDel4::  p_v_duc;
-using KokkosHmixDel4::  p_v_dum;
-using KokkosHmixDel4::  p_v_dun;
-using KokkosHmixDel4::  p_v_dus;
-using KokkosHmixDel4::  p_v_due;
-using KokkosHmixDel4::  p_v_duw;
-using KokkosHmixDel4::  p_v_dmc;
-using KokkosHmixDel4::  p_v_dmn;
-using KokkosHmixDel4::  p_v_dms;
-using KokkosHmixDel4::  p_v_dme;
-using KokkosHmixDel4::  p_v_dmw;
-using KokkosHmixDel4::  p_v_dtn;
-using KokkosHmixDel4::  p_v_dts;
-using KokkosHmixDel4::  p_v_dte;
-using KokkosHmixDel4::  p_v_dtw;
 using KokkosHmixDel4::  p_v_dt_nsew;
 using KokkosHmixDel4::  p_v_du_cnsewm;
 using KokkosHmixDel4::  p_v_dm_cnsew;
@@ -146,7 +114,6 @@ using KokkosTmpVar::p_v_gradx;
 using KokkosTmpVar::p_v_grady;
 #endif // BIHAR
 using KokkosTmpVar::p_v_div_out;
-// using KokkosTmpVar::p_v_am_factor;
 
 class FunctorBarotr1 {
  public:

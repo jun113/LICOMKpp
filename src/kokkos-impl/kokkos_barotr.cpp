@@ -4,16 +4,10 @@
 #include "kokkos_barotr.hpp"
 
 void kokkos_barotr() {
-  using CppParamMod::KM;
   using CppPconstMod::isb;
   using CppPconstMod::nbb;
   using CppDomain::blocks_clinic;
   using CppDomain::nblocks_clinic;
-
-  // using CppBlocks::ib;
-  // using CppBlocks::ie;
-  // using CppBlocks::jb;
-  // using CppBlocks::je;
 
   using Kokkos::parallel_for;
   using Kokkos::MDRangePolicy;
@@ -216,29 +210,6 @@ void kokkos_barotr() {
 
     ++isb;
   }
-  // if (CppParamMod::mytid == 0) {
-  //   std::cout<<"FunctorBarotr1:  "<<sizeof(FunctorBarotr1)<<std::endl;
-  //   std::cout<<"FunctorBarotr2:  "<<sizeof(FunctorBarotr2)<<std::endl;
-  //   std::cout<<"FunctorBarotr3:  "<<sizeof(FunctorBarotr3)<<std::endl;
-  //   std::cout<<"FunctorBarotr4:  "<<sizeof(FunctorBarotr4)<<std::endl;
-  //   std::cout<<"FunctorBarotr5:  "<<sizeof(FunctorBarotr5)<<std::endl;
-  //   std::cout<<"FunctorBarotr6:  "<<sizeof(FunctorBarotr6)<<std::endl;
-  //   std::cout<<"FunctorBarotr7:  "<<sizeof(FunctorBarotr7)<<std::endl;
-  //   std::cout<<"FunctorBarotr8:  "<<sizeof(FunctorBarotr8)<<std::endl;
-  //   std::cout<<"FunctorBarotr9:  "<<sizeof(FunctorBarotr9)<<std::endl;
-  //   std::cout<<"FunctorBarotr10: "<<sizeof(FunctorBarotr10)<<std::endl;
-  //   std::cout<<"FunctorBarotr11: "<<sizeof(FunctorBarotr11)<<std::endl;
-  //   std::cout<<"FunctorBarotr12: "<<sizeof(FunctorBarotr12)<<std::endl;
-  //   std::cout<<"FunctorBarotr13: "<<sizeof(FunctorBarotr13)<<std::endl;
-  //   std::cout<<"FunctorBarotr14: "<<sizeof(FunctorBarotr14)<<std::endl;
-  //   std::cout<<"FunctorBarotr15: "<<sizeof(FunctorBarotr15)<<std::endl;
-  //   std::cout<<"FunctorBarotr16: "<<sizeof(FunctorBarotr16)<<std::endl;
-  //   std::cout<<"FunctorBarotr17: "<<sizeof(FunctorBarotr17)<<std::endl;
-  //   std::cout<<"FunctorBarotr18: "<<sizeof(FunctorBarotr18)<<std::endl;
-  //   std::cout<<"FunctorBarotr19: "<<sizeof(FunctorBarotr19)<<std::endl;
-  //   std::cout<<"FunctorBarotr20: "<<sizeof(FunctorBarotr20)<<std::endl;
-  //   std::cout<<"FunctorBarotr21: "<<sizeof(FunctorBarotr21)<<std::endl;
-  // }
   return ;
 }
 // End BAROTR
