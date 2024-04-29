@@ -441,13 +441,10 @@ class FunctorBarotr9 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &j, const int &i) const {
-    if (i >= 2 && i < (IMT-2) && j >= 2 && j < (JMT-2)) {
-      double hduk, hdvk;
-      hdiffu_del4_4 (j, i, hduk, hdvk);
-      v_wka_(0, 4, j, i) += hduk;
-      v_wka_(0, 5, j, i) += hdvk;
-    }
-
+    double hduk, hdvk;
+    hdiffu_del4_4 (j, i, hduk, hdvk);
+    v_wka_(0, 4, j, i) = hduk;
+    v_wka_(0, 5, j, i) = hdvk;
     return ;
   }
   KOKKOS_INLINE_FUNCTION void hdiffu_del4_4 (const int &j, const int &i,

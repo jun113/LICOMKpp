@@ -136,7 +136,7 @@ void kokkos_readyc () {
       koArr3D{0, 0, 0}, koArr3D{KM, NY_BLOCK, NX_BLOCK}, tile3D), FunctorReadyc16());
 
   parallel_for ("readyc_17_hdiffu_del4_4", MDRangePolicy<Kokkos::Rank<3>> (
-      koArr3D{0, 0, 0}, koArr3D{KM, NY_BLOCK, NX_BLOCK}, tile3D), FunctorReadyc17());
+      koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorReadyc17());
 #else // BIHAR
   for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
     for (int k = 0; k < KM; ++k) {

@@ -3396,16 +3396,11 @@ class FunctorReadyc17 {
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
     const int iblock = 0;
-
-    if (i >= 2 && i < (IMT-2) && j >= 2 && j < (JMT-2)) {
-      double hduk, hdvk;
-
-      hdiffu_del4_4 (iblock, k, j, i, hduk, hdvk);
-
-      v_dlu_(iblock, k, j, i) += hduk;
-      v_dlv_(iblock, k, j, i) += hdvk;
-    }
-    return ;
+    double hduk, hdvk;
+    hdiffu_del4_4 (iblock, k, j, i, hduk, hdvk);
+    v_dlu_(iblock, k, j, i) += hduk;
+    v_dlv_(iblock, k, j, i) += hdvk;
+  return ;
   }
   KOKKOS_INLINE_FUNCTION void hdiffu_del4_4 (
       const int &iblock, const int &k, const int &j, const int &i,
