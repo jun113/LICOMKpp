@@ -369,9 +369,8 @@ class FunctorReadyc52 {
       }
       for (int k = 0; k < kmt_m1; ++k) {
         if (v_vit_(iblock, k+1, j, i) > 0.0) {
-          const double tmp = v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
-          wp1[k] = v_at_(iblock, 0, k, j, i) - 
-              (v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) * tmp;
+          wp1[k] = v_at_(iblock, 0, k, j, i) - (v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) 
+              * v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
           wp4[k] = v_rit_(iblock, k, j, i);
           wp5[k] = v_ricdttms_(iblock, k, j, i);
           wp6[k] = v_s2t_(iblock, k, j, i);
@@ -3561,15 +3560,15 @@ class FunctorReadyc21 {
  private:
   const double cag_ = CppPconstMod::cag;
   const double sag_ = CppPconstMod::sag;
-  const ViewDouble2D v_odz_pt_  = *p_v_odz_pt;
-  const ViewDouble3D v_su_      = *p_v_su;
-  const ViewDouble3D v_snlat_   = *p_v_snlat;
-  const ViewDouble4D v_up_      = *p_v_up;
-  const ViewDouble4D v_vp_      = *p_v_vp;
-  const ViewDouble4D v_dlu_     = *p_v_dlu;
-  const ViewDouble4D v_viv_     = *p_v_viv;
-  const ViewDouble4D v_wka_     = *p_v_wka;
-  const ViewDouble4D v_akmu_    = *p_v_akmu;
+  const ViewDouble2D v_odz_pt_ = *p_v_odz_pt;
+  const ViewDouble3D v_su_     = *p_v_su;
+  const ViewDouble3D v_snlat_  = *p_v_snlat;
+  const ViewDouble4D v_up_     = *p_v_up;
+  const ViewDouble4D v_vp_     = *p_v_vp;
+  const ViewDouble4D v_dlu_    = *p_v_dlu;
+  const ViewDouble4D v_viv_    = *p_v_viv;
+  const ViewDouble4D v_wka_    = *p_v_wka;
+  const ViewDouble4D v_akmu_   = *p_v_akmu;
 };
 class FunctorReadyc22 {
  public:
@@ -3611,14 +3610,14 @@ class FunctorReadyc22 {
   const double cag_ = CppPconstMod::cag;
   const double sag_ = CppPconstMod::sag;
   const ViewDouble2D v_odz_pt_ = *p_v_odz_pt;
-  const ViewDouble3D v_sv_    = *p_v_sv;
-  const ViewDouble3D v_snlat_ = *p_v_snlat;
-  const ViewDouble4D v_up_    = *p_v_up;
-  const ViewDouble4D v_vp_    = *p_v_vp;
-  const ViewDouble4D v_dlv_   = *p_v_dlv;
-  const ViewDouble4D v_viv_   = *p_v_viv;
-  const ViewDouble4D v_wka_   = *p_v_wka;
-  const ViewDouble4D v_akmu_  = *p_v_akmu;
+  const ViewDouble3D v_sv_     = *p_v_sv;
+  const ViewDouble3D v_snlat_  = *p_v_snlat;
+  const ViewDouble4D v_up_     = *p_v_up;
+  const ViewDouble4D v_vp_     = *p_v_vp;
+  const ViewDouble4D v_dlv_    = *p_v_dlv;
+  const ViewDouble4D v_viv_    = *p_v_viv;
+  const ViewDouble4D v_wka_    = *p_v_wka;
+  const ViewDouble4D v_akmu_   = *p_v_akmu;
 };
 //===========================
 
