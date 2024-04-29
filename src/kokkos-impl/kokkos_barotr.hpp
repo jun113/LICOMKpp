@@ -344,7 +344,7 @@ class FunctorBarotr7 {
            + v_du_cnsewm_(bid, j, i, 2) * v_vmixk(bid, j+1, i  )
            + v_du_cnsewm_(bid, j, i, 3) * v_vmixk(bid, j  , i+1)
            + v_du_cnsewm_(bid, j, i, 4) * v_vmixk(bid, j  , i-1))
-          + (v_dm_cnsew_ (bid, j, i, 0) * v_umixk(bid, j  , i  )
+          - (v_dm_cnsew_ (bid, j, i, 0) * v_umixk(bid, j  , i  )
            + v_dm_cnsew_ (bid, j, i, 1) * v_umixk(bid, j-1, i  )
            + v_dm_cnsew_ (bid, j, i, 2) * v_umixk(bid, j+1, i  )
            + v_dm_cnsew_ (bid, j, i, 3) * v_umixk(bid, j  , i+1)
