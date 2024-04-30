@@ -462,8 +462,6 @@ void kokkos_tracer() {
               CppDomain::POP_haloClinic_C.communicator);
       MPI_Bcast (&err_norm1, 1, MPI_DOUBLE, CppParamMod::master_task,
           CppDomain::POP_haloClinic_C.communicator);
-      mpi_reduce_tracer_(&err_norm2, &err_norm1);
-      mpi_bcast_tracer_(&err_norm1);
 
       err_norm2 = - err_norm1 / area_t;
 #else  // SPMD
@@ -481,13 +479,43 @@ void kokkos_tracer() {
     }
 
     //--------------------
-// #ifdef LICOM_ENABLE_TEST_TRACER
-//     my_time.testTime_start("tracer haloupdate");
-// #endif // LICOM_ENABLE_TEST_TRACER
-//     pop_haloupdate_tracer_1(NTRA, 2);
-// #ifdef LICOM_ENABLE_TEST_TRACER
-//     my_time.testTime_stop("tracer haloupdate");
-// #endif // LICOM_ENABLE_TEST_TRACER
+    // TODO: GPU and SW needs debug
+#ifdef LICOM_ENABLE_TEST_TRACER
+    my_time.testTime_start("tracer haloupdate net");
+#endif // LICOM_ENABLE_TEST_TRACER
+#ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
+    // CUDA HIP memcpy
+  gpu_get_halo_transpose_tracer (*p_v_net, CppPOPHaloMod::arrCommPriorK,
+      2, 3, KM, JMT, IMT);
+  pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
+      KM, JMT, IMT, 
+      CppDomain::POP_haloClinic_C, 
+      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
+  gpu_put_halo_transpose_tracer (CppPOPHaloMod::arrCommPriorK, *p_v_net,
+      0, 3, KM, JMT, IMT);
+#elif (defined KOKKOS_ENABLE_ATHREAD)
+  athread_get_halo_transpose_double_host ((*p_v_net).data(), CppPOPHaloMod::arrCommPriorK,
+      2, 3, KM, JMT, IMT);
+
+  pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
+      KM, JMT, IMT, 
+      CppDomain::POP_haloClinic_C, 
+      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
+
+  athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_net).data(), 
+      0, 3, KM, JMT, IMT);
+#else
+    CppPOPHaloMod::pop_halo_update((*p_v_net).data(), KM, JMT, IMT,
+        CppDomain::POP_haloClinic_C, 
+        CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+        CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
+#endif
+
+#ifdef LICOM_ENABLE_TEST_TRACER
+    my_time.testTime_stop("tracer haloupdate net");
+#endif // LICOM_ENABLE_TEST_TRACER
     //--------------------
       
     //if (simple_assm) {
@@ -533,7 +561,7 @@ void kokkos_tracer() {
   
     //--------------------
 #ifdef LICOM_ENABLE_TEST_TRACER
-    my_time.testTime_start("tracer haloupdate");
+    my_time.testTime_start("tracer haloupdate vtl");
 #endif // LICOM_ENABLE_TEST_TRACER
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
     // CUDA HIP memcpy
@@ -569,7 +597,7 @@ void kokkos_tracer() {
 #endif
 
 #ifdef LICOM_ENABLE_TEST_TRACER
-    my_time.testTime_stop("tracer haloupdate");
+    my_time.testTime_stop("tracer haloupdate vtl");
 #endif // LICOM_ENABLE_TEST_TRACER
     //--------------------
 
@@ -710,7 +738,7 @@ void kokkos_tracer() {
 
 #endif // NODIAG
 
-  ++ist;
+  ist += 1;
 
   return ;
 }

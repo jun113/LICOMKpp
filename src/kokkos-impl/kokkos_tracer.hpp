@@ -1339,21 +1339,23 @@ class FunctorTracer18{
   const ViewDouble4D v_tf_      = *p_v_tf;
 };
 
+// !----------------------------------------
+// !     VERTICAL COMPONENT
+// !----------------------------------------
 class FunctorTracer19 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &j, const int &i) const {
 #if defined(SOLAR) || defined(SOLARCHLORO)
     const int iblock = 0;
+    double wt;
 #endif // defined(SOLAR) || defined(SOLARCHLORO)
-
 #ifdef SOLAR
-    double wt = v_swv_(iblock, j, i) * v_pen_ (0) * v_vit_(iblock, 1, j, i);
+    wt = v_swv_(iblock, j, i) * v_pen_ (0) * v_vit_(iblock, 1, j, i);
 #endif // SOLAR
 #ifdef SOLARCHLORO
-    wt += v_swv_(iblock, j, i) * v_pen_chl_(iblock, 0, j, i) * v_vit_(iblock, 1, j, i);
+    wt = v_swv_(iblock, j, i) * v_pen_chl_(iblock, 0, j, i) * v_vit_(iblock, 1, j, i);
 #endif // SOLARCHLORO
-
 #if defined(SOLAR) || defined(SOLARCHLORO)
     v_tf_ (iblock, 0, j, i) -= v_odzp_(0) * wt;
 #endif // defined(SOLAR) || defined(SOLARCHLORO)
@@ -1361,10 +1363,15 @@ class FunctorTracer19 {
   }
  private:
   const ViewDouble1D v_odzp_ = *p_v_odzp;
+#ifdef SOLAR
   const ViewDouble1D v_pen_  = *p_v_pen;
+#endif // SOLAR
   const ViewDouble3D v_swv_  = *p_v_swv;
   const ViewDouble4D v_tf_   = *p_v_tf;
   const ViewDouble4D v_vit_  = *p_v_vit;
+#ifdef SOLARCHLORO
+  const ViewDouble4D v_pen_chl_ = *p_v_pen_chl;
+#endif // SOLARCHLORO
 };
 class FunctorTracer20 {
  public:
@@ -1382,8 +1389,8 @@ class FunctorTracer20 {
 #endif // SOLAR
 
 #ifdef SOLARCHLORO
-    wt1 += v_swv_(iblock, j, i) * v_pen_chl_(iblock, k-1, j, i) * v_vit_(iblock, k  , j, i);
-    wt2 += v_swv_(iblock, j, i) * v_pen_chl_(iblock, k  , j, i) * v_vit_(iblock, k+1, j, i);
+    wt1 = v_swv_(iblock, j, i) * v_pen_chl_(iblock, k-1, j, i) * v_vit_(iblock, k  , j, i);
+    wt2 = v_swv_(iblock, j, i) * v_pen_chl_(iblock, k  , j, i) * v_vit_(iblock, k+1, j, i);
 #endif // SOLARCHLORO
 
 #if defined(SOLAR) || defined(SOLARCHLORO)
@@ -1395,10 +1402,15 @@ class FunctorTracer20 {
 
  private:
   const ViewDouble1D v_odzp_ = *p_v_odzp;
+#ifdef SOLAR
   const ViewDouble1D v_pen_  = *p_v_pen;
+#endif // SOLAR
   const ViewDouble3D v_swv_  = *p_v_swv;
   const ViewDouble4D v_tf_   = *p_v_tf;
   const ViewDouble4D v_vit_  = *p_v_vit;
+#ifdef SOLARCHLORO
+  const ViewDouble4D v_pen_chl_ = *p_v_pen_chl;
+#endif // SOLARCHLORO
 };
 class FunctorTracer21 {
  public:
@@ -1415,7 +1427,7 @@ class FunctorTracer21 {
 #endif // SOLAR
 
 #ifdef SOLARCHLORO
-    wt += v_swv_(iblock, j, i) * v_pen_chl_(iblock, KM-2, j, i) * v_vit_(iblock, KM-1, j, i);
+    wt = v_swv_(iblock, j, i) * v_pen_chl_(iblock, KM-2, j, i) * v_vit_(iblock, KM-1, j, i);
 #endif // SOLARCHLORO
 
 #if defined(SOLAR) || defined(SOLARCHLORO)
@@ -1425,10 +1437,15 @@ class FunctorTracer21 {
   }
  private:
   const ViewDouble1D v_odzp_ = *p_v_odzp;
+#ifdef SOLAR
   const ViewDouble1D v_pen_  = *p_v_pen;
+#endif // SOLAR
   const ViewDouble3D v_swv_  = *p_v_swv;
   const ViewDouble4D v_tf_   = *p_v_tf;
   const ViewDouble4D v_vit_  = *p_v_vit;
+#ifdef SOLARCHLORO
+  const ViewDouble4D v_pen_chl_ = *p_v_pen_chl;
+#endif // SOLARCHLORO
 };
 
 class FunctorTracer22 {
@@ -1450,18 +1467,18 @@ class FunctorTracer22 {
 
  private:
   const int n_;
-  const ViewDouble1D v_odzp_      = *p_v_odzp;
-  const ViewDouble1D v_odzt_      = *p_v_odzt;
-  const ViewDouble4D v_tf_        = *p_v_tf;
-  const ViewDouble4D v_vit_       = *p_v_vit;
-  const ViewDouble4D v_wkc_       = *p_v_wkc;
-  const ViewDouble5D v_atb_       = *p_v_atb;
+  const ViewDouble1D v_odzp_ = *p_v_odzp;
+  const ViewDouble1D v_odzt_ = *p_v_odzt;
+  const ViewDouble4D v_tf_   = *p_v_tf;
+  const ViewDouble4D v_vit_  = *p_v_vit;
+  const ViewDouble4D v_wkc_  = *p_v_wkc;
+  const ViewDouble5D v_atb_  = *p_v_atb;
 };
 class FunctorTracer23 {
  public:
   FunctorTracer23 (const int &n) : n_(n) {}
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &k, const int &j, const int &i) const {
     const int iblock = 0;
     // const double aidif = 0.5;
     const double one_minus_aidif = 0.5;
@@ -1475,7 +1492,6 @@ class FunctorTracer23 {
     v_tf_(iblock, k, j, i) += v_odzp_(k) * (wt1 - wt2) * one_minus_aidif;
     return ;
   }
-
  private:
   const int n_;
   const ViewDouble1D v_odzp_ = *p_v_odzp;
@@ -1499,15 +1515,14 @@ class FunctorTracer24 {
     v_tf_(iblock, KM-1, j, i) += v_odzp_(KM-1) * wt2 * one_minus_aidif;
     return ;
   }
-
  private:
   const int n_;
-  const ViewDouble1D v_odzp_      = *p_v_odzp;
-  const ViewDouble1D v_odzt_      = *p_v_odzt;
-  const ViewDouble4D v_tf_        = *p_v_tf;
-  const ViewDouble4D v_vit_       = *p_v_vit;
-  const ViewDouble4D v_wkc_       = *p_v_wkc;
-  const ViewDouble5D v_atb_       = *p_v_atb;
+  const ViewDouble1D v_odzp_ = *p_v_odzp;
+  const ViewDouble1D v_odzt_ = *p_v_odzt;
+  const ViewDouble4D v_tf_   = *p_v_tf;
+  const ViewDouble4D v_vit_  = *p_v_vit;
+  const ViewDouble4D v_wkc_  = *p_v_wkc;
+  const ViewDouble5D v_atb_  = *p_v_atb;
 };
 
 class FunctorTracer25 {
@@ -1625,7 +1640,7 @@ class FunctorTracer28 {
           * od0cp_ + v_seaice_(iblock, j, i) * gamma_
               * (v_sst_(iblock, j, i) - v_atb_(iblock, 0, 1, j, i)) / v_odzp_(0));
 #else  // FRC_CORE
-      v_stf_(iblock, j, i) = (v_swv_(iblock, j, i) + v_vswv_(iblock, j, i)
+      v_stf_(iblock, j, i) = (v_swv_(iblock, j, i) + v_nswv_(iblock, j, i)
           - v_dqdt_(iblock, j, i) * (v_sst_(iblock, j, i)
               - v_atb_(iblock, 0, 1, j, i))) * od0cp_;
 #endif // FRC_CORE
@@ -1777,22 +1792,22 @@ class FunctorTracer32 {
         f8[k] = (d8[k] + c8[k] * f8[k+1]) * g0;
       }
 
-      v_wk(iblock, 0, j, i) = (e8[0] * v_topbc(iblock, j, i) + f8[0])
+      double wk;
+      wk = (e8[0] * v_topbc(iblock, j, i) + f8[0])
           * v_vit_(iblock, 0, j, i);
-           
+      v_wk(iblock, 0, j, i) = wk;
       for (int k = 1; k <= kz; ++k) {
-        v_wk(iblock, k, j, i) = (e8[k] * v_wk(iblock, k-1, j, i) 
-            + f8[k]) * v_vit_(iblock, k, j, i);
+        wk = (e8[k] * wk + f8[k]) * v_vit_(iblock, k, j, i);
+        v_wk(iblock, k, j, i)= wk;
       }
     }
     return ;
   }
  private:
   const double c2dtts_;
-
+  const ViewInt3D    v_kmt_  = *p_v_kmt;
   const ViewDouble1D v_odzp_ = *p_v_odzp;
   const ViewDouble1D v_odzt_ = *p_v_odzt;
-  const ViewInt3D    v_kmt_  = *p_v_kmt;
   const ViewDouble3D v_stf_  = *p_v_stf;
   const ViewDouble4D v_vit_  = *p_v_vit;
   const ViewDouble4D v_vtl_  = *p_v_vtl;
@@ -1848,6 +1863,9 @@ class FunctorTracer34 {
   const ViewDouble5D v_dt_diff_ = *p_v_dt_diff;
 };
 
+// !-----------------------------------------------------------------------
+// !     SOLVE FOR "TAU+1" TRACER AT CENTER OF "T" CELLS
+// !-----------------------------------------------------------------------
 class FunctorTracer35 {
  public:
   FunctorTracer35 (const int &n, const double &c2dtts) 
