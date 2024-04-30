@@ -432,6 +432,7 @@ class FunctorTracer6 {
   const ViewDouble4D v_wka_  = *p_v_wka;
 };
 
+// !@@@  COMPUTING DIFFUSION COEFFICIENT
 class FunctorTracer7 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -1268,13 +1269,14 @@ class FunctorTracer17{
           const ViewDouble3D &v_d2tk, const ViewDouble5D &v_tmix) const {
     const int bid = 0;
     // n s e w c
-    v_c_cnsew_(k, j, i, 1) = (k <= v_kmt_nsew_(bid, j, i, 0) && k <= v_kmt_(bid, j, i))
+    int kk = k + 1;
+    v_c_cnsew_(k, j, i, 1) = (kk <= v_kmt_nsew_(bid, j, i, 0) && kk <= v_kmt_(bid, j, i))
         ? v_dt_nsew_(bid, j, i, 0) : C0;                
-    v_c_cnsew_(k, j, i, 2) = (k <= v_kmt_nsew_(bid, j, i, 1) && k <= v_kmt_(bid, j, i))
+    v_c_cnsew_(k, j, i, 2) = (kk <= v_kmt_nsew_(bid, j, i, 1) && kk <= v_kmt_(bid, j, i))
         ? v_dt_nsew_(bid, j, i, 1) : C0;                
-    v_c_cnsew_(k, j, i, 3) = (k <= v_kmt_nsew_(bid, j, i, 2) && k <= v_kmt_(bid, j, i))
+    v_c_cnsew_(k, j, i, 3) = (kk <= v_kmt_nsew_(bid, j, i, 2) && kk <= v_kmt_(bid, j, i))
         ? v_dt_nsew_(bid, j, i, 2) : C0;                
-    v_c_cnsew_(k, j, i, 4) = (k <= v_kmt_nsew_(bid, j, i, 3) && k <= v_kmt_(bid, j, i))
+    v_c_cnsew_(k, j, i, 4) = (kk <= v_kmt_nsew_(bid, j, i, 3) && kk <= v_kmt_(bid, j, i))
         ? v_dt_nsew_(bid, j, i, 3) : C0;
 
     v_c_cnsew_(k, j, i, 0) = -(v_c_cnsew_(k, j, i, 1) + v_c_cnsew_(k, j, i, 2) 
@@ -1306,19 +1308,12 @@ class FunctorTracer17{
 };
 class FunctorTracer18{
  public:
-  FunctorTracer18 (const int &n) : n_(n) {}
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
     const int iblock = 0;
-
     double hdtk;
-
     hdifft_del4_2(k, j, i, v_dt2k_, hdtk);
-
-    if (i >= 2 && i < (IMT-2) && j >= 2 && j < (JMT-2)) {
-      v_tf_(iblock, k, j, i)    += hdtk;
-    }
-  
+    v_tf_(iblock, k, j, i) += hdtk;
     return ;
   }
   KOKKOS_INLINE_FUNCTION void hdifft_del4_2 (const int &k, const int &j, 
@@ -1334,7 +1329,6 @@ class FunctorTracer18{
     return;
   }
  private:
-  const int n_;
   const int ib_ = CppBlocks::ib;
   const int ie_ = CppBlocks::ib;
   const int jb_ = CppBlocks::jb;

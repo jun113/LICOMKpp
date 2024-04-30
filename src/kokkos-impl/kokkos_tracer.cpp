@@ -249,6 +249,11 @@ void kokkos_tracer() {
       koArr3D{0, 1, 1}, koArr3D{KM, JMT-1, IMT-1}, tile3D), FunctorTracer7());
 
   //======================
+  // !---------------------------------------------
+  // !     SOLVE FOR ONE TRACER AT A TIME
+  // !---------------------------------------------
+  // !     NTRA = 1 => TEMPERATURE
+  // !     NTRA = 2 => SALINITY
   for (int n = 0; n < NTRA; ++n) {
 
     parallel_for ("tracer_8", MDRangePolicy<Kokkos::Rank<3>> (
@@ -397,7 +402,7 @@ void kokkos_tracer() {
         koArr3D{0, 0, 0}, koArr3D{KM, NY_BLOCK, NX_BLOCK}, tile3D), FunctorTracer17(n));
 
     parallel_for ("tracer_18_hdifft_del4_2", MDRangePolicy<Kokkos::Rank<3>> (
-        koArr3D{0, 0, 0}, koArr3D{KM, NY_BLOCK, NX_BLOCK}, tile3D), FunctorTracer18(n));
+        koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorTracer18());
 #else  // BIHAR
     for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
       for (int k = 0; k < KM; ++k) {
