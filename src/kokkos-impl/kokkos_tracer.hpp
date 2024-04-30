@@ -662,7 +662,6 @@ class FuncAdvTraTsp3 {
             + (1.0 - v_vit_(iblock, k  , j  , i+1)) * wt1,
         v_ttt(iblock, n, k+1, j  , i  ) * v_vit_(iblock, k+1, j  , i  )
             + (1.0 - v_vit_(iblock, k+1, j  , i  )) * wt1);
-        // v_at_00_max_min_(1, k, j, i) = v_atmax_(k, j, i);
 
       v_at_00_max_min_(k, j, i, 2) = myMin(
         v_ttt(iblock, n, k  , j  , i  ) * v_vit_(iblock, k  , j  , i  )
@@ -677,7 +676,6 @@ class FuncAdvTraTsp3 {
             + (1.0 - v_vit_(iblock, k  , j  , i+1)) * wt2,
         v_ttt(iblock, n, k+1, j  , i  ) * v_vit_(iblock, k+1, j  , i  )
             + (1.0 - v_vit_(iblock, k+1, j  , i  )) * wt2);
-        // v_at_00_max_min_(2, k, j, i) = v_atmin_(k, j, i);
     } else if (k == KM-1) {
       v_at_00_max_min_(k, j, i, 1) = myMax(
         v_ttt(iblock, n, k  , j  , i  ) * v_vit_(iblock, k  , j  , i  )
@@ -692,7 +690,6 @@ class FuncAdvTraTsp3 {
             + (1.0 - v_vit_(iblock, k  , j  , i+1)) * wt1,
         v_ttt(iblock, n, k-1, j  , i  ) * v_vit_(iblock, k-1, j  , i  )
             + (1.0 - v_vit_(iblock, k-1, j  , i  )) * wt1);
-        // v_at_00_max_min_(1, k, j, i) = v_atmax_(k, j, i);
 
       v_at_00_max_min_(k, j, i, 2) = myMin(
         v_ttt(iblock, n, k  , j  , i  ) * v_vit_(iblock, k  , j  , i  )
@@ -707,7 +704,6 @@ class FuncAdvTraTsp3 {
             + (1.0 - v_vit_(iblock, k  , j  , i+1)) * wt2,
         v_ttt(iblock, n, k-1, j  , i  ) * v_vit_(iblock, k-1, j  , i  )
             + (1.0 - v_vit_(iblock, k-1, j  , i  )) * wt2);
-        // v_at_00_max_min_(2, k, j, i) = v_atmin_(k, j, i);
     } else {
       v_at_00_max_min_(k, j, i, 1) = myMax(
         v_ttt(iblock, n, k  , j  , i  ) * v_vit_(iblock, k  , j  , i  )
@@ -724,7 +720,6 @@ class FuncAdvTraTsp3 {
             + (1.0 - v_vit_(iblock, k-1, j  , i  )) * wt1,
         v_ttt(iblock, n, k+1, j  , i  ) * v_vit_(iblock, k+1, j  , i  )
             + (1.0 - v_vit_(iblock, k+1, j  , i  )) * wt1);
-        // v_at_00_max_min_(1, k, j, i) = v_atmax_(k, j, i);
 
       v_at_00_max_min_(k, j, i, 2) = myMin(
         v_ttt(iblock, n, k  , j  , i  ) * v_vit_(iblock, k  , j  , i  )
@@ -741,11 +736,9 @@ class FuncAdvTraTsp3 {
             + (1.0 - v_vit_(iblock, k-1, j  , i  )) * wt2,
         v_ttt(iblock, n, k+1, j  , i  ) * v_vit_(iblock, k+1, j  , i  )
             + (1.0 - v_vit_(iblock, k+1, j  , i  )) * wt2);
-        // v_at_00_max_min_(2, k, j, i) = v_atmin_(k, j, i);
     }
     return ;
   }
-
  private:
   const int n_;
   const ViewDouble4D v_vit_           = *p_v_vit;
