@@ -197,9 +197,7 @@ class FunctorBclinc5 {
       const int &k, const int &j, const int &i) const  {   
     const int iblock = 0;
     double gradx, grady;
-    // grad(k, gradx, grady, wka)
     grad(iblock, k, j, i, gradx, grady, v_wka_);
-    // End grad(k, gradx, grady, wka)
     v_dlu_(iblock, k, j, i) -= gradx;
     v_dlv_(iblock, k, j, i) -= grady;
     return ;
@@ -210,7 +208,7 @@ class FunctorBclinc5 {
     const int bid = 0;
     gradx = 0.0;
     grady = 0.0;
-    if (i >=1 && j < (NY_BLOCK - 1)) {
+    if (i >= 1 && j < (NY_BLOCK - 1)) {
       if (k <= (v_kmu_(bid, j, i) - 1)) {
         gradx = v_dxyur_(bid, j, i, 0) * P5 
             * (v_f(iblock, k, j+1, i  ) - v_f(iblock, k, j  , i-1) 
@@ -254,9 +252,7 @@ class FunctorBclinc7 {
       const int &k, const int &j, const int &i) const {
     const int iblock = 0;
     double gradx(0.0), grady(0.0);
-    // grad(k, gradx, grady, wka)
     grad(iblock, k, j, i, gradx, grady, v_wka_);
-    // End grad(k, gradx, grady, wka)
     const double ggu = P25 * (
         v_gg_(iblock, k, j  , i) + v_gg_(iblock, k, j  , i-1) 
       + v_gg_(iblock, k, j+1, i) + v_gg_(iblock, k, j+1, i-1));
@@ -270,9 +266,9 @@ class FunctorBclinc7 {
       const int &j, const int &i, double &gradx, double &grady,
           const ViewDouble4D &v_f) const {
     const int bid = 0;
-    // gradx = 0.0;
-    // grady = 0.0;
-    // if (i >=1 && j < (NY_BLOCK - 1)) {
+    gradx = 0.0;
+    grady = 0.0;
+    if (i >=1 && j < (NY_BLOCK - 1)) {
       if (k <= (v_kmu_(bid, j, i) - 1)) {
         gradx = v_dxyur_(bid, j, i, 0) * P5 
             * (v_f(iblock, k, j+1, i  ) - v_f(iblock, k, j  , i-1) 
@@ -282,7 +278,7 @@ class FunctorBclinc7 {
             * (v_f(iblock, k, j+1, i  ) - v_f(iblock, k, j  , i-1) 
              + v_f(iblock, k, j+1, i-1) - v_f(iblock, k, j  , i  ));
       }
-    // }
+    }
     return ;
   }
  private:
@@ -295,6 +291,9 @@ class FunctorBclinc7 {
   const ViewDouble4D v_dxyur_ = *p_v_dxyur;
 };
 
+// !---------------------------------------------------------------------
+// !     CORIOLIS ADJUSTMENT
+// !---------------------------------------------------------------------
 class FunctorBclinc8 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -330,6 +329,9 @@ class FunctorBclinc8 {
   const ViewDouble4D v_viv_  = *p_v_viv;
 };
 
+// !---------------------------------------------------------------------
+// !     PREDICTING VC & UC
+// !---------------------------------------------------------------------
 class FunctorBclinc9 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -415,11 +417,12 @@ class FunctorBclinc10 {
       }
      //B.C. AT SURFACE 
       k = 0;
-      v_wk(iblock, k, j, i) = (e8[k] * v_topbc(iblock, j, i) + f8[k]) 
+      double wk = (e8[k] * v_topbc(iblock, j, i) + f8[k]) 
           * v_viv_(iblock, k, j, i); 
+      v_wk(iblock, k, j, i) = wk;
       for (k = 1; k < kz ; ++k) {
-        v_wk(iblock, k, j, i) = (e8[k] * v_wk(iblock, k-1, j, i) + f8[k]) 
-            * v_viv_(iblock, k, j, i);
+        wk = (e8[k] * wk + f8[k]) * v_viv_(iblock, k, j, i);
+        v_wk(iblock, k, j, i) = wk;
       } 
     }
     return ;
@@ -499,11 +502,12 @@ class FunctorBclinc11 {
       }
      //B.C. AT SURFACE 
       k = 0;
-      v_wk(iblock, k, j, i) = (e8[k] * v_topbc(iblock, j, i) + f8[k]) 
+      double wk = (e8[k] * v_topbc(iblock, j, i) + f8[k]) 
           * v_viv_(iblock, k, j, i); 
+      v_wk(iblock, k, j, i) = wk;
       for (k = 1; k < kz ; ++k) {
-        v_wk(iblock, k, j, i) = (e8[k] * v_wk(iblock, k-1, j, i) + f8[k]) 
-            * v_viv_(iblock, k, j, i);
+        wk = (e8[k] * wk + f8[k]) * v_viv_(iblock, k, j, i);
+        v_wk(iblock, k, j, i) = wk;
       } 
     }
     return ;
