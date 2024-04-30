@@ -16,7 +16,7 @@
 
 #include "Kokkos_Core.hpp"
 
-using CppParamMod::MAX_BLOCKS_CLINIC;  
+// using CppParamMod::MAX_BLOCKS_CLINIC;  
 using CppParamMod::KM;  
 using CppParamMod::JMT;
 using CppParamMod::IMT;
@@ -46,8 +46,8 @@ using KokkosPconstMod::p_v_akmu;
 using KokkosPconstMod::p_v_zkt;
 using KokkosGrid::p_v_kmu;
 using KokkosGrid::p_v_fcor;
-using KokkosGrid::p_v_dyur;
-using KokkosGrid::p_v_dxur;
+// using KokkosGrid::p_v_dyur;
+// using KokkosGrid::p_v_dxur;
 using KokkosGrid::p_v_dxyur;
 using KokkosDynMod::p_v_sbcx;
 using KokkosDynMod::p_v_sbcy;
@@ -82,13 +82,11 @@ class FunctorBclinc1 {
       const int &j, const int &i) const {   
     const int iblock = 0;
 #ifdef CANUTO 
-    // if (i >=1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
-      const int kmb = v_kmu_(iblock, j, i);
-      if (kmb >= 1) {
-        v_sbcx_(iblock, j, i) = v_su_(iblock, j, i) * od0_;
-        v_sbcy_(iblock, j, i) = v_sv_(iblock, j, i) * od0_;
-      }
-    // }
+    const int kmb = v_kmu_(iblock, j, i);
+    if (kmb >= 1) {
+      v_sbcx_(iblock, j, i) = v_su_(iblock, j, i) * od0_;
+      v_sbcy_(iblock, j, i) = v_sv_(iblock, j, i) * od0_;
+    }
 #endif // CANUTO
     return ;
   }
@@ -107,20 +105,18 @@ class FunctorBclinc2 {
 
     const int iblock = 0;
 #ifdef CANUTO 
-    // if (i >=1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
-      const int kmb = v_kmu_(iblock, j, i);
-      if (kmb >= 1) {
-        const double tmp = c0f_ * sqrt(
-            v_up_(iblock, kmb-1, j, i) * v_up_(iblock, kmb-1, j, i)
-          + v_vp_(iblock, kmb-1, j, i) * v_vp_(iblock, kmb-1, j, i));
+    const int kmb = v_kmu_(iblock, j, i);
+    if (kmb >= 1) {
+      const double tmp = c0f_ * sqrt(
+          v_up_(iblock, kmb-1, j, i) * v_up_(iblock, kmb-1, j, i)
+        + v_vp_(iblock, kmb-1, j, i) * v_vp_(iblock, kmb-1, j, i));
 
-        v_bbcx_(iblock, j, i) = tmp * (v_up_(iblock, kmb-1, j, i) * cag_ 
-            + v_snlat_(iblock, j, i) * v_vp_(iblock, kmb-1, j, i) * sag_);
-  
-        v_bbcy_(iblock, j, i) = tmp * (v_vp_(iblock, kmb-1, j, i) * cag_ 
-            - v_snlat_(iblock, j, i) * v_up_(iblock, kmb-1, j, i) * sag_);
-      }
-    // }
+      v_bbcx_(iblock, j, i) = tmp * (v_up_(iblock, kmb-1, j, i) * cag_ 
+          + v_snlat_(iblock, j, i) * v_vp_(iblock, kmb-1, j, i) * sag_);
+
+      v_bbcy_(iblock, j, i) = tmp * (v_vp_(iblock, kmb-1, j, i) * cag_ 
+          - v_snlat_(iblock, j, i) * v_up_(iblock, kmb-1, j, i) * sag_);
+    }
 #endif // CANUTO
     return ;
   }
@@ -136,15 +132,16 @@ class FunctorBclinc2 {
   const ViewDouble4D v_vp_    = *p_v_vp;
 };
 
+// !---------------------------------------------------------------------
+// !     ADVECTION + DIFFUSION + CORIOLIS
+// !---------------------------------------------------------------------
 class FunctorBclinc3 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {   
     const int iblock = 0;
-    // if (i >=1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
-      v_dlu_(iblock, k, j, i) -= v_fcor_(iblock, j, i) * v_vp_(iblock, k, j, i);
-      v_dlv_(iblock, k, j, i) += v_fcor_(iblock, j, i) * v_up_(iblock, k, j, i);
-    // }
+    v_dlu_(iblock, k, j, i) -= v_fcor_(iblock, j, i) * v_vp_(iblock, k, j, i);
+    v_dlv_(iblock, k, j, i) += v_fcor_(iblock, j, i) * v_up_(iblock, k, j, i);
     return ;
   }
  private:
@@ -155,6 +152,9 @@ class FunctorBclinc3 {
   const ViewDouble4D v_dlv_  = *p_v_dlv;
 };
 
+// !---------------------------------------------------------------------
+// !     PRESSURE GRADIENT FORCES
+// !---------------------------------------------------------------------
 class FunctorBclinc4 {
  public:
   FunctorBclinc4 (const double &aa) : aa_(aa) {}
@@ -166,15 +166,14 @@ class FunctorBclinc4 {
     v_work_(iblock, j, i) = aa_ * v_h0bf_(iblock, j, i) 
                   + (1.0 - aa_) * v_h0bl_(iblock, j, i);
 
-    double wkk[KM + 1];
-    wkk[0] = (v_psa_(iblock, j, i) * od0_ + v_work_(iblock, j, i) * G) 
+    double wkk1, wkk2;
+    wkk1 = (v_psa_(iblock, j, i) * od0_ + v_work_(iblock, j, i) * G) 
         * v_vit_(iblock, 0, j, i);
     for (int k = 0; k < KM; ++k) {
-      wkk[k+1] = wkk[k] - v_gg_(iblock, k, j, i) 
+      wkk2 = wkk1 - v_gg_(iblock, k, j, i) 
           * v_dzp_(k) * v_vit_(iblock, k, j, i);
-    }
-    for (int k = 0; k < KM; ++k) {
-      v_wka_(iblock, k, j, i) = P5 * (wkk[k] + wkk[k+1]);
+      v_wka_(iblock, k, j, i) = P5 * (wkk1 + wkk2);
+      wkk1 = wkk2;
     }
     return ;
   }

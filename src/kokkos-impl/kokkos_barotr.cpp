@@ -202,7 +202,7 @@ void kokkos_barotr() {
     parallel_for ("barotr_18", MDRangePolicy<Kokkos::Rank<2>> (
         koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr18());
 
-    ++isb;
+    isb += 1;
   }
   return ;
 }
