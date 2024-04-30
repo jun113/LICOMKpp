@@ -607,9 +607,9 @@ class FunctorBclinc14 {
   }
  private:
   const double dtc2_ = CppPconstMod::dtc2;
-  const ViewDouble4D v_vp_   = *p_v_vp;
-  const ViewDouble4D v_dlv_  = *p_v_dlv;
-  const ViewDouble4D v_wka_  = *p_v_wka;
+  const ViewDouble4D v_vp_  = *p_v_vp;
+  const ViewDouble4D v_dlv_ = *p_v_dlv;
+  const ViewDouble4D v_wka_ = *p_v_wka;
 };
 
 class FunctorBclinc15 {
@@ -867,6 +867,9 @@ class FunctorBclinc19 {
   const ViewDouble4D v_wka_  = *p_v_wka;
 };
 
+// !---------------------------------------------------------------------
+// !     FILTER FORCING AT HIGT LATITUDES
+// !---------------------------------------------------------------------
 class FunctorBclinc20 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
