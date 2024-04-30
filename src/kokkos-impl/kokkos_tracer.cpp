@@ -21,11 +21,6 @@ void kokkos_tracer() {
   using CppPconstMod::boundary_restore;
   using CppTracerMod::fw_norm2;
 
-  using CppBlocks::ib;
-  using CppBlocks::ie;
-  using CppBlocks::jb;
-  using CppBlocks::je;
-
   using Kokkos::parallel_for;
   using Kokkos::MDRangePolicy;
 
@@ -45,10 +40,8 @@ void kokkos_tracer() {
 #endif // LDD97
 #endif // ISO
 
-
   double aa, c2dtts;
 
-  //auto dev = Kokkos::DefaultExecutionSpace();
   int flag_adv_tracer = 0;
 
 /*
@@ -713,44 +706,6 @@ void kokkos_tracer() {
 #endif // NODIAG
 
   ++ist;
-
-  // if (CppParamMod::mytid == 0) {
-  //   std::cout<<"FunctorTracer1:  "<<sizeof(FunctorTracer1)<<std::endl;
-  //   std::cout<<"FunctorTracer2:  "<<sizeof(FunctorTracer2)<<std::endl;
-  //   std::cout<<"FunctorTracer3:  "<<sizeof(FunctorTracer3)<<std::endl;
-  //   std::cout<<"FunctorTracer4:  "<<sizeof(FunctorTracer4)<<std::endl;
-  //   std::cout<<"FunctorTracer5:  "<<sizeof(FunctorTracer5)<<std::endl;
-  //   std::cout<<"FunctorTracer6:  "<<sizeof(FunctorTracer6)<<std::endl;
-  //   std::cout<<"FunctorTracer7:  "<<sizeof(FunctorTracer7)<<std::endl;
-  //   std::cout<<"FunctorTracer8:  "<<sizeof(FunctorTracer8)<<std::endl;
-  //   std::cout<<"FunctorTracer9:  "<<sizeof(FunctorTracer9AdvectionTracerCenteredTspas1)<<std::endl;
-  //   std::cout<<"FunctorTracer10: "<<sizeof(FunctorTracer10AdvectionTracerTspas2)<<std::endl;
-  //   std::cout<<"FunctorTracer11: "<<sizeof(FunctorTracer11AdvectionTracerTspas3)<<std::endl;
-  //   std::cout<<"FunctorTracer12: "<<sizeof(FunctorTracer12AdvectionTracerTspas4)<<std::endl;
-  //   std::cout<<"FunctorTracer13: "<<sizeof(FunctorTracer13AdvectionTracerTspas5)<<std::endl;
-  //   std::cout<<"FunctorTracer14: "<<sizeof(FunctorTracer14AdvectionTracerTspas6)<<std::endl;
-  //   std::cout<<"FunctorTracer15: "<<sizeof(FunctorTracer15)<<std::endl;
-  //   std::cout<<"FunctorTracer16: "<<sizeof(FunctorTracer16)<<std::endl;
-  //   std::cout<<"FunctorTracer17: "<<sizeof(FunctorTracer17)<<std::endl;
-  //   std::cout<<"FunctorTracer18: "<<sizeof(FunctorTracer18)<<std::endl;
-  //   std::cout<<"FunctorTracer19: "<<sizeof(FunctorTracer19)<<std::endl;
-  //   std::cout<<"FunctorTracer20: "<<sizeof(FunctorTracer20)<<std::endl;
-  //   std::cout<<"FunctorTracer21: "<<sizeof(FunctorTracer21)<<std::endl;
-  //   std::cout<<"FunctorTracer22: "<<sizeof(FunctorTracer22)<<std::endl;
-  //   std::cout<<"FunctorTracer23: "<<sizeof(FunctorTracer23)<<std::endl;
-  //   std::cout<<"FunctorTracer24: "<<sizeof(FunctorTracer24)<<std::endl;
-  //   std::cout<<"FunctorTracer25: "<<sizeof(FunctorTracer25)<<std::endl;
-  //   std::cout<<"FunctorTracer26: "<<sizeof(FunctorTracer26)<<std::endl;
-  //   std::cout<<"FunctorTracer27: "<<sizeof(FunctorTracer27)<<std::endl;
-  //   std::cout<<"FunctorTracer28: "<<sizeof(FunctorTracer28)<<std::endl;
-  //   std::cout<<"FunctorTracer29: "<<sizeof(FunctorTracer29)<<std::endl;
-  //   std::cout<<"FunctorTracer30: "<<sizeof(FunctorTracer30)<<std::endl;
-  //   std::cout<<"FunctorTracer31: "<<sizeof(FunctorTracer31)<<std::endl;
-  //   std::cout<<"FunctorTracer32: "<<sizeof(FunctorTracer32)<<std::endl;
-  //   std::cout<<"FunctorTracer33: "<<sizeof(FunctorTracer33)<<std::endl;
-  //   std::cout<<"FunctorTracer34: "<<sizeof(FunctorTracer34)<<std::endl;
-  //   std::cout<<"FunctorTracer35: "<<sizeof(FunctorTracer35)<<std::endl;
-  // }
 
   return ;
 }

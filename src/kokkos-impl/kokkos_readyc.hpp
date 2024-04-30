@@ -2899,13 +2899,12 @@ class FunctorReadyc10 {
             * v_wka_(iblock, k, j, i)
                 * v_vit_(iblock, k, j, i);
       }
-      double pre_ws = v_ws_(iblock, 0, j, i);
+      double ws = v_ws_(iblock, 0, j, i);
       for (int k = 1; k < KM; ++k) {
-        v_ws_(iblock, k, j, i) = v_vit_(iblock, k, j, i) 
-            * (pre_ws + v_dzp_(k-1) 
-                * (v_work_(iblock, j, i) * v_ohbt_(iblock, j, i)
-                    + v_wka_(iblock, k-1, j, i  )));
-        pre_ws = v_ws_(iblock, k, j, i);
+        ws = v_vit_(iblock, k, j, i) * (ws + v_dzp_(k-1) 
+            * (v_work_(iblock, j, i) * v_ohbt_(iblock, j, i)
+                + v_wka_(iblock, k-1, j, i  )));
+        v_ws_(iblock, k, j, i) = ws;
       }
 
       v_work_(iblock, j, i) = 1.0 / (1.0 + v_h0wk(iblock, j, i)

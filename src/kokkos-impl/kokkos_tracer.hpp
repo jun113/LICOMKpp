@@ -57,8 +57,8 @@ using CppConstantMod::C0;
 using CppConstantMod::P5;
 using CppConstantMod::P25;
 using CppParamMod::KM;
-using CppParamMod::KMM1;
-using CppParamMod::KMP1;
+// using CppParamMod::KMM1;
+// using CppParamMod::KMP1;
 using CppParamMod::JMT;
 using CppParamMod::IMT;
 using CppParamMod::JST;
@@ -66,7 +66,7 @@ using CppParamMod::JET;
 using CppParamMod::NTRA;
 using CppParamMod::NX_BLOCK;
 using CppParamMod::NY_BLOCK;
-using CppParamMod::MAX_BLOCKS_CLINIC;
+// using CppParamMod::MAX_BLOCKS_CLINIC;
 
 using KokkosDynMod   ::p_v_h0f;
 using KokkosDynMod   ::p_v_h0l;
@@ -127,12 +127,12 @@ using KokkosWorkMod  :: p_v_wkc;
 using KokkosWorkMod  :: p_v_wkd;
 using KokkosWorkMod  :: p_v_work;
 
-using KokkosTracerMod:: p_v_ax;
-using KokkosTracerMod:: p_v_ay;
-using KokkosTracerMod:: p_v_az;
+// using KokkosTracerMod:: p_v_ax;
+// using KokkosTracerMod:: p_v_ay;
+// using KokkosTracerMod:: p_v_az;
 using KokkosTracerMod:: p_v_at;
-using KokkosTracerMod:: p_v_dx;
-using KokkosTracerMod:: p_v_dz;
+// using KokkosTracerMod:: p_v_dx;
+// using KokkosTracerMod:: p_v_dz;
 using KokkosTracerMod:: p_v_atb;
 using KokkosTracerMod:: p_v_net;
 using KokkosTracerMod:: p_v_tend;
@@ -220,6 +220,9 @@ using KokkosTmpVar::p_v_dt2k;
 using KokkosTmpVar::p_v_c_cnsew;
 #endif // BIHAR
 
+// !---------------------------------------------------------------------
+// !     PREPARATION FOR VERTICAL ADVECTIVE TERM
+// !---------------------------------------------------------------------
 class FunctorTracer1 {
  public: 
   FunctorTracer1 (const double &aa) : aa_(aa) {}
@@ -254,7 +257,6 @@ class FunctorTracer2 {
         + (1.0 - aa_) * v_utl_(iblock, k, j, i);
     v_wkb_(iblock, k, j, i) = aa_ * v_vtf_(iblock, k, j, i)
         + (1.0 - aa_) * v_vtl_(iblock, k, j, i);
-    v_wka_(iblock, k, j, i) = 0.0;
     return ;
   }
 
@@ -265,7 +267,6 @@ class FunctorTracer2 {
   const ViewDouble4D v_utl_ = *p_v_utl;
   const ViewDouble4D v_vtf_ = *p_v_vtf;
   const ViewDouble4D v_vtl_ = *p_v_vtl;
-  const ViewDouble4D v_wka_ = *p_v_wka;
   const ViewDouble4D v_wkb_ = *p_v_wkb;
   const ViewDouble4D v_wkd_ = *p_v_wkd;
 };
@@ -393,7 +394,8 @@ class FunctorTracer6 {
     upwell_4(iblock, j, i, v_stf_);
     return ;
   }
-  KOKKOS_INLINE_FUNCTION void upwell_4 (const int &iblock, const int &j, 
+  KOKKOS_INLINE_FUNCTION 
+  void upwell_4 (const int &iblock, const int &j, 
       const int &i, const ViewDouble3D &v_h0wk) const {
 
     v_work_(iblock, j, i) = C0;
@@ -401,14 +403,14 @@ class FunctorTracer6 {
     if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
       for (int k = 0; k < KM; ++k) {
         v_work_(iblock, j, i) -= v_dzp_(k)
-            * v_wka_(iblock, k, j, i)
-                * v_vit_(iblock, k, j, i);
+            * v_wka_(iblock, k, j, i) * v_vit_(iblock, k, j, i);
       }
+      double ws = v_ws_(iblock, 0, j, i);
       for (int k = 1; k < KM; ++k) {
-        v_ws_(iblock, k, j, i) = v_vit_(iblock, k, j, i) 
-            * (v_ws_(iblock, k-1, j, i) + v_dzp_(k-1) 
-                * (v_work_(iblock, j, i) * v_ohbt_(iblock, j, i)
-                    + v_wka_(iblock, k-1, j, i)));
+        ws = v_vit_(iblock, k, j, i) * (ws + v_dzp_(k-1) 
+            * (v_work_(iblock, j, i) * v_ohbt_(iblock, j, i)
+                + v_wka_(iblock, k-1, j, i)));
+        v_ws_(iblock, k, j, i) = ws;
       }
 
       v_work_(iblock, j, i) = 1.0 / (1.0 + v_h0wk(iblock, j, i)
@@ -421,13 +423,13 @@ class FunctorTracer6 {
     return ;
   }
  private:
-  const ViewDouble1D v_dzp_   = *p_v_dzp;
-  const ViewDouble3D v_stf_   = *p_v_stf;
-  const ViewDouble3D v_work_  = *p_v_work;
-  const ViewDouble3D v_ohbt_  = *p_v_ohbt;
-  const ViewDouble4D v_ws_    = *p_v_ws;
-  const ViewDouble4D v_vit_   = *p_v_vit;
-  const ViewDouble4D v_wka_   = *p_v_wka;
+  const ViewDouble1D v_dzp_  = *p_v_dzp;
+  const ViewDouble3D v_stf_  = *p_v_stf;
+  const ViewDouble3D v_work_ = *p_v_work;
+  const ViewDouble3D v_ohbt_ = *p_v_ohbt;
+  const ViewDouble4D v_ws_   = *p_v_ws;
+  const ViewDouble4D v_vit_  = *p_v_vit;
+  const ViewDouble4D v_wka_  = *p_v_wka;
 };
 
 class FunctorTracer7 {
