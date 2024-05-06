@@ -138,8 +138,8 @@ class FunctorInterplationNearest {
   //   }
   //   return ;
   // }
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     const int iwk = S_IMT + 2;
     const int jwk = S_JMT + 2;
 
@@ -287,25 +287,34 @@ class FunctorJRADaily1 {
       vv = tmp * (v_v_(0, 0, j  , i) + v_v_(0, 0, j  , i+1)
                 + v_v_(0, 0, j-1, i) + v_v_(0, 0, j-1, i+1));
     }
-    // relative speed to surface currents
-    v_windx_(j, i) = (v_wspdu3_(j, i) - uu) * v_vit_(0, 0, j, i);
-    v_windy_(j, i) = (v_wspdv3_(j, i) + vv) * v_vit_(0, 0, j, i);
-    // 1.0 is from mom4
-    v_wspd3_(j, i) = std::sqrt(v_windx_(j, i) * v_windx_(j, i)
-                             + v_windy_(j, i) * v_windy_(j, i) + 1.0) * v_vit_(0, 0, j, i);
-    // using a transient temperature, not daily mean
-    const double tok = 273.15;
-    v_model_sst_(j, i) = (v_at_(0, 0, 0, j, i) + tok) * v_vit_(0, 0, j, i);
-
+    if (v_vit_(0, 0, j, i) > 0.5) {
+      // transfer core data to what the subroutine need
+      // relative speed to surface currents
+      v_windx_(j, i) = v_wspdu3_(j, i) - uu;
+      v_windy_(j, i) = v_wspdv3_(j, i) + vv;
+      // 1.0 is from mom4
+      v_wspd3_(j, i) = std::sqrt(v_windx_(j, i) * v_windx_(j, i)
+                               + v_windy_(j, i) * v_windy_(j, i) + 1.0);
+      // using a transient temperature, not daily mean
+      const double tok = 273.15;
+      v_model_sst_(j, i) = v_at_(0, 0, 0, j, i) + tok;
+ 
+      v_qs_(j, i) = 0.98 * 640380.0 * std::exp(-5107.4 / v_model_sst_(j, i)) / 1.22;
+      // temperature to potential temperature
+      v_theta_(j, i) = v_tsa3_(j, i) * std::pow(100000.0 / v_psa3_(j, i), 0.286);
+      v_runoff_(0, j, i) = v_runoff3_(j, i);
+      v_seaice_(0, j, i) = v_seaice3_(j, i);
+    } else {
+      v_windx_(j, i)     = 0.0;
+      v_windy_(j, i)     = 0.0;
+      v_wspd3_(j, i)     = 0.0;
+      v_model_sst_(j, i) = 0.0;
+      v_qs_(j, i)        = 0.0;
+      v_theta_(j, i)     = 0.0;
+      v_runoff_(0, j, i) = 0.0;
+      v_seaice_(0, j, i) = 0.0;
+    }
     v_zz_(j, i) = 10.0;
-
-    v_qs_(j, i) = (0.98 * 640380 * std::exp(-5107.4 / v_model_sst_(j, i))
-        / 1.22) * v_vit_(0, 0, j, i);
-    // temperature to potential temperature
-    v_theta_(j, i) = v_tsa3_(j, i) * std::pow(100000.0 / v_psa3_(j, i), 0.286)
-        * v_vit_(0, 0, j, i);
-    v_runoff_(0, j, i) = v_runoff3_(j, i) * v_vit_(0, 0, j, i);
-    v_seaice_(0, j, i) = v_seaice3_(j, i) * v_vit_(0, 0, j, i);
     return ;
   }
  private:
@@ -347,6 +356,7 @@ class FunctorJRADaily2 {
     v_lwv_(0, j, i) = (0.95*v_lwv3_(j, i) - 0.95*5.67e-8*tmp_sst)
         * vit_times_one_minus_seaice;
 
+    // tmp1 and tmp2 in Fortran code
     v_qs_(j, i) =   v_core_tau_(j, i) * v_windx_(j, i) * v_vit_(0, 0, j, i);
     v_zz_(j, i) = - v_core_tau_(j, i) * v_windy_(j, i) * v_vit_(0, 0, j, i);
 
@@ -403,18 +413,6 @@ class FunctorJRADaily3 {
     v_sv_(0, j, i) = 0.25 * (
       v_zz_(j  , i) + v_zz_(j  , i-1) 
     + v_zz_(j+1, i) + v_zz_(j+1, i-1)) * v_viv_(0, 0, j, i);
-    // using CppParamMod::JST;
-    // if (i >= 1 && i < JEM && j >= (JST-1) && j < JEM) {
-    //   v_su_(0, j, i) = 0.25 * (
-    //     v_qs_(j  , i) + v_qs_(j  , i-1) 
-    //   + v_qs_(j+1, i) + v_qs_(j+1, i-1)) * v_viv_(0, 0, j, i);
-    //   v_sv_(0, j, i) = 0.25 * (
-    //     v_zz_(j  , i) + v_zz_(j  , i-1) 
-    //   + v_zz_(j+1, i) + v_zz_(j+1, i-1)) * v_viv_(0, 0, j, i);
-    // } else {
-    //   v_su_(0, j, i) = 0.0;
-    //   v_sv_(0, j, i) = 0.0;
-    // }
   return ;
   }
  private:
@@ -480,7 +478,7 @@ class FunctorNcarOceanFluxesJra {
           (v_ustar_(0, j, i) * v_ustar_(0, j, i));
       zeta = sign(std::min(std::abs(zeta), 10.0), zeta);
  
-      double x2 = std::sqrt(std::abs(1 - 16.0 * zeta));
+      double x2 = std::sqrt(std::abs(1.0 - 16.0 * zeta));
       x2 = std::max(x2, 1.0);
       const double x = std::sqrt(x2);
       double psi_m;

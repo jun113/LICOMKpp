@@ -631,28 +631,28 @@ void kokkos_init_forc_mod() {
   p_v_s_wy   = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
   p_v_s_work = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
 
-  p_v_tsa3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_wspd3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_wspdu3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_wspdv3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_psa3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_qar3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_swv3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_lwv3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_rain3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_snow3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_tsa3    = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_wspd3   = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_wspdu3  = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_wspdv3  = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_psa3    = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_qar3    = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_swv3    = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_lwv3    = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_rain3   = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_snow3   = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
   p_v_runoff3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
   p_v_seaice3 = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
 
-  p_v_windx = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_windy = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_windx     = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_windy     = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
   p_v_model_sst = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_zz = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_qs = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_theta = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_zz        = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_qs        = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_theta     = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
   p_v_core_sensible = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_core_latent = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_core_tau = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_core_latent   = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  p_v_core_tau      = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
 
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
   new (p_v_su)       ViewDouble3D("pointer_view_su",
@@ -1482,7 +1482,7 @@ static void kokkos_init_hmix_del4() {
   // p_v_ratio_dxy = (ViewDouble3D *) malloc(sizeof(ViewDouble3D) *
   //     NX_BLOCK * NY_BLOCK);
 
-  p_v_dt_nsew = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
+  p_v_dt_nsew   = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
   p_v_du_cnsewm = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
   p_v_dm_cnsew  = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
@@ -1993,8 +1993,7 @@ static void kokkos_init_output_mod() {
 
 #ifdef LOWRES
 
-  p_v_icmon = (ViewFloat4D *) malloc(sizeof(ViewFloat4D)
-      * IMT * JMT * 2 * MAX_BLOCKS_CLINIC);
+  p_v_icmon = (ViewFloat4D *) malloc(sizeof(ViewFloat4D));
 
 #ifdef TIDEMIX
 

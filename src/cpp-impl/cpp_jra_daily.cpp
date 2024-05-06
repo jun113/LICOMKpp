@@ -165,21 +165,24 @@ void read_jra (const char* fname, double* const buffer,
   using CppParamMod::S_IMT;
 
 	int ncid;
+
+	float* buf = reinterpret_cast<float *>(buffer);
+
 	// int nc_status;
 	nc_open(fname, NC_NOWRITE, &ncid);
 	// check error
-	nc_get_var_double(ncid, 2, buffer);
+	nc_get_var_float(ncid, 2, buf);
 	// check error
 	for (int j = 0; j < S_JMT; ++j) {
 		for (int i = 0; i < S_IMT; ++i) {
-			s_lon[j*S_IMT + i] = buffer[i];
+			s_lon[j*S_IMT + i] = buf[i];
 		}
 	}
-	nc_get_var_double(ncid, 3, buffer);
+	nc_get_var_float(ncid, 3, buf);
 	// check error
 	for (int j = 0; j < S_JMT; ++j) {
 		for (int i = 0; i < S_IMT; ++i) {
-			s_lat[j*S_IMT + i] = buffer[j];
+			s_lat[j*S_IMT + i] = buf[j];
 		}
 	}
 	// check error
