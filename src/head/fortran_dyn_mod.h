@@ -37,7 +37,7 @@ extern double dyn_mod_mp_bbcx_[MAX_BLOCKS_CLINIC][JMT][IMT];
 extern double dyn_mod_mp_sbcy_[MAX_BLOCKS_CLINIC][JMT][IMT];
 extern double dyn_mod_mp_bbcy_[MAX_BLOCKS_CLINIC][JMT][IMT];
 
-extern double (*dyn_mod_mp_buffer_)[IMT_GLOBAL];
+// extern double (*dyn_mod_mp_buffer_)[IMT_GLOBAL];
 
 extern double dyn_mod_mp_h0_[MAX_BLOCKS_CLINIC][JMT][IMT];
 
@@ -78,7 +78,7 @@ extern double __dyn_mod_MOD_bbcx[MAX_BLOCKS_CLINIC][JMT][IMT];
 extern double __dyn_mod_MOD_sbcy[MAX_BLOCKS_CLINIC][JMT][IMT];
 extern double __dyn_mod_MOD_bbcy[MAX_BLOCKS_CLINIC][JMT][IMT];
 
-extern double (*__dyn_mod_MOD_buffer)[IMT_GLOBAL];
+// extern double (*__dyn_mod_MOD_buffer)[IMT_GLOBAL];
 
 extern double __dyn_mod_MOD_h0[MAX_BLOCKS_CLINIC][JMT][IMT];
 

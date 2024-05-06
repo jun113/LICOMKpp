@@ -1,7 +1,9 @@
 #include "head/def-undef.h"
 #include "head/cpp_blocks.h"
 #include "head/cpp_domain.h"
+#ifdef LICOM_ENABLE_FORTRAN
 #include "head/cpp_msg_mod.h"
+#endif // LICOM_ENABLE_FORTRAN
 #include "head/cpp_param_mod.h"
 #include "head/cpp_pconst_mod.h"
 #include "head/cpp_extern_functions.h"
@@ -27,7 +29,9 @@ TestTime::MyTime my_time;
 
 extern "C" void licom_core_() {
 
+#ifdef LICOM_ENABLE_FORTRAN
   using CppMsgMod::nproc;
+#endif // LICOM_ENABLE_FORTRAN
 
   using CppParamMod::mytid;
 

@@ -1074,8 +1074,8 @@ void pop_halo_create (const CppPOPDistributionMod::POP_distrb &distrb,
 	// --------------------------------------------------
 
 	// count number of words to each proc
-	int *sendCount = sendCount = new int[numProcs];
-	int *recvCount = recvCount = new int[numProcs];
+	int *sendCount = new int[numProcs];
+	int *recvCount = new int[numProcs];
 
 	memset(sendCount, 0, sizeof(int) * numProcs);
 	memset(recvCount, 0, sizeof(int) * numProcs);

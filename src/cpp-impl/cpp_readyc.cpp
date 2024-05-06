@@ -74,7 +74,7 @@ void cpp_readyc() {
 
   using CppConstantMod::C0;
 
-  using CppDomain::    blocks_clinic;
+  // using CppDomain::    blocks_clinic;
   using CppDynMod::    dlu;
   using CppDynMod::    dlv;
   using CppDynMod::    dlub;
@@ -127,7 +127,7 @@ void cpp_readyc() {
   using CppPconstMod:: snlat;
   using CppPconstMod:: wp3_tidal;
   using CppPconstMod:: zkp;
-  using CppPmixMod::   ric;
+  // using CppPmixMod::   ric;
   // using CppPmixMod::   riu;
   using CppPmixMod::   rit;
   using CppPmixMod::   rict;

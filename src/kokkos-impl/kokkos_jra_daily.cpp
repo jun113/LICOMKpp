@@ -341,6 +341,7 @@ void kokkos_jra_daily_low (const int &iday) {
 
   using CppForcMod::buffer;
 
+#ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
   using CppForcMod::tsa3;
   using CppForcMod::wspdu3;
   using CppForcMod::wspdv3;
@@ -352,6 +353,7 @@ void kokkos_jra_daily_low (const int &iday) {
   using CppForcMod::snow3;
   using CppForcMod::runoff3;
   using CppForcMod::seaice3;
+#endif
 
   using CppParamMod::IMT;
   using CppParamMod::JMT;
@@ -786,11 +788,10 @@ void kokkos_jra_daily_low (const int &iday) {
 void kokkos_jra_daily_high(const int &iday) {
   using Kokkos::parallel_for;
   using Kokkos::MDRangePolicy;
-  using koArr2D = Kokkos::Array<int64_t, 2>;
-  using koArr3D = Kokkos::Array<int64_t, 3>;
 
   using CppForcMod::buffer;
 
+#ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
   using CppForcMod::tsa3;
   using CppForcMod::wspdu3;
   using CppForcMod::wspdv3;
@@ -802,6 +803,7 @@ void kokkos_jra_daily_high(const int &iday) {
   using CppForcMod::snow3;
   using CppForcMod::runoff3;
   using CppForcMod::seaice3;
+#endif
 
   using CppParamMod::IMT;
   using CppParamMod::JMT;

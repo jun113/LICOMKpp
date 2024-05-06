@@ -36,10 +36,9 @@ class FunctorIcesnow1 {
       const double tdiff = tbice_ - v_at_(iblock, 0, k, j, i);
       v_licomqice_(iblock, j, i) += tdiff * v_dzp_(k) / v_dzp_(0);
   
+      v_at_(iblock, 0, k, j, i) = tbice_;       
       v_at_(iblock, 1, k, j, i) += tdiff * (sal_ocn - sal_ice) 
           * cp_ / heat_ice_fusion_ * 0.001;
-  
-      v_at_(iblock, 0, k, j, i) = tbice_;       
     } //end if
 
     if (v_licomqice_(iblock, j, i) > 0.0 && 

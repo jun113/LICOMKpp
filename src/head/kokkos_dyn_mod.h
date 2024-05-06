@@ -38,7 +38,7 @@ extern ViewDouble3D *p_v_bbcx;
 extern ViewDouble3D *p_v_sbcy;
 extern ViewDouble3D *p_v_bbcy;
 
-extern ViewDouble2D *p_v_buffer;
+// extern ViewDouble2D *p_v_buffer;
 
 extern ViewDouble3D *p_v_h0;
 

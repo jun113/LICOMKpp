@@ -6,7 +6,7 @@
 void kokkos_barotr() {
   using CppPconstMod::isb;
   using CppPconstMod::nbb;
-  using CppDomain::blocks_clinic;
+//   using CppDomain::blocks_clinic;
   using CppDomain::nblocks_clinic;
 
   using Kokkos::parallel_for;

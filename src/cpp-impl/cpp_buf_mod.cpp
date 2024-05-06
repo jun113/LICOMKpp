@@ -26,7 +26,7 @@ int &nv = buf_mod_mp_nv_;
 
 #endif // USE_OCN_CARBON
 
-double (*(&ifrac))[JMT][IMT] = buf_mod_mp_ifrac_;
+double (*&ifrac)[JMT][IMT] = buf_mod_mp_ifrac_;
 #endif // LICOM_ENABLE_FORTRAN_COMPILER_INTEL
 
 #ifdef LICOM_ENABLE_FORTRAN_COMPILER_GNU
@@ -45,7 +45,7 @@ int &nv = __buf_mod_MOD_nv;
 
 #endif // USE_OCN_CARBON
 
-double (*(&ifrac))[JMT][IMT] = __buf_mod_MOD_ifrac;
+double (*&ifrac)[JMT][IMT] = __buf_mod_MOD_ifrac;
 #endif // LICOM_ENABLE_FORTRAN_COMPILER_GNU
 
 } // namespace CppBufMod

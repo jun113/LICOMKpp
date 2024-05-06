@@ -38,7 +38,7 @@ double (&bbcx)[MAX_BLOCKS_CLINIC][JMT][IMT]     = dyn_mod_mp_bbcx_;
 double (&sbcy)[MAX_BLOCKS_CLINIC][JMT][IMT]     = dyn_mod_mp_sbcy_;
 double (&bbcy)[MAX_BLOCKS_CLINIC][JMT][IMT]     = dyn_mod_mp_bbcy_;
 
-double (*(&buffer))[IMT_GLOBAL]                 = dyn_mod_mp_buffer_;
+// double (*(&buffer))[IMT_GLOBAL]                 = dyn_mod_mp_buffer_;
 
 double (&h0)[MAX_BLOCKS_CLINIC][JMT][IMT]       = dyn_mod_mp_h0_;
 
@@ -80,7 +80,7 @@ double (&bbcx)[MAX_BLOCKS_CLINIC][JMT][IMT]     = __dyn_mod_MOD_bbcx;
 double (&sbcy)[MAX_BLOCKS_CLINIC][JMT][IMT]     = __dyn_mod_MOD_sbcy;
 double (&bbcy)[MAX_BLOCKS_CLINIC][JMT][IMT]     = __dyn_mod_MOD_bbcy;
 
-double (*(&buffer))[IMT_GLOBAL]                 = __dyn_mod_MOD_buffer;
+// double (*(&buffer))[IMT_GLOBAL]                 = __dyn_mod_MOD_buffer;
 
 double (&h0)[MAX_BLOCKS_CLINIC][JMT][IMT]       = __dyn_mod_MOD_h0;
 

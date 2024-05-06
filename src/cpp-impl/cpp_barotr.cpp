@@ -67,7 +67,7 @@ static void hdifft_del4(const int &,
 
 // BAROTR
 void cpp_barotr() {
-  using CppBlocks::all_blocks;
+  // using CppBlocks::all_blocks;
   using CppParamMod::KM;
   using CppConstantMod::G;
   using CppConstantMod::C0;
@@ -90,7 +90,7 @@ void cpp_barotr() {
   using CppDynMod::vb;
   using CppDynMod::ubp;
   using CppDynMod::vbp;
-  using CppDomain::blocks_clinic;
+  // using CppDomain::blocks_clinic;
 
   using CppGrid::fcor;
   using CppWorkMod::pax;

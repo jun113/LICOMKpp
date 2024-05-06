@@ -18,17 +18,17 @@ CppPOPHaloMod::POPHalo POP_haloClinic_C;
 int &nblocks_clinic                        = domain_mp_nblocks_clinic_;
 int &nblocks_tropic                        = domain_mp_nblocks_tropic_;
 
-int (*(&blocks_clinic)) = domain_mp_blocks_clinic_;
-int (*(&blocks_tropic)) = domain_mp_blocks_tropic_;
+int *&blocks_clinic = domain_mp_blocks_clinic_;
+int *&blocks_tropic = domain_mp_blocks_tropic_;
 
 // CppPOPDistributionMod::POP_distrb &POP_distrbClinic = domain_mp_pop_distrbclinic_;
 // CppPOPDistributionMod::POP_distrb &POP_distrbTropic = domain_mp_pop_distrbtropic_;
 
 // CppPOPHaloMod::pop_halo &f_POP_haloClinic = domain_mp_pop_haloclinic_;
 // CppPOPHaloMod::pop_halo &f_POP_haloTropic = domain_mp_pop_halotropic_;
-int (*(&POP_distrbClinic_blockLocation)) = domain_mp_pop_distrbclinic_blocklocation_;
-int (*(&POP_distrbClinic_blockLocalID))  = domain_mp_pop_distrbclinic_blocklocalid_;
-int (*(&POP_distrbClinic_blockGlobalID)) = domain_mp_pop_distrbclinic_blockglobalid_;
+int *&POP_distrbClinic_blockLocation = domain_mp_pop_distrbclinic_blocklocation_;
+int *&POP_distrbClinic_blockLocalID  = domain_mp_pop_distrbclinic_blocklocalid_;
+int *&POP_distrbClinic_blockGlobalID = domain_mp_pop_distrbclinic_blockglobalid_;
 
 // distrb_clinic
 // distrb_tropic
@@ -62,17 +62,17 @@ bool &profile_barrier                      = domain_mp_profile_barrier_;
 int &nblocks_clinic                        = __domain_MOD_nblocks_clinic;
 int &nblocks_tropic                        = __domain_MOD_nblocks_tropic;
 
-int (*(&blocks_clinic)) 									 = __domain_MOD_blocks_clinic;
-int (*(&blocks_tropic))                    = __domain_MOD_blocks_tropic;
+int *&blocks_clinic 									 = __domain_MOD_blocks_clinic;
+int *&blocks_tropic                    = __domain_MOD_blocks_tropic;
 
 // CppPOPDistributionMod::POP_distrb &POP_distrbClinic = __domain_MOD_pop_distrbclinic;
 // CppPOPDistributionMod::POP_distrb &POP_distrbTropic = __domain_MOD_pop_distrbtropic;
 
 // CppPOPHaloMod::pop_halo &f_POP_haloClinic = __domain_MOD_pop_haloclinic;
 // CppPOPHaloMod::pop_halo &f_POP_haloTropic = __domain_MOD_pop_halotropic;
-int (*(&POP_distrbClinic_blockLocation)) = __domain_MOD_pop_distrbclinic_blocklocation;
-int (*(&POP_distrbClinic_blockLocalID))  = __domain_MOD_pop_distrbclinic_blocklocalid;
-int (*(&POP_distrbClinic_blockGlobalID)) = __domain_MOD_pop_distrbclinic_blockglobalid;
+int *&POP_distrbClinic_blockLocation = __domain_MOD_pop_distrbclinic_blocklocation;
+int *&POP_distrbClinic_blockLocalID  = __domain_MOD_pop_distrbclinic_blocklocalid;
+int *&POP_distrbClinic_blockGlobalID = __domain_MOD_pop_distrbclinic_blockglobalid;
 
 // distrb_clinic
 // distrb_tropic

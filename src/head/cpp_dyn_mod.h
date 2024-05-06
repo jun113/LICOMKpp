@@ -47,13 +47,6 @@ extern double (&h0)[MAX_BLOCKS_CLINIC][JMT][IMT];
 extern double (&u)[MAX_BLOCKS_CLINIC][KM][JMT][IMT];
 extern double (&v)[MAX_BLOCKS_CLINIC][KM][JMT][IMT];
 
-// extern double (*&gg)[KM][JMT][IMT];
-// extern double (*&dlu)[KM][JMT][IMT];
-// extern double (*&dlv)[KM][JMT][IMT];
-
-// extern double (*&dlub)[JMT][IMT];
-// extern double (*&dlvb)[JMT][IMT];
-
 extern double gg[MAX_BLOCKS_CLINIC][KM][JMT][IMT];
 extern double dlu[MAX_BLOCKS_CLINIC][KM][JMT][IMT];
 extern double dlv[MAX_BLOCKS_CLINIC][KM][JMT][IMT];

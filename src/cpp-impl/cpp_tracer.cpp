@@ -95,13 +95,13 @@ inline double DEGtoRAD(const double &degree) {
 void cpp_tracer() {
 
 #ifndef ISO
-  using CppBlocks   ::all_blocks;
+  // using CppBlocks   ::all_blocks;
 #endif // ISO
 #ifdef COUP
   using CppBufMod   ::ifrac;
 #endif // COUP
 #ifndef ISO
-  using CppDomain   ::blocks_clinic;
+  // using CppDomain   ::blocks_clinic;
 #endif // ISO
   using CppDynMod   ::ws;
   using CppDynMod   ::h0f;

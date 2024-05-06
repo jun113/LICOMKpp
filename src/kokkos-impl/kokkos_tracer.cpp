@@ -8,16 +8,16 @@
 // TRACER
 void kokkos_tracer() {
 
-  using CppDomain  ::nblocks_clinic;
+//   using CppDomain  ::nblocks_clinic;
   using CppParamMod::mytid;
 #ifndef ISO
-  using CppDomain::blocks_clinic;
+//   using CppDomain::blocks_clinic;
 #endif // ISO
   using CppGrid     ::area_t;
-  using CppGrid     ::horiz_grid_opt;
+//   using CppGrid     ::horiz_grid_opt;
   using CppPconstMod::dts;
   using CppPconstMod::ist;
-  using CppPconstMod::adv_tracer;
+//   using CppPconstMod::adv_tracer;
   using CppPconstMod::boundary_restore;
   using CppTracerMod::fw_norm2;
 

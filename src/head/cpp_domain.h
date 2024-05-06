@@ -25,9 +25,9 @@ extern int* &blocks_tropic;
 
 // extern CppPOPHaloMod::pop_halo &f_POP_haloClinic;
 // extern CppPOPHaloMod::pop_halo &f_POP_haloTropic;
-extern int *(&POP_distrbClinic_blockLocation);
-extern int *(&POP_distrbClinic_blockLocalID);
-extern int *(&POP_distrbClinic_blockGlobalID);
+extern int *&POP_distrbClinic_blockLocation;
+extern int *&POP_distrbClinic_blockLocalID;
+extern int *&POP_distrbClinic_blockGlobalID;
 
 extern int &nblocks_land;
 

@@ -35,7 +35,7 @@ ViewDouble3D *p_v_bbcx = nullptr;
 ViewDouble3D *p_v_sbcy = nullptr;
 ViewDouble3D *p_v_bbcy = nullptr;
 
-ViewDouble2D *p_v_buffer = nullptr;
+// ViewDouble2D *p_v_buffer = nullptr;
 
 ViewDouble3D *p_v_h0 = nullptr;
 
