@@ -148,10 +148,12 @@ class FunctorReadyt2 {
       const double rholo = dens(tlo, slo, k+1);
       v_rict_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) 
           * od0_ * G * (rholo - rhoup) * v_odzt_(k+1);
+    } else {
+      v_rict_(iblock, k, j, i) = 0.0;
     }
     // jst = 1, jet = ny_block
     // if (j >= (JST-1) && j < JET) {
-      density(k, j, i);
+    density(k, j, i);
     // }
     return ;
   };
@@ -281,12 +283,16 @@ class FunctorReadyt5 {
     // PP in negative in model
     // in PP a OD0 is mutilped and should be divided
     // PP is in Pa to tranform to db by divided 10000.
-    thermal(k, j, i, v_ppb_, v_ppc_, v_ppa_, 
-        v_alpha_, v_beta_, v_vit_);
+    if (i >= 1 && i < IMT-1) {
+      thermal(k, j, i, v_ppb_, v_ppc_, v_ppa_, 
+          v_alpha_, v_beta_, v_vit_);
+    } else {
+      v_alpha_(iblock, k, j, i) = 0.0;
+      v_beta_(iblock, k, j, i)  = 0.0;
+    }
     v_gg_(iblock, k, j, i) = - od0_ * G *
         (v_pdensity_(iblock, k, j, i) - v_po_(k) - 1000.0) *
          v_vit_(iblock, k, j, i);
-
     return ;
   };
   KOKKOS_INLINE_FUNCTION void thermal (const int &k, const int &j, const int &i,
@@ -299,15 +305,18 @@ class FunctorReadyt5 {
 
     const int iblock = 0;
 
-    const double tmp1 = - v_pp(iblock, k, j, i) 
-        / od0_ / 10000.0 * v_mask(iblock, k, j, i);
+    // To ensure consistency calculations between C/C++ and Fortran
+    const long double tmp = static_cast<long double>(- v_pp(iblock, k, j, i) 
+        / od0_ / 10000.0 * v_mask(iblock, k, j, i));
+    const double tmp1 = static_cast<double>(tmp);
     const double tmp2 = tmp1 * tmp1;
-    const double tmp3 = tmp1 * tmp2;
+    const double tmp3 = static_cast<double>(tmp * tmp * tmp);
 
-    const double tt1 = v_tt(iblock, k, j, i);
+    const long double tt = static_cast<long double>(v_tt(iblock, k, j, i));
+    const double tt1 = static_cast<double>(tt);
     const double tt2 = tt1 * tt1;
-    const double tt3 = tt1 * tt2;
-    const double tt4 = tt1 * tt3;
+    const double tt3 = static_cast<double>(tt * tt * tt);
+    const double tt4 = std::pow(tt, 4);
 
     const double ss1 = v_ss(iblock, k, j, i) * 1000.0;
     const double ss2 = ss1 * ss1;
@@ -348,30 +357,27 @@ class FunctorReadyt6 {
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
     const int iblock = 0;
-    // if (k < KMM1) {
-      if (i == 0 || i == IMT-1) {
-        v_ricdt_(iblock, k, j, i)    = 0.0;
-        v_ricdttms_(iblock, k, j, i) = 0.0;
-      }
-      if (i >= 1 && i < (IMT-1)) {
-        const double epsln = 1.0e-25;
-        v_ricdttms_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) * G *
-            ((v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) * 
-                 v_alpha_(iblock, k+1, j, i) + 1000.0 * 
-             (v_at_(iblock, 1, k, j, i) - v_at_(iblock, 1, k+1, j, i)) *
-                 v_beta_(iblock, k+1, j, i)) * v_odzt_(k+1);
-    
-        v_ricdt_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) / 
-            ((v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i) + epsln) * 
-              v_alpha_(iblock, k+1, j, i)) * 1000.0 *
-            ((v_at_(iblock, 1, k, j, i) - v_at_(iblock, 1, k+1, j, i)) * 
-              v_beta_(iblock, k+1, j, i));
+    if (i >= 1 && i < (IMT-1)) {
+      const double epsln = 1.0e-25;
+      v_ricdttms_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) * G *
+          ((v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) * 
+               v_alpha_(iblock, k+1, j, i) + 1000.0 * 
+           (v_at_(iblock, 1, k, j, i) - v_at_(iblock, 1, k+1, j, i)) *
+               v_beta_(iblock, k+1, j, i)) * v_odzt_(k+1);
+  
+      v_ricdt_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) / 
+          ((v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i) + epsln) * 
+            v_alpha_(iblock, k+1, j, i)) * 1000.0 *
+          ((v_at_(iblock, 1, k, j, i) - v_at_(iblock, 1, k+1, j, i)) * 
+            v_beta_(iblock, k+1, j, i));
 #ifdef CANUTOMIXOUT
-        v_alpha_canuto_(iblock, k, j, i) = v_alpha_(iblock, k, j, i);
-        v_beta_canuto_(iblock, k, j, i)  = v_beta_(iblock, k, j, i);
+      v_alpha_canuto_(iblock, k, j, i) = v_alpha_(iblock, k, j, i);
+      v_beta_canuto_(iblock, k, j, i)  = v_beta_(iblock, k, j, i);
 #endif // CANUTOMIXOUT
-      }
-    // }
+    } else {
+      v_ricdt_(iblock, k, j, i)    = 0.0;
+      v_ricdttms_(iblock, k, j, i) = 0.0;
+    }
     return ;
   }
  private:
@@ -436,10 +442,9 @@ class FunctorReadyt8 {
     v_buoytur_(iblock, j, i) = v_vit_(iblock, 0, j, i) *
         v_nswv_(iblock, j, i) * G * v_alpha_(iblock, 0, j, i) * od0cp_;
     v_buoysol_(iblock, j, i) = v_vit_(iblock, 0, j, i) *
-        v_swv_(iblock, j, i) * G * v_alpha_(iblock, 0, j, i) * od0cp_;
+        v_swv_(iblock, j, i)  * G * v_alpha_(iblock, 0, j, i) * od0cp_;
     return ;
   }
-
  private:
   const double od0cp_ = CppPconstMod::od0cp;
   const ViewDouble3D v_swv_     = *p_v_swv;
@@ -454,22 +459,23 @@ class FunctorReadyt8 {
 // --------------------------------------------------------------
 class FunctorReadyt9 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     vinteg(j, i, v_dlu_, v_pxb_);
     vinteg(j, i, v_dlv_, v_pyb_);
     return ;
   }
-
-  KOKKOS_INLINE_FUNCTION void vinteg (const int &j, const int &i,
+  KOKKOS_INLINE_FUNCTION 
+  void vinteg (const int &j, const int &i,
       const ViewDouble4D &v_wk3, const ViewDouble3D &v_wk2) 
           const {
     const int iblock = 0;
-    v_wk2(iblock, j, i) = C0;
+    double wk2 = C0;
     for (int k = 0; k < KM; ++k) {
-      v_wk2(iblock, j, i) += v_dzp_(k) * v_ohbu_(iblock, j, i) 
-          * v_wk3(iblock, k, j, i) *v_viv_(iblock, k, j, i);
+      wk2 += v_dzp_(k) * v_ohbu_(iblock, j, i) 
+          * v_wk3(iblock, k, j, i) * v_viv_(iblock, k, j, i);
     }
+    v_wk2(iblock, j, i) = wk2;
     return ;
   }
  private:
@@ -484,7 +490,8 @@ class FunctorReadyt9 {
 
 class FunctorReadyt10 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     const int iblock = 0;
     v_dlu_(iblock, 0, j, i) = 0.0;
     v_dlu_(iblock, 1, j, i) = 0.0;

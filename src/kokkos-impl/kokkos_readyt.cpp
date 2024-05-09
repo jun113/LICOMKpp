@@ -4,15 +4,11 @@
 
 #include "kokkos_readyt.hpp"
 
-// using CppDomain::nblocks_clinic;
-// using CppParamMod::MAX_BLOCKS_CLINIC;
-// using CppParamMod::KMM1;
-// using CppParamMod::KM;
-// using CppParamMod::JMT;
-// using CppParamMod::IMT;
-// using CppParamMod::NTRA;
-// using CppParamMod::JST;
-// using CppParamMod::JET;
+extern "C" void readyt_debug_(
+    double* wk1,double* wk2,double* wk3,double* wk4,double* wk5,
+    double* wk6,
+    double* wk7
+);
 
 void kokkos_readyt() {
 
@@ -42,7 +38,7 @@ void kokkos_readyt() {
       koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorReadyt4());
 
   parallel_for ("readyt_5", MDRangePolicy<Kokkos::Rank<3>> (
-      koArr3D{0, 0, 1}, koArr3D{KM, JMT, IMT-1}, tile3D), FunctorReadyt5());
+      koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorReadyt5());
 
   parallel_for ("readyt_6", MDRangePolicy<Kokkos::Rank<3>> (
       koArr3D{0, 0, 0}, koArr3D{KMM1, JMT, IMT}, tile3D), FunctorReadyt6());
@@ -87,10 +83,17 @@ void kokkos_readyt() {
   parallel_for ("readyt_12", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}), FunctorReadyt12());
 
-
   parallel_for ("readyt_13", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}), FunctorReadyt13());
 
+  readyt_debug_((*p_v_rict).data(),
+  (*p_v_gg).data(),
+  (*p_v_pp).data(),
+  (*p_v_alpha).data(),
+  (*p_v_beta).data(),
+  (*p_v_dlu).data(),
+  (*p_v_dlv).data()
+  );
   return ;
 }
 #endif // LICOM_ENABLE_KOKKOS
