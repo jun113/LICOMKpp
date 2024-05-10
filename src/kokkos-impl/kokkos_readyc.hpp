@@ -219,36 +219,36 @@ class FunctorReadyc1 {
 //      viv[iblock][k][j-1][i+1] * atne[iblock][j][i] + 
 //         epsln);
 // -------------------------------------------------------------------
-class FunctorReadyc2 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    const double epsln = 1.e-25;
-    if (i < (NX_BLOCK-1) && j >= 1) {
-      v_wka(iblock, k, j, i) = v_vit_(iblock, k, j, i) / (
-          v_viv_(iblock, k, j  , i  ) * v_at0_ (iblock, j, i) +
-          v_viv_(iblock, k, j-1, i  ) * v_atn_ (iblock, j, i) +
-          v_viv_(iblock, k, j  , i+1) * v_ate_ (iblock, j, i) +
-          v_viv_(iblock, k, j-1, i+1) * v_atne_(iblock, j, i)
-              + epsln);
-    }
-    return ;
-  }
- private:
-  const ViewDouble3D v_at0_  = *p_v_at0;
-  const ViewDouble3D v_atn_  = *p_v_atn;
-  const ViewDouble3D v_ate_  = *p_v_ate;
-  const ViewDouble3D v_atne_ = *p_v_atne;
-  const ViewDouble4D v_viv_  = *p_v_viv;
-  const ViewDouble4D v_vit_  = *p_v_vit;
-  const ViewDouble4D v_wka   = *p_v_wka;
-};
+// class FunctorReadyc2 {
+//  public:
+//   KOKKOS_INLINE_FUNCTION void operator () (
+//       const int &k, const int &j, const int &i) const {
+//     const int iblock = 0;
+//     const double epsln = 1.0e-25;
+//     if (i < (NX_BLOCK-1) && j >= 1) {
+//       v_wka_(iblock, k, j, i) = v_vit_(iblock, k, j, i) / (
+//           v_viv_(iblock, k, j  , i  ) * v_at0_ (iblock, j, i) +
+//           v_viv_(iblock, k, j-1, i  ) * v_atn_ (iblock, j, i) +
+//           v_viv_(iblock, k, j  , i+1) * v_ate_ (iblock, j, i) +
+//           v_viv_(iblock, k, j-1, i+1) * v_atne_(iblock, j, i)
+//               + epsln);
+//     }
+//     return ;
+//   }
+//  private:
+//   const ViewDouble3D v_at0_  = *p_v_at0;
+//   const ViewDouble3D v_atn_  = *p_v_atn;
+//   const ViewDouble3D v_ate_  = *p_v_ate;
+//   const ViewDouble3D v_atne_ = *p_v_atne;
+//   const ViewDouble4D v_viv_  = *p_v_viv;
+//   const ViewDouble4D v_vit_  = *p_v_vit;
+//   const ViewDouble4D v_wka_  = *p_v_wka;
+// };
 
 class FunctorReadyc3 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &k, const int &j, const int &i) const {
     const int iblock = 0;
     ugrid_to_tgrid (iblock, k, j, i, v_wp12_, v_up_);
     ugrid_to_tgrid (iblock, k, j, i, v_wp13_, v_vp_);
@@ -259,11 +259,17 @@ class FunctorReadyc3 {
           const ViewDouble4D &v_tgrid,
               const ViewDouble4D &v_ugrid) const {
     if (i < (NX_BLOCK-1) && j >= 1) {
-      v_tgrid(iblock, k, j, i) =  v_wka_ (iblock, k, j  , i  ) * 
+      const double epsln = 1.0e-25;
+      v_tgrid(iblock, k, j, i) =  v_vit_ (iblock, k, j  , i  ) * 
          (v_at0_ (iblock, j, i) * v_ugrid(iblock, k, j  , i  ) + 
           v_atn_ (iblock, j, i) * v_ugrid(iblock, k, j-1, i  ) +
           v_ate_ (iblock, j, i) * v_ugrid(iblock, k, j  , i+1) +
-          v_atne_(iblock, j, i) * v_ugrid(iblock, k, j-1, i+1));
+          v_atne_(iblock, j, i) * v_ugrid(iblock, k, j-1, i+1)) / 
+         (v_viv_(iblock, k, j  , i  ) * v_at0_ (iblock, j, i) +
+          v_viv_(iblock, k, j-1, i  ) * v_atn_ (iblock, j, i) +
+          v_viv_(iblock, k, j  , i+1) * v_ate_ (iblock, j, i) +
+          v_viv_(iblock, k, j-1, i+1) * v_atne_(iblock, j, i)
+              + epsln);
     }
     if (i == (NX_BLOCK-1) || j == 0) {
       v_tgrid(iblock, k, j, i) = C0;
@@ -277,6 +283,8 @@ class FunctorReadyc3 {
   const ViewDouble3D v_atne_ = *p_v_atne;
   const ViewDouble4D v_up_   = *p_v_up;
   const ViewDouble4D v_vp_   = *p_v_vp;
+  const ViewDouble4D v_viv_  = *p_v_viv;
+  const ViewDouble4D v_vit_  = *p_v_vit;
   const ViewDouble4D v_wka_  = *p_v_wka;
   const ViewDouble4D v_wp12_ = *p_v_wp12;
   const ViewDouble4D v_wp13_ = *p_v_wp13;
@@ -417,41 +425,41 @@ class FunctorReadyc52 {
   const double theta_rcrp_ = CppCanutoMod::theta_rcrp;
   const double theta_rcrn_ = CppCanutoMod::theta_rcrn;
 
-  const ViewDouble1D v_zkp_        = *p_v_zkp;
-  const ViewDouble1D v_dzp_        = *p_v_dzp;
-  const ViewDouble3D v_wk1_        = *p_v_wk1;
-  const ViewDouble3D v_wk2_        = *p_v_wk2;
-  const ViewDouble3D v_wk3_        = *p_v_wk3;
-  const ViewDouble3D v_wp3_        = *p_v_wp3;
+  const ViewDouble1D v_zkp_       = *p_v_zkp;
+  const ViewDouble1D v_dzp_       = *p_v_dzp;
+  const ViewDouble3D v_wk1_       = *p_v_wk1;
+  const ViewDouble3D v_wk2_       = *p_v_wk2;
+  const ViewDouble3D v_wk3_       = *p_v_wk3;
+  const ViewDouble3D v_wp3_       = *p_v_wp3;
 
-  const ViewInt1D    v_irimax_     = *p_v_irimax;
-  const ViewInt3D    v_kmt_        = *p_v_kmt;
-  const ViewDouble1D v_rib_        = *p_v_rib;
-  const ViewDouble1D v_ridb_       = *p_v_ridb;
-  const ViewDouble1D v_sma1_       = *p_v_sma1;
-  const ViewDouble1D v_sha1_       = *p_v_sha1;
-  const ViewDouble1D v_ssa1_       = *p_v_ssa1;
-  const ViewDouble1D v_and2on2a1_  = *p_v_and2on2a1;
-  const ViewDouble1D v_amtaun2a1_  = *p_v_amtaun2a1;
-  const ViewDouble1D v_back_ra_r_  = *p_v_back_ra_r;
-  const ViewDouble1D v_sm_r1_      = *p_v_sm_r1;
-  const ViewDouble1D v_sh_r1_      = *p_v_sh_r1;
-  const ViewDouble1D v_ss_r1_      = *p_v_ss_r1;
-  const ViewDouble1D v_slq2_r1_    = *p_v_slq2_r1;
-  const ViewDouble2D v_smb_        = *p_v_smb;
-  const ViewDouble2D v_shb_        = *p_v_shb;
-  const ViewDouble2D v_ssb_        = *p_v_ssb;
-  const ViewDouble2D v_slq2b_      = *p_v_slq2b;
-  const ViewDouble3D v_amld_       = *p_v_amld;
-  const ViewDouble3D v_fcort_      = *p_v_fcort;
-  const ViewDouble3D v_buoytur_    = *p_v_buoytur;
-  const ViewDouble3D v_buoysol_    = *p_v_buoysol;
-  const ViewDouble4D v_s2t_        = *p_v_s2t;
-  const ViewDouble4D v_rit_        = *p_v_rit;
-  const ViewDouble4D v_rict_       = *p_v_rict;
-  const ViewDouble4D v_ricdttms_   = *p_v_ricdttms;
-  const ViewDouble4D v_vit_        = *p_v_vit;
-  const ViewDouble5D v_at_         = *p_v_at;
+  const ViewInt1D    v_irimax_    = *p_v_irimax;
+  const ViewInt3D    v_kmt_       = *p_v_kmt;
+  const ViewDouble1D v_rib_       = *p_v_rib;
+  const ViewDouble1D v_ridb_      = *p_v_ridb;
+  const ViewDouble1D v_sma1_      = *p_v_sma1;
+  const ViewDouble1D v_sha1_      = *p_v_sha1;
+  const ViewDouble1D v_ssa1_      = *p_v_ssa1;
+  const ViewDouble1D v_and2on2a1_ = *p_v_and2on2a1;
+  const ViewDouble1D v_amtaun2a1_ = *p_v_amtaun2a1;
+  const ViewDouble1D v_back_ra_r_ = *p_v_back_ra_r;
+  const ViewDouble1D v_sm_r1_     = *p_v_sm_r1;
+  const ViewDouble1D v_sh_r1_     = *p_v_sh_r1;
+  const ViewDouble1D v_ss_r1_     = *p_v_ss_r1;
+  const ViewDouble1D v_slq2_r1_   = *p_v_slq2_r1;
+  const ViewDouble2D v_smb_       = *p_v_smb;
+  const ViewDouble2D v_shb_       = *p_v_shb;
+  const ViewDouble2D v_ssb_       = *p_v_ssb;
+  const ViewDouble2D v_slq2b_     = *p_v_slq2b;
+  const ViewDouble3D v_amld_      = *p_v_amld;
+  const ViewDouble3D v_fcort_     = *p_v_fcort;
+  const ViewDouble3D v_buoytur_   = *p_v_buoytur;
+  const ViewDouble3D v_buoysol_   = *p_v_buoysol;
+  const ViewDouble4D v_s2t_       = *p_v_s2t;
+  const ViewDouble4D v_rit_       = *p_v_rit;
+  const ViewDouble4D v_rict_      = *p_v_rict;
+  const ViewDouble4D v_ricdttms_  = *p_v_ricdttms;
+  const ViewDouble4D v_vit_       = *p_v_vit;
+  const ViewDouble5D v_at_        = *p_v_at;
 
   KOKKOS_INLINE_FUNCTION void turb_2(
       const double (&z)[KM],        // wp8
@@ -644,7 +652,6 @@ class FunctorReadyc52 {
       int jtheta_r0(0);
       double ra_r;
   
-      const double tmp_deltheta_r = 1.0 / deltheta_r_;
       if (ri[k] <= 0.0) {
         back_ra_r1 = 0.0;
         back_rit1  = 0.0;
@@ -660,7 +667,7 @@ class FunctorReadyc52 {
   
         if (rit == 0.0) {
           if (ric == 0.0) {
-            theta_r = atan(1.0);
+            theta_r = std::atan(1.0);
           } else {
             // theta_r = PI / 2.0;
             theta_r = PI * 0.5;
@@ -678,8 +685,7 @@ class FunctorReadyc52 {
         }
   
         jtheta_r0 = static_cast<int>(
-            // (theta_r + (PI / 4.0)) / deltheta_r_);
-            (theta_r + (PI * 0.25)) * tmp_deltheta_r);
+            (theta_r + (PI / 4.0)) / deltheta_r_);
   
         itheta_r0 = jtheta_r0 - N_THETA_R_OCT;
         itheta_r1 = itheta_r0 + 1;
@@ -715,8 +721,7 @@ class FunctorReadyc52 {
                 - v_back_ra_r_(N_THETA_R_OCT + itheta_r0);
   
         const double dback_ra_r_o_dtheta = 
-            // delback_ra_r / deltheta_r_;
-            delback_ra_r * tmp_deltheta_r;
+            delback_ra_r / deltheta_r_;
   
         back_ra_r1 = v_back_ra_r_(N_THETA_R_OCT + itheta_r0) 
             + deltheta_r1 * dback_ra_r_o_dtheta;
@@ -747,15 +752,14 @@ class FunctorReadyc52 {
         if (ifrafglt == 1) {
           interp2d_expabs(back_ri1, back_rid1,
               slq2_back, sm_back, sh_back, ss_back);
-        // } else if(IFBG_THETA_INTERP == 1) {
-        } else if(true) {
+        // } else if (IFBG_THETA_INTERP == 1) {
+        } else if (true) {
           deltheta_r1 = theta_r - itheta_r0 * deltheta_r_;
   
           const double delsm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r1)
               - v_sm_r1_(N_THETA_R_OCT + itheta_r0);
   
-          // const double dsm_back_o_dtheta = delsm_back / deltheta_r_;
-          const double dsm_back_o_dtheta = delsm_back * tmp_deltheta_r;
+          const double dsm_back_o_dtheta = delsm_back / deltheta_r_;
   
           sm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r0)
               + deltheta_r1 * dsm_back_o_dtheta;
@@ -763,8 +767,7 @@ class FunctorReadyc52 {
           const double delsh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r1)
               - v_sh_r1_(N_THETA_R_OCT + itheta_r0);
   
-          // const double dsh_back_o_dtheta = delsh_back / deltheta_r_;
-          const double dsh_back_o_dtheta = delsh_back * tmp_deltheta_r;
+          const double dsh_back_o_dtheta = delsh_back / deltheta_r_;
   
           sh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r0)
               + deltheta_r1 * dsh_back_o_dtheta;
@@ -772,8 +775,7 @@ class FunctorReadyc52 {
           const double delss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r1)
               - v_ss_r1_(N_THETA_R_OCT + itheta_r0);
   
-          // const double dss_back_o_dtheta = delss_back / deltheta_r_;
-          const double dss_back_o_dtheta = delss_back * tmp_deltheta_r;
+          const double dss_back_o_dtheta = delss_back / deltheta_r_;
   
           ss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r0)
               + deltheta_r1 * dss_back_o_dtheta;
@@ -781,8 +783,7 @@ class FunctorReadyc52 {
           const double delslq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r1)
               - v_slq2_r1_(N_THETA_R_OCT + itheta_r0);
   
-          // const double dslq2_back_o_dtheta = delslq2_back / deltheta_r_;
-          const double dslq2_back_o_dtheta = delslq2_back * tmp_deltheta_r;
+          const double dslq2_back_o_dtheta = delslq2_back / deltheta_r_;
   
           slq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r0)
               + deltheta_r1 * dslq2_back_o_dtheta;
@@ -853,8 +854,7 @@ class FunctorReadyc52 {
   
           if (ifpureshear == 1) {
             // GO TO 21
-            tmp = 0.5 * (b1_ * b1_) * al2
-                * sqrt(-an2[k] / amtaun2);
+            tmp = 0.5 * (b1_ * b1_) * al2 * std::sqrt(-an2[k] / amtaun2);
        
             v_akm(k, j, i) = fmin(tmp * sm + v_back[k],
                 visc_cbu_limit1);
@@ -864,16 +864,13 @@ class FunctorReadyc52 {
                 diff_cbt_limit1);
             continue ;
           } else if (IFSHEARMIN) {
-            // s2[k] = fmax(s2[k], S2MIN);
             s2[k] = fmax(s2[k], S2MIN);
           }
-          tmp = 0.5 * b1_ * al2
-              * sqrt(s2[k] / (slq2 + 1.0e-40));
+          tmp = 0.5 * b1_ * al2 * std::sqrt(s2[k] / (slq2 + 1.0e-40));
         } else {
           if (ifpureshear == 1) {
             // GO TO 21
-            tmp = 0.5 * (b1_ * b1_) * al2
-                * sqrt(-an2[k] / amtaun2);
+            tmp = 0.5 * (b1_ * b1_) * al2 * std::sqrt(-an2[k] / amtaun2);
        
             v_akm(k, j, i) = fmin(tmp * sm + v_back[k],
                 visc_cbu_limit1);
@@ -888,14 +885,12 @@ class FunctorReadyc52 {
           if (lifepsy) {
             tmp = 0.5 * epsy / (s2[k] + 1.0e-40);
           } else {
-            tmp = 0.5 * b1_ * al2
-                * sqrt(s2[k] / (slq2 + 1.0e-40));
+            tmp = 0.5 * b1_ * al2 * std::sqrt(s2[k] / (slq2 + 1.0e-40));
           }
         }
       } else {
         if (ifpureshear == 1) {
-            tmp = 0.5 * (b1_ * b1_) * al2
-                * sqrt(-an2[k] / amtaun2);
+            tmp = 0.5 * (b1_ * b1_) * al2 * std::sqrt(-an2[k] / amtaun2);
             v_akm(k, j, i) = fmin(tmp * sm + v_back[k],
                 visc_cbu_limit1);
             v_akh(k, j, i) = fmin(tmp * sh + t_back[k],
@@ -909,15 +904,13 @@ class FunctorReadyc52 {
         if (lifepsy) {
           tmp = 0.5 * epsy / (s2[k] + 1.0e-40);
         } else {
-          tmp = 0.5 * b1_ * al2
-              * sqrt(s2[k] / (slq2 + 1.0e-40));
+          tmp = 0.5 * b1_ * al2 * std::sqrt(s2[k] / (slq2 + 1.0e-40));
         }
       }
   
       // 21
       if (ifpureshear == 1) {
-        tmp = 0.5 * (b1_ * b1_) * al2
-            * sqrt(-an2[k] / amtaun2);
+        tmp = 0.5 * (b1_ * b1_) * al2 * std::sqrt(-an2[k] / amtaun2);
       }
   
       v_akm(k, j, i) = fmin(tmp * sm + v_back[k],
@@ -955,7 +948,7 @@ class FunctorReadyc52 {
 #ifdef D_PRECISION
         const double tm = t[0] - sign_double(0.1, t[0] - t[k]);
 #else
-        const double tm = t[0] - sign_float(0.1,   t[0] - t[k]);
+        const double tm = t[0] - sign_float(0.1,  t[0] - t[k]);
 #endif // D_PRECISION
         amld = z[k] + (z[k-1] - z[k]) *
             (tm - t[k]) / (t[k-1] - t[k] + 1.e-20);
@@ -972,12 +965,12 @@ class FunctorReadyc52 {
   }
 
   KOKKOS_INLINE_FUNCTION int sign_float(const double &x, const double &y) const {
-    return y >= 0 ? std::abs(static_cast<float>(x)) 
+    return y >= 0.0 ? std::abs(static_cast<float>(x)) 
        : - std::abs(static_cast<float>(x));
   }
 
   KOKKOS_INLINE_FUNCTION double sign_double(const double &x, const double &y) const {
-    return y >= 0.e0 ? fabs(x) : - fabs(x);
+    return y >= 0.0 ? fabs(x) : - fabs(x);
   }
 
   KOKKOS_INLINE_FUNCTION void interp1d_expabs(
@@ -1054,7 +1047,7 @@ class FunctorReadyc52 {
       return;
     }
 
-    const double deltaxta = 1.0 / (v_and2on2a1_(MT + lx1) - v_and2on2a1_(MT + lx0));
+    const double deltaxta = v_and2on2a1_(MT + lx1) - v_and2on2a1_(MT + lx0);
 
     const double deltax = x - v_and2on2a1_(MT + lx0);
 
@@ -1062,7 +1055,7 @@ class FunctorReadyc52 {
     if (lx1 == lx0) {
       dslq2_x = 0.0;
     } else {
-      dslq2_x = (v_amtaun2a1_(MT + lx1) - v_amtaun2a1_(MT + lx0)) * deltaxta;
+      dslq2_x = (v_amtaun2a1_(MT + lx1) - v_amtaun2a1_(MT + lx0)) / deltaxta;
     }
 
     slq2 = v_amtaun2a1_(MT + lx0) + dslq2_x * deltax;
@@ -1071,7 +1064,7 @@ class FunctorReadyc52 {
     if (lx1 == lx0) {
       dsm_x = 0.0;
     } else {
-      dsm_x = (v_sma1_(MT + lx1) - v_sma1_(MT + lx0)) * deltaxta;
+      dsm_x = (v_sma1_(MT + lx1) - v_sma1_(MT + lx0)) / deltaxta;
     }
     sm = v_sma1_(MT + lx0) + dsm_x * deltax;
 
@@ -1079,7 +1072,7 @@ class FunctorReadyc52 {
     if (lx1 == lx0) {
       dsh_x = 0.0;
     } else {
-      dsh_x = (v_sha1_(MT + lx1) - v_sha1_(MT + lx0)) * deltaxta;
+      dsh_x = (v_sha1_(MT + lx1) - v_sha1_(MT + lx0)) / deltaxta;
     }
     sh = v_sha1_(MT + lx0) + dsh_x * deltax;
 
@@ -1087,7 +1080,7 @@ class FunctorReadyc52 {
     if (lx1 == lx0) {
       dss_x = 0.0;
     } else {
-      dss_x = (v_ssa1_(MT + lx1) - v_ssa1_(MT + lx0)) * deltaxta;
+      dss_x = (v_ssa1_(MT + lx1) - v_ssa1_(MT + lx0)) / deltaxta;
     }
     ss = v_ssa1_(MT + lx0) + dss_x * deltax;
   
@@ -1097,44 +1090,33 @@ class FunctorReadyc52 {
   KOKKOS_INLINE_FUNCTION void interp2d_expabs(double &ri, double &rid,
       double &slq2, double &sm, double &sh, double &ss) const {
 
-    const double tmp_ri  = 1.0 /ri;
-    const double tmp_rid = 1.0 /rid;
-
     if (ri > v_rib_(MT + MT)) {
       if (fabs(rid) <= ri) {
-        // rid = v_rib_(MT + MT) * (rid / ri);
-        rid = v_rib_(MT + MT) * (rid * tmp_ri);
+        rid = v_rib_(MT + MT) * (rid / ri);
         ri  = v_rib_(MT + MT);
       } else if (rid > ri) {
-        // ri  = v_ridb_(MT + MT) * (ri / rid);
-        ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
+        ri  = v_ridb_(MT + MT) * (ri / rid);
         rid = v_ridb_(MT + MT);
       } else if (rid < -ri) {
-        // ri  = v_ridb_(0) * (ri / rid);
-        ri  = v_ridb_(0) * (ri * tmp_rid);
+        ri  = v_ridb_(0) * (ri / rid);
         rid = v_ridb_(0);
       }
     } else if (ri < v_rib_(0)) {
       if (fabs(rid) <= -ri) {
-        // rid = v_rib_(0) * (rid / ri);
-        rid = v_rib_(0) * (rid * tmp_ri);
+        rid = v_rib_(0) * (rid / ri);
         ri  = v_rib_(0);
       } else if (rid > -ri) {
-        // ri  = v_ridb_(MT + MT) * (ri / rid);
-        ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
+        ri  = v_ridb_(MT + MT) * (ri / rid);
         rid = v_ridb_(MT + MT);
       } else if (rid < ri) {
-        // ri  = v_ridb_(0) * (ri / rid);
-        ri  = v_ridb_(0) * (ri * tmp_rid);
+        ri  = v_ridb_(0) * (ri / rid);
         rid = v_ridb_(0);
       }
     } else if (rid > v_ridb_(MT + MT)) {
-      // ri  = v_ridb_(MT + MT) * (ri / rid);
-      ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
+      ri  = v_ridb_(MT + MT) * (ri / rid);
       rid = v_ridb_(MT + MT);
     } else if (rid < v_ridb_(0)) {
-      // ri  = v_ridb_(0) * (ri / rid);
-      ri  = v_ridb_(0) * (ri * tmp_rid);
+      ri  = v_ridb_(0) * (ri / rid);
       rid = v_ridb_(0);
     }
 
@@ -1275,8 +1257,8 @@ class FunctorReadyc52 {
       return ;
     }
 
-    const double deltaridta = 1.0 / (v_ridb_(MT + lrid1) - v_ridb_(MT + lrid0));
-    const double deltarita  = 1.0 / (v_rib_(MT + lri1) - v_rib_(MT + lri0));
+    const double deltaridta = v_ridb_(MT + lrid1) - v_ridb_(MT + lrid0);
+    const double deltarita  = v_rib_(MT + lri1) - v_rib_(MT + lri0);
     const double deltarid = rid - v_ridb_(MT + lrid0);
     const double deltari  = ri  - v_rib_(MT + lri0);
 
@@ -1286,7 +1268,7 @@ class FunctorReadyc52 {
       dslq2_rid = 0.0;
     } else {
       dslq2_rid = (v_slq2b_(MT+lrid1, MT+lri0) - v_slq2b_(MT+lrid0, MT+lri0))
-          * deltaridta;
+          / deltaridta;
     }
 
     double dslq2_ri;
@@ -1294,7 +1276,7 @@ class FunctorReadyc52 {
       dslq2_ri = 0.0;
     } else {
       dslq2_ri = (v_slq2b_(MT+lrid0, MT+lri1) - v_slq2b_(MT+lrid0, MT+lri0))
-          * deltarita;
+          / deltarita;
     }
 
     slq2 = v_slq2b_(MT+lrid0, MT+lri0)
@@ -1305,7 +1287,7 @@ class FunctorReadyc52 {
       dsm_rid = 0.0;
     } else {
       dsm_rid = (v_smb_(MT+lrid1, MT+lri0) - v_smb_(MT+lrid0, MT+lri0))
-          * deltaridta;
+          / deltaridta;
     }
 
     double dsm_ri;
@@ -1314,7 +1296,7 @@ class FunctorReadyc52 {
       dsm_ri = 0.0;
     } else {
       dsm_ri = (v_smb_(MT+lrid0, MT+lri1) - v_smb_(MT+lrid0, MT+lri0))
-          * deltarita;
+          / deltarita;
     }
 
     sm = v_smb_(MT+lrid0, MT+lri0) 
@@ -1325,14 +1307,14 @@ class FunctorReadyc52 {
       dsh_rid = 0.0;
     } else {
       dsh_rid = (v_shb_(MT+lrid1, MT+lri0) - v_shb_(MT+lrid0, MT+lri0))
-          * deltaridta;
+          / deltaridta;
     }
     double dsh_ri;
     if (lri1 == lri0) {
       dsh_ri = 0.0;
     } else {
       dsh_ri = (v_shb_(MT+lrid0, MT+lri1) - v_shb_(MT+lrid0, MT+lri0))
-          * deltarita;
+          / deltarita;
     }
 
     sh = v_shb_(MT+lrid0, MT+lri0) 
@@ -1343,14 +1325,14 @@ class FunctorReadyc52 {
       dss_rid = 0.0;
     } else {
       dss_rid = (v_ssb_(MT+lrid1, MT+lri0) - v_ssb_(MT+lrid0, MT+lri0))
-          * deltaridta;
+          / deltaridta;
     }
     double dss_ri;
     if (lri1 == lri0) {
       dss_ri = 0.0;
     } else {
       dss_ri = (v_ssb_(MT+lrid0, MT+lri1) - v_ssb_(MT+lrid0, MT+lri0))
-          * deltarita;
+          / deltarita;
     }
 
     ss = v_ssb_(MT+lrid0, MT+lri0) 
@@ -1360,7 +1342,7 @@ class FunctorReadyc52 {
   }
 
   KOKKOS_INLINE_FUNCTION double acosh1(const double &x) const {
-    return log(x + sqrt((x * x) - 1.0));
+    return std::log(x + std::sqrt((x * x) - 1.0));
   }
   KOKKOS_INLINE_FUNCTION double wavelat(const double &xf, const double &yn) 
       const {
@@ -1373,7 +1355,7 @@ class FunctorReadyc52 {
     double anum, den;
     double pi1, omega;
     const double an0 = 5.24e-3;
-    pi1   = 4.0 * atan(1.0);
+    pi1   = 4.0 * std::atan(1.0);
     omega = pi1 / 43082.0e0;
     f_30  = omega;
     den   = wavelat(f_30, an0);
@@ -1409,8 +1391,8 @@ class FunctorReadyc53 {
     return ;
   };
  private:
-  const ViewDouble3D v_wp3_        = *p_v_wp3;
   const ViewInt3D    v_kmt_        = *p_v_kmt;
+  const ViewDouble3D v_wp3_        = *p_v_wp3;
   const ViewDouble3D v_wave_dis_   = *p_v_wave_dis;
   const ViewDouble4D v_vit_        = *p_v_vit;
   const ViewDouble4D v_rict_       = *p_v_rict;
@@ -1499,6 +1481,969 @@ class FunctorReadyc55 {
   const ViewDouble5D v_akt_     = *p_v_akt;
 };
 
+#endif // CANUTO
+
+// calculate the vertical mixing on U-grid
+class FunctorReadyc6 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    if (k < KMM1) {
+      tgrid_to_ugrid(iblock, k, j, i, v_akmu_, v_akmt_);
+      v_akmu_(iblock, k, j, i) *= v_viv_(iblock, k+1, j, i);
+    } else {
+      v_akmu_(iblock, k, j, i) = C0;
+    }
+   return ;
+  }
+  KOKKOS_INLINE_FUNCTION void tgrid_to_ugrid (const int &iblock, 
+			const int &k, const int &j, const int &i,
+          const ViewDouble4D &v_ugrid, const ViewDouble4D &v_tgrid) 
+              const {
+    if (i >= 1 && j <(NY_BLOCK-1)) {
+      // v_ugrid(iblock, k, j, i) = 
+      //     v_au0_ (iblock, j, i) * v_tgrid(iblock, k, j  , i  ) +
+      //     v_aus_ (iblock, j, i) * v_tgrid(iblock, k, j+1, i  ) +
+      //     v_auw_ (iblock, j, i) * v_tgrid(iblock, k, j  , i-1) +
+      //     v_ausw_(iblock, j, i) * v_tgrid(iblock, k, j+1, i-1);
+      // v_ugrid(iblock, k, j, i) = P25 * v_tgrid(iblock, k, j  , i  ) +
+      //                            P25 * v_tgrid(iblock, k, j+1, i  ) +
+      //                            P25 * v_tgrid(iblock, k, j  , i-1) +
+      //                            P25 * v_tgrid(iblock, k, j+1, i-1);
+      v_ugrid(iblock, k, j, i) = P25 
+          * (v_tgrid(iblock, k, j  , i  ) 
+           + v_tgrid(iblock, k, j+1, i  ) 
+           + v_tgrid(iblock, k, j  , i-1) 
+           + v_tgrid(iblock, k, j+1, i-1));
+    }
+    if (i == 0 || j == (NY_BLOCK-1)) {
+      v_ugrid(iblock, k, j, i) = 0;
+    }
+    return ;
+  }
+ private:
+  // const ViewDouble3D v_au0_  = *p_v_au0;
+  // const ViewDouble3D v_aus_  = *p_v_aus;
+  // const ViewDouble3D v_auw_  = *p_v_auw;
+  // const ViewDouble3D v_ausw_ = *p_v_ausw;
+  const ViewDouble4D v_viv_  = *p_v_viv;
+  const ViewDouble4D v_akmu_ = *p_v_akmu;
+  const ViewDouble4D v_akmt_ = *p_v_akmt;
+};
+//-----------------------------------------------------------------
+// COMPUTE THE ADVECTIVE TERM: ZONAL COMPONENT
+//-----------------------------------------------------------------
+class FunctorReadyc7 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &j, const int &i) const {
+    const int iblock = 0;
+    upwell_1(iblock, j, i, v_h0_);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void upwell_1 (const int &iblock,
+      const int &j, const int &i, const ViewDouble3D &v_h0wk)
+          const {
+    tgrid_to_ugrid(iblock, j, i, v_work_, v_h0wk);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void tgrid_to_ugrid (
+      const int &iblock, const int &j, const int &i,
+          const ViewDouble3D &v_ugrid, const ViewDouble3D &v_tgrid) 
+              const {
+    if (i >= 1 && j < (NY_BLOCK-1)) {
+      // v_ugrid(iblock, j, i) = 
+      //     v_au0_ (iblock, j, i) * v_tgrid(iblock, j  , i  ) +
+      //     v_aus_ (iblock, j, i) * v_tgrid(iblock, j+1, i  ) +
+      //     v_auw_ (iblock, j, i) * v_tgrid(iblock, j  , i-1) +
+      //     v_ausw_(iblock, j, i) * v_tgrid(iblock, j+1, i-1);
+      // v_ugrid(iblock, j, i) = P25 * v_tgrid(iblock, j  , i  ) +
+      //                         P25 * v_tgrid(iblock, j+1, i  ) +
+      //                         P25 * v_tgrid(iblock, j  , i-1) +
+      //                         P25 * v_tgrid(iblock, j+1, i-1);
+      v_ugrid(iblock, j, i) = P25 
+          * (v_tgrid(iblock, j  , i  ) 
+           + v_tgrid(iblock, j+1, i  ) 
+           + v_tgrid(iblock, j  , i-1) 
+           + v_tgrid(iblock, j+1, i-1));
+    }
+    if (i == 0 || j == (NY_BLOCK-1)) {
+      v_ugrid(iblock, j, i) = 0;
+    }
+    return ;
+  }
+ private:
+  const ViewDouble3D v_h0_   = *p_v_h0;
+  // const ViewDouble3D v_au0_  = *p_v_au0;
+  // const ViewDouble3D v_aus_  = *p_v_aus;
+  // const ViewDouble3D v_auw_  = *p_v_auw;
+  // const ViewDouble3D v_ausw_ = *p_v_ausw;
+  const ViewDouble3D v_work_ = *p_v_work;
+};
+
+class FunctorReadyc8 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    upwell_2(iblock, k, j, i, v_u_, v_v_);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void upwell_2 (const int &iblock,
+      const int &k, const int &j, const int &i,
+          const ViewDouble4D &v_uwk, const ViewDouble4D &v_vwk)
+              const {
+    // if (i >= 1 && j < (JMT-1)) {
+    v_uk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
+        * v_ohbu_(iblock, j, i)) * v_uwk(iblock, k, j, i);
+    v_vk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
+        * v_ohbu_(iblock, j, i)) * v_vwk(iblock, k, j, i);
+    // }
+    return ;
+  }
+ private:
+  const ViewDouble3D v_ohbu_ = *p_v_ohbu;
+  const ViewDouble3D v_work_ = *p_v_work;
+  const ViewDouble4D v_u_    = *p_v_u;
+  const ViewDouble4D v_v_    = *p_v_v;
+  const ViewDouble4D v_uk_   = *p_v_uk;
+  const ViewDouble4D v_vk_   = *p_v_vk;
+};
+class FunctorReadyc9 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    upwell_3(iblock, k, j, i);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void upwell_3 (const int &iblock,
+      const int &k, const int &j, const int &i) const {
+    div(iblock, k, j, i, v_wka_, v_uk_, v_vk_);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void div (const int &iblock, const int &k, const int &j, 
+      const int &i, const ViewDouble4D &v_div_out, const ViewDouble4D &v_ux, 
+          const ViewDouble4D &v_uy) const {
+    v_div_out(iblock, k, j, i) = C0;
+    if (i < (NX_BLOCK-1) && j >= 1) {
+      const int bid = 0;
+      if (k <= (v_kmt_(bid, j, i) - 1)) {
+        v_div_out(iblock, k, j, i) = P5 * (
+            (v_ux(iblock, k, j  , i+1) + v_ux(iblock, k, j-1, i+1)) * v_htw_(bid, j  , i+1)
+          - (v_ux(iblock, k, j  , i  ) + v_ux(iblock, k, j-1, i  )) * v_htw_(bid, j  , i  )
+          + (v_uy(iblock, k, j  , i+1) + v_uy(iblock, k, j  , i  )) * v_hts_(bid, j  , i  )
+          - (v_uy(iblock, k, j-1, i+1) + v_uy(iblock, k, j-1, i  )) * v_hts_(bid, j-1, i  )) 
+              * v_tarea_r_(bid, j, i);
+      }
+    }
+    return ;
+  }
+ private:
+  const ViewInt3D    v_kmt_     = *p_v_kmt;
+  const ViewDouble3D v_hts_     = *p_v_hts;
+  const ViewDouble3D v_htw_     = *p_v_htw;
+  const ViewDouble3D v_tarea_r_ = *p_v_tarea_r;
+  const ViewDouble4D v_uk_      = *p_v_uk;
+  const ViewDouble4D v_vk_      = *p_v_vk;
+  const ViewDouble4D v_wka_     = *p_v_wka;
+};
+
+class FunctorReadyc10 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator() (
+      const int &j, const int &i) const {
+    upwell_4(j, i, v_h0_);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void upwell_4 (const int &j,
+      const int &i, const ViewDouble3D &v_h0wk) const {
+    const int iblock = 0;
+
+    v_work_(iblock, j, i) = C0;
+
+    if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
+      for (int k = 0; k < KM; ++k) {
+        v_work_(iblock, j, i) -= v_dzp_(k)
+            * v_wka_(iblock, k, j, i)
+                * v_vit_(iblock, k, j, i);
+      }
+      double ws = v_ws_(iblock, 0, j, i);
+      for (int k = 1; k < KM; ++k) {
+        ws = v_vit_(iblock, k, j, i) * (ws + v_dzp_(k-1) 
+            * (v_work_(iblock, j, i) * v_ohbt_(iblock, j, i)
+                + v_wka_(iblock, k-1, j, i  )));
+        v_ws_(iblock, k, j, i) = ws;
+      }
+
+      v_work_(iblock, j, i) = 1.0 / (1.0 + v_h0wk(iblock, j, i)
+          * v_ohbt_(iblock, j, i));
+
+      for (int k = 1; k < KM; ++k) {
+        v_ws_(iblock, k, j, i) *= v_work_(iblock, j, i);
+      }
+    }
+    return ;
+  }
+ private:
+  const ViewDouble1D v_dzp_  = *p_v_dzp;
+  const ViewDouble3D v_h0_   = *p_v_h0;
+  const ViewDouble3D v_work_ = *p_v_work;
+  const ViewDouble3D v_ohbt_ = *p_v_ohbt;
+  const ViewDouble4D v_ws_   = *p_v_ws;
+  const ViewDouble4D v_vit_  = *p_v_vit;
+  const ViewDouble4D v_wka_  = *p_v_wka;
+};
+class FunctorReadyc11 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    tgrid_to_ugrid(iblock, k, j, i, v_wka_, v_ws_);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void tgrid_to_ugrid (
+      const int &iblock, const int &k, const int &j, const int &i,
+          const ViewDouble4D &v_ugrid, const ViewDouble4D &v_tgrid) 
+              const {
+    if (i >= 1 && j < (NY_BLOCK-1)) {
+      // v_ugrid(iblock, k, j, i) = 
+      //     v_au0_ (iblock, j, i) * v_tgrid(iblock, k, j  , i  ) +
+      //     v_aus_ (iblock, j, i) * v_tgrid(iblock, k, j+1, i  ) +
+      //     v_auw_ (iblock, j, i) * v_tgrid(iblock, k, j  , i-1) +
+      //     v_ausw_(iblock, j, i) * v_tgrid(iblock, k, j+1, i-1);
+      // v_ugrid(iblock, k, j, i) = P25 * v_tgrid(iblock, k, j  , i  ) +
+      //                            P25 * v_tgrid(iblock, k, j+1, i  ) +
+      //                            P25 * v_tgrid(iblock, k, j  , i-1) +
+      //                            P25 * v_tgrid(iblock, k, j+1, i-1);
+      v_ugrid(iblock, k, j, i) = P25 
+          * (v_tgrid(iblock, k, j  , i  ) 
+           + v_tgrid(iblock, k, j+1, i  ) 
+           + v_tgrid(iblock, k, j  , i-1) 
+           + v_tgrid(iblock, k, j+1, i-1));
+    }
+    if (i == 0 || j == (NY_BLOCK-1)) {
+      v_ugrid(iblock, k, j, i) = 0;
+    }
+    return ;
+  }
+ private:
+  // const ViewDouble3D v_au0_  = *p_v_au0;
+  // const ViewDouble3D v_aus_  = *p_v_aus;
+  // const ViewDouble3D v_auw_  = *p_v_auw;
+  // const ViewDouble3D v_ausw_ = *p_v_ausw;
+  const ViewDouble4D v_ws_   = *p_v_ws;
+  const ViewDouble4D v_wka_  = *p_v_wka;
+};
+
+//-----------------------------------------------------------------
+// COMPUTE THE ADVECTIVE TERMS
+//-----------------------------------------------------------------
+// advection_momentum(u, v, wka, dlu, dlv, iblock)
+class FuncAdvMomCen1 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    advcetion_momentum_centered_1 (iblock, k, j, i,
+        v_u_, v_v_, v_dlu_, v_dlv_);
+    return ;
+  };
+  KOKKOS_INLINE_FUNCTION void advcetion_momentum_centered_1 (
+      const int &iblock, const int &k, const int &j, const int &i,
+          const ViewDouble4D &v_uuu, const ViewDouble4D &v_vvv,
+              const ViewDouble4D &v_adv_uu, const ViewDouble4D &v_adv_vv) 
+                  const {
+    v_adv_uu(iblock, k, j, i) = C0;
+    v_adv_vv(iblock, k, j, i) = C0;
+    if (i > 0 && j < (JMT-1)) {
+      v_uv_ws_face_(k, j, i, 0) = (
+          v_uuu(iblock, k, j, i-1) + v_uuu(iblock, k, j  , i))
+              * P25 * v_hue_(iblock, j  , i-1);
+      v_uv_ws_face_(k, j, i, 1) = (
+          v_vvv(iblock, k, j, i  ) + v_vvv(iblock, k, j+1, i))
+              * P25 * v_hun_(iblock, j+1, i  );
+    }
+    return ;
+  }
+ private:
+  const ViewDouble3D v_hun_        = *p_v_hun;
+  const ViewDouble3D v_hue_        = *p_v_hue;
+  const ViewDouble4D v_u_          = *p_v_u;
+  const ViewDouble4D v_v_          = *p_v_v;
+  const ViewDouble4D v_dlu_        = *p_v_dlu;
+  const ViewDouble4D v_dlv_        = *p_v_dlv;
+  const ViewDouble4D v_uv_ws_face_ = *p_v_uv_ws_face;
+};
+class FuncAdvMomFlu1 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator() 
+      (const int &k, const int &j, const int &i) 
+          const {
+    const int iblock = 0;
+    advcetion_momentum_flux_1(iblock, k, j, i,
+        v_u_, v_v_, v_dlu_, v_dlv_);
+    return ;
+  };
+  KOKKOS_INLINE_FUNCTION void advcetion_momentum_flux_1(
+      const int &iblock, const int &k, const int &j, const int &i,
+          const ViewDouble4D &v_uuu, const ViewDouble4D &v_vvv,
+              const ViewDouble4D &v_adv_uu, const ViewDouble4D &v_adv_vv) 
+                  const {
+    v_adv_uu(iblock, k, j, i) = C0;
+    v_adv_vv(iblock, k, j, i) = C0;
+    if (i > 0 && j < (JMT-1)) {
+      v_uv_ws_face_(k, j, i, 0) = 
+          (v_uuu(iblock, k, j, i-1) * v_dyu_(iblock, j, i-1)  
+         + v_uuu(iblock, k, j, i  ) * v_dyu_(iblock, j, i  )) * P25;
+      v_uv_ws_face_(k, j, i, 1) = 
+          (v_vvv(iblock, k, j  , i) * v_dxu_(iblock, j  , i)  
+         + v_vvv(iblock, k, j+1, i) * v_dxu_(iblock, j+1, i)) * P25;
+    }
+    return ;
+  }
+ private:
+  const ViewDouble3D v_dxu_        = *p_v_dxu;
+  const ViewDouble3D v_dyu_        = *p_v_dyu;
+  const ViewDouble4D v_u_          = *p_v_u;
+  const ViewDouble4D v_v_          = *p_v_v;
+  const ViewDouble4D v_dlu_        = *p_v_dlu;
+  const ViewDouble4D v_dlv_        = *p_v_dlv;
+  const ViewDouble4D v_uv_ws_face_ = *p_v_uv_ws_face;
+};
+
+class FuncAdvMomCen2 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    advcetion_momentum_centered_2 (iblock, k, j, i,
+        v_u_, v_v_, v_wka_, v_dlu_, v_dlv_);
+    return ;
+  };
+  KOKKOS_INLINE_FUNCTION void advcetion_momentum_centered_2 (
+      const int &iblock, const int &k, const int &j, const int &i,
+          const ViewDouble4D &v_uuu, const ViewDouble4D &v_vvv,
+              const ViewDouble4D &v_www, const ViewDouble4D &v_adv_uu, 
+                  const ViewDouble4D &v_adv_vv) const {
+    double adv_z1, adv_z2, adv_z3, adv_z4;
+    v_adv_uu(iblock, k, j, i) = (
+        - v_uv_ws_face_(k, j  , i  , 0) 
+            * (v_uuu(iblock, k, j  , i  ) - v_uuu(iblock, k, j  , i-1))
+        - v_uv_ws_face_(k, j  , i+1, 0) 
+            * (v_uuu(iblock, k, j  , i+1) - v_uuu(iblock, k, j  , i  ))
+        - v_uv_ws_face_(k, j  , i  , 1) 
+            * (v_uuu(iblock, k, j+1, i  ) - v_uuu(iblock, k, j  , i  ))
+        - v_uv_ws_face_(k, j-1, i  , 1) 
+            * (v_uuu(iblock, k, j  , i  ) - v_uuu(iblock, k, j-1, i  ))) 
+                * v_uarea_r_(iblock, j, i);
+
+    v_adv_vv(iblock, k, j, i) = (
+        - v_uv_ws_face_(k, j  , i  , 0) 
+            * (v_vvv(iblock, k, j  , i  ) - v_vvv(iblock, k, j  , i-1))
+        - v_uv_ws_face_(k, j  , i+1, 0)               
+            * (v_vvv(iblock, k, j  , i+1) - v_vvv(iblock, k, j  , i  ))
+        - v_uv_ws_face_(k, j  , i  , 1)               
+            * (v_vvv(iblock, k, j+1, i  ) - v_vvv(iblock, k, j  , i  ))
+        - v_uv_ws_face_(k, j-1, i  , 1)               
+            * (v_vvv(iblock, k, j  , i  ) - v_vvv(iblock, k, j-1, i  ))) 
+                * v_uarea_r_(iblock, j, i);
+
+    if (k == 0) {
+      adv_z1 = 0.0;
+      adv_z3 = 0.0;
+    } else {
+      adv_z1 = v_www(iblock, k, j, i) 
+          * (v_uuu(iblock, k-1, j, i  ) - v_uuu(iblock, k, j, i));
+      adv_z3 = v_www(iblock, k, j, i) 
+          * (v_vvv(iblock, k-1, j, i  ) - v_vvv(iblock, k, j, i));
+    }
+
+    if (k == KM-1) {
+      adv_z2 = 0.0;
+      adv_z4 = 0.0;
+    } else {
+      adv_z2 = v_www(iblock, k+1, j, i) 
+          * (v_uuu(iblock, k  , j  , i  ) - v_uuu(iblock, k+1, j, i));
+      adv_z4 = v_wka_(iblock, k+1, j, i) 
+          * (v_vvv(iblock, k  , j  , i  ) - v_vvv(iblock, k+1, j, i));
+    }
+
+    v_adv_uu(iblock, k, j, i) -= P5 * v_odzp_(k)
+        * (adv_z1 + adv_z2);
+    v_adv_vv(iblock, k, j, i) -= P5 * v_odzp_(k)
+        * (adv_z3 + adv_z4);
+    return ;
+  }
+ private:
+  const ViewDouble1D v_odzp_    = *p_v_odzp;
+  const ViewDouble3D v_uarea_r_ = *p_v_uarea_r;
+  const ViewDouble4D v_u_       = *p_v_u;
+  const ViewDouble4D v_v_       = *p_v_v;
+  const ViewDouble4D v_dlu_     = *p_v_dlu;
+  const ViewDouble4D v_dlv_     = *p_v_dlv;
+  const ViewDouble4D v_wka_     = *p_v_wka;
+  const ViewDouble4D v_uv_ws_face_ = *p_v_uv_ws_face;
+};
+
+class FuncAdvMomFlu2 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator() 
+      (const int &k, const int &j, const int &i) 
+          const {
+    const int iblock = 0;
+    advcetion_momentum_flux_2(iblock, k, j, i,
+        v_u_, v_v_, v_wka_, v_dlu_, v_dlv_);
+    return ;
+  };
+  KOKKOS_INLINE_FUNCTION void advcetion_momentum_flux_2(
+      const int &iblock, const int &k, const int &j, const int &i,
+          const ViewDouble4D &v_uuu, const ViewDouble4D &v_vvv,
+              const ViewDouble4D &v_www, const ViewDouble4D &v_adv_uu, 
+                  const ViewDouble4D &v_adv_vv) const {
+    double adv_z1, adv_z2, adv_z3, adv_z4;
+    v_adv_uu(iblock, k, j, i) = (
+        - v_uv_ws_face_(k, j  , i  , 0) 
+            * (v_uuu(iblock, k, j  , i  ) + v_uuu(iblock, k, j  , i-1))
+        + v_uv_ws_face_(k, j  , i+1, 0) 
+            * (v_uuu(iblock, k, j  , i+1) + v_uuu(iblock, k, j  , i  ))
+        - v_uv_ws_face_(k, j-1, i  , 1) 
+            * (v_uuu(iblock, k, j  , i  ) + v_uuu(iblock, k, j-1, i  ))
+        + v_uv_ws_face_(k, j  , i  , 1) 
+            * (v_uuu(iblock, k, j+1, i  ) + v_uuu(iblock, k, j  , i  ))) 
+                * v_uarea_r_(iblock, j, i);
+
+    v_adv_vv(iblock, k, j, i) = (
+        - v_uv_ws_face_(k, j  , i  , 0) 
+            * (v_vvv(iblock, k, j  , i  ) + v_vvv(iblock, k, j  , i-1))
+        + v_uv_ws_face_(k, j  , i+1, 0)               
+            * (v_vvv(iblock, k, j  , i+1) + v_vvv(iblock, k, j  , i  ))
+        - v_uv_ws_face_(k, j-1, i  , 1)               
+            * (v_vvv(iblock, k, j  , i  ) + v_vvv(iblock, k, j-1, i  ))
+        + v_uv_ws_face_(k, j  , i  , 1)               
+            * (v_vvv(iblock, k, j+1, i  ) + v_vvv(iblock, k, j  , i  ))) 
+                * v_uarea_r_(iblock, j, i);
+
+    if (k == 0) {
+      adv_z1 = 0.0;
+      adv_z3 = 0.0;
+    } else {
+      adv_z1 = v_www(iblock, k, j, i) 
+          * (v_uuu(iblock, k-1, j, i  ) + v_uuu(iblock, k, j, i)) * P5;
+      adv_z3 = v_www(iblock, k, j, i) 
+          * (v_vvv(iblock, k-1, j, i  ) + v_vvv(iblock, k, j, i)) * P5;
+    }
+
+    if (k == KM-1) {
+      adv_z2 = 0.0;
+      adv_z4 = 0.0;
+    } else {
+      adv_z2 = v_www(iblock, k+1, j, i) 
+          * (v_uuu(iblock, k, j, i) + v_uuu(iblock, k+1, j, i)) * P5;
+      adv_z4 = v_www(iblock, k+1, j, i) 
+          * (v_vvv(iblock, k, j, i) - v_vvv(iblock, k+1, j, i)) * P5;
+    }
+
+    v_adv_uu(iblock, k, j, i) -= v_odzp_(k) * (adv_z2 - adv_z1);
+    v_adv_vv(iblock, k, j, i) -= v_odzp_(k) * (adv_z4 - adv_z3);
+    return ;
+  }
+ private:
+  const ViewDouble1D v_odzp_    = *p_v_odzp;
+  const ViewDouble3D v_uarea_r_ = *p_v_uarea_r;
+  const ViewDouble4D v_u_       = *p_v_u;
+  const ViewDouble4D v_v_       = *p_v_v;
+  const ViewDouble4D v_dlu_     = *p_v_dlu;
+  const ViewDouble4D v_dlv_     = *p_v_dlv;
+  const ViewDouble4D v_wka_     = *p_v_wka;
+  const ViewDouble4D v_uv_ws_face_ = *p_v_uv_ws_face;
+};
+// End advection_momentum(u, v, wka, dlu, dlv, iblock)
+
+class FunctorReadyc14 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    hdiffu_del4_1(k, j, i, v_up_, v_vp_);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void hdiffu_del4_1(
+      const int &k, const int &j, const int &i,
+          const ViewDouble4D &v_umixk, const ViewDouble4D &v_vmixk)
+              const {
+    div  (k, j, i, v_wka_, v_umixk, v_vmixk);
+    zcurl(k, j, i, v_wkb_, v_umixk, v_vmixk);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void div(const int &k, const int &j, 
+      const int &i, const ViewDouble4D &v_div_out, 
+          const ViewDouble4D &v_ux, const ViewDouble4D &v_uy) const {
+    const int iblock = 0;
+    v_div_out(iblock, k, j, i) = C0;
+    if (i < (NX_BLOCK-1) && j >= 1) {
+      const int bid = 0;
+      if (k <= (v_kmt_(bid, j, i) - 1)) {
+        v_div_out(iblock, k, j, i) = P5 * (
+            (v_ux(iblock, k, j  , i+1) + v_ux(iblock, k, j-1, i+1)) * v_htw_(bid, j  , i+1)
+          - (v_ux(iblock, k, j  , i  ) + v_ux(iblock, k, j-1, i  )) * v_htw_(bid, j  , i  )
+          + (v_uy(iblock, k, j  , i+1) + v_uy(iblock, k, j  , i  )) * v_hts_(bid, j  , i  )
+          - (v_uy(iblock, k, j-1, i+1) + v_uy(iblock, k, j-1, i  )) * v_hts_(bid, j-1, i  )) 
+              * v_tarea_r_(bid, j, i);
+      }
+    }
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void zcurl (const int &k,
+      const int &j, const int &i, const ViewDouble4D &v_curl, 
+          const ViewDouble4D &v_ux, const ViewDouble4D &v_uy) 
+              const {
+    const int iblock = 0;
+    v_curl(iblock, k, j, i) = C0;
+    if (i >= 1 && j >= 1) {
+      const int bid = 0;
+      if (k <= v_kmt_(bid, j, i) - 1) {
+        v_curl(iblock, k, j, i) = P5 * (
+            v_uy(iblock, k, j  , i  ) * v_dyu_(bid, j  , i  )
+          + v_uy(iblock, k, j-1, i  ) * v_dyu_(bid, j-1, i  )
+          - v_uy(iblock, k, j  , i-1) * v_dyu_(bid, j  , i-1)
+          - v_uy(iblock, k, j-1, i-1) * v_dyu_(bid, j-1, i-1)
+          - v_ux(iblock, k, j  , i  ) * v_dxu_(bid, j  , i  )
+          - v_ux(iblock, k, j  , i-1) * v_dxu_(bid, j  , i-1)
+          + v_ux(iblock, k, j-1, i  ) * v_dxu_(bid, j-1, i  )
+          + v_ux(iblock, k, j-1, i-1) * v_dxu_(bid, j-1, i-1));
+      }
+    }
+    return ;
+  }
+ private:
+  const ViewInt3D    v_kmt_     = *p_v_kmt;
+  const ViewDouble3D v_dxu_     = *p_v_dxu;
+  const ViewDouble3D v_dyu_     = *p_v_dyu;
+  const ViewDouble3D v_hts_     = *p_v_hts;
+  const ViewDouble3D v_htw_     = *p_v_htw;
+  const ViewDouble3D v_tarea_r_ = *p_v_tarea_r;
+  const ViewDouble4D v_up_      = *p_v_up;
+  const ViewDouble4D v_vp_      = *p_v_vp;
+  const ViewDouble4D v_wka_     = *p_v_wka;
+  const ViewDouble4D v_wkb_     = *p_v_wkb;
+};
+
+class FunctorReadyc15 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+
+    hdiffu_del4_2 (k, j, i, v_up_, v_vp_);
+
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void hdiffu_del4_2 (
+      const int &k, const int &j, const int &i,
+          const ViewDouble4D &v_umixk, const ViewDouble4D &v_vmixk)
+              const {
+
+    if (i >= (ib_-2) && i < (ie_+1) && j >= (jb_-2) && j < (je_+1)) {
+      const int bid = 0;
+      const double cc = v_du_cnsewm_(bid, j, i, 0) 
+          + v_du_cnsewm_(bid, j, i, 5);
+      v_d2uk_(k, j, i) = (           cc * v_umixk(bid, k, j  , i  )
+           + v_du_cnsewm_(bid, j, i, 1) * v_umixk(bid, k, j-1, i  )
+           + v_du_cnsewm_(bid, j, i, 2) * v_umixk(bid, k, j+1, i  )
+           + v_du_cnsewm_(bid, j, i, 3) * v_umixk(bid, k, j  , i+1)
+           + v_du_cnsewm_(bid, j, i, 4) * v_umixk(bid, k, j  , i-1))
+          + (v_dm_cnsew_ (bid, j, i, 0) * v_vmixk(bid, k, j  , i  )
+           + v_dm_cnsew_ (bid, j, i, 1) * v_vmixk(bid, k, j-1, i  )
+           + v_dm_cnsew_ (bid, j, i, 2) * v_vmixk(bid, k, j+1, i  )
+           + v_dm_cnsew_ (bid, j, i, 3) * v_vmixk(bid, k, j  , i+1)
+           + v_dm_cnsew_ (bid, j, i, 4) * v_vmixk(bid, k, j  , i-1));
+      
+      v_d2vk_(k, j, i) = (           cc * v_vmixk(bid, k, j  , i  )
+           + v_du_cnsewm_(bid, j, i, 1) * v_vmixk(bid, k, j-1, i  )
+           + v_du_cnsewm_(bid, j, i, 2) * v_vmixk(bid, k, j+1, i  )
+           + v_du_cnsewm_(bid, j, i, 3) * v_vmixk(bid, k, j  , i+1)
+           + v_du_cnsewm_(bid, j, i, 4) * v_vmixk(bid, k, j  , i-1))
+          - (v_dm_cnsew_ (bid, j, i, 0) * v_umixk(bid, k, j  , i  )
+           + v_dm_cnsew_ (bid, j, i, 1) * v_umixk(bid, k, j-1, i  )
+           + v_dm_cnsew_ (bid, j, i, 2) * v_umixk(bid, k, j+1, i  )
+           + v_dm_cnsew_ (bid, j, i, 3) * v_umixk(bid, k, j  , i+1)
+           + v_dm_cnsew_ (bid, j, i, 4) * v_umixk(bid, k, j  , i-1));
+    }
+    return ;
+  }
+ private:
+  const int ib_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ib;
+  const int jb_ = CppBlocks::jb;
+  const int je_ = CppBlocks::je;
+  const ViewDouble3D v_d2uk_      = *p_v_d2uk;
+  const ViewDouble3D v_d2vk_      = *p_v_d2vk;
+  const ViewDouble4D v_up_        = *p_v_up;
+  const ViewDouble4D v_vp_        = *p_v_vp;
+  const ViewDouble4D v_dm_cnsew_  = *p_v_dm_cnsew;
+  const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
+};
+class FunctorReadyc16 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+
+    hdiffu_del4_3 (iblock, k, j, i);
+
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void hdiffu_del4_3 (const int &iblock,
+      const int &k, const int &j, const int &i) const {
+    const int bid = 0;
+
+    double am_factor = 1.0;
+    const double amf = v_amf_(bid, j, i);
+    if (i >= (ib_-2) && i < (ie_+1) && j >= (jb_-2) && j < (je_+1)) {
+      double gradx1, grady1;
+      grad (k, j, i, gradx1, grady1, v_wka_);
+      gradx1 *= gradx1;
+      grady1 *= grady1;
+      double gradx2, grady2;
+      grad (k, j, i, gradx2, grady2, v_wkb_);
+      gradx2 *= gradx2;
+      grady2 *= grady2;
+      const double sqrt_uarea = sqrt (v_uarea_(bid, j, i));
+      const double dxdy = sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * 45.0;
+      am_factor = sqrt(gradx1 + gradx2 + grady1 + grady2)  
+          * dxdy / fabs(am_ * amf);
+    }
+    am_factor = fmin(40.0, am_factor);
+    am_factor = fmax(1.0,  am_factor);
+    if (k <= v_kmu_(bid, j, i) - 1) {
+      v_d2uk_(k, j, i) *= am_factor * amf;
+      v_d2vk_(k, j, i) *= am_factor * amf;
+    } else {
+      v_d2uk_(k, j, i) = C0; 
+      v_d2vk_(k, j, i) = C0;
+    }
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void grad (const int &k, const int &j,
+      const int &i, double &gradx, double &grady, const ViewDouble4D &v_f) 
+              const {
+    const int bid = 0;
+    gradx = 0.0;
+    grady = 0.0;
+    if (i >= 1 && j < (NY_BLOCK-1)) {
+      if (k <= v_kmu_(bid, j, i) - 1) {
+        gradx = v_dxyur_(bid, j, i, 0) * P5 * 
+            (v_f(bid, k, j+1, i  ) - v_f(bid, k, j, i-1) - 
+             v_f(bid, k, j+1, i-1) + v_f(bid, k, j, i  ));
+      
+        grady = v_dxyur_(bid, j, i, 1) * P5 * 
+            (v_f(bid, k, j+1, i  ) - v_f(bid, k, j, i-1) + 
+             v_f(bid, k, j+1, i-1) - v_f(bid, k, j, i  ));
+      }
+    }
+    return ;
+  }
+ private:
+  const int ib_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ib;
+  const int jb_ = CppBlocks::jb;
+  const int je_ = CppBlocks::je;
+  const double am_ = CppHmixDel4::am;
+  const ViewInt3D    v_kmu_   = *p_v_kmu;
+  const ViewDouble3D v_d2uk_  = *p_v_d2uk;
+  const ViewDouble3D v_d2vk_  = *p_v_d2vk;
+  const ViewDouble3D v_amf_   = *p_v_amf;
+  const ViewDouble3D v_uarea_ = *p_v_uarea;
+  const ViewDouble4D v_wka_   = *p_v_wka;
+  const ViewDouble4D v_wkb_   = *p_v_wkb;
+  const ViewDouble4D v_dxyur_ = *p_v_dxyur;
+};
+class FunctorReadyc17 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    double hduk, hdvk;
+    hdiffu_del4_4 (iblock, k, j, i, hduk, hdvk);
+    v_dlu_(iblock, k, j, i) += hduk;
+    v_dlv_(iblock, k, j, i) += hdvk;
+  return ;
+  }
+  KOKKOS_INLINE_FUNCTION void hdiffu_del4_4 (
+      const int &iblock, const int &k, const int &j, const int &i,
+          double &hduk, double &hdvk)
+                  const {
+    const int bid = 0;
+    hduk = C0;
+    hdvk = C0;
+    if (i >= (ib_-1) && i < (ie_) && j >= (jb_-1) && j < (je_)) {
+      const double cc = v_du_cnsewm_(bid, j, i, 0) 
+          + v_du_cnsewm_(bid, j, i, 5);
+      hduk = am_ * ((               cc * v_d2uk_(k, j  , i  )
+          + v_du_cnsewm_(bid, j, i, 1) * v_d2uk_(k, j-1, i  )
+          + v_du_cnsewm_(bid, j, i, 2) * v_d2uk_(k, j+1, i  )
+          + v_du_cnsewm_(bid, j, i, 3) * v_d2uk_(k, j  , i+1)
+          + v_du_cnsewm_(bid, j, i, 4) * v_d2uk_(k, j  , i-1))
+         + (v_dm_cnsew_( bid, j, i, 0) * v_d2vk_(k, j  , i  )
+          + v_dm_cnsew_( bid, j, i, 1) * v_d2vk_(k, j-1, i  )
+          + v_dm_cnsew_( bid, j, i, 2) * v_d2vk_(k, j+1, i  )
+          + v_dm_cnsew_( bid, j, i, 3) * v_d2vk_(k, j  , i+1)
+          + v_dm_cnsew_( bid, j, i, 4) * v_d2vk_(k, j  , i-1)));
+   
+      hdvk = am_ * ((               cc * v_d2vk_(k, j  , i  )
+          + v_du_cnsewm_(bid, j, i, 1) * v_d2vk_(k, j-1, i  )
+          + v_du_cnsewm_(bid, j, i, 2) * v_d2vk_(k, j+1, i  )
+          + v_du_cnsewm_(bid, j, i, 3) * v_d2vk_(k, j  , i+1)
+          + v_du_cnsewm_(bid, j, i, 4) * v_d2vk_(k, j  , i-1))
+         - (v_dm_cnsew_( bid, j, i, 0) * v_d2uk_(k, j  , i  )
+          + v_dm_cnsew_( bid, j, i, 1) * v_d2uk_(k, j-1, i  )
+          + v_dm_cnsew_( bid, j, i, 2) * v_d2uk_(k, j+1, i  )
+          + v_dm_cnsew_( bid, j, i, 3) * v_d2uk_(k, j  , i+1)
+          + v_dm_cnsew_( bid, j, i, 4) * v_d2uk_(k, j  , i-1)));
+    }
+    if (k > v_kmu_(bid, j, i) - 1) {
+      hduk = C0;
+      hdvk = C0;
+    }
+    return ;
+  }
+ private:
+  const int ib_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ib;
+  const int jb_ = CppBlocks::jb;
+  const int je_ = CppBlocks::je;
+  const double am_ = CppHmixDel4::am;
+  const ViewInt3D    v_kmu_       = *p_v_kmu;
+  const ViewDouble3D v_d2uk_      = *p_v_d2uk;
+  const ViewDouble3D v_d2vk_      = *p_v_d2vk;
+  const ViewDouble4D v_dlu_       = *p_v_dlu;
+  const ViewDouble4D v_dlv_       = *p_v_dlv;
+  const ViewDouble4D v_dm_cnsew_  = *p_v_dm_cnsew;
+  const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
+};
+
+//-----------------------------------------------------------------
+// VERTICAL INTEGRATION
+//-----------------------------------------------------------------
+class FunctorReadyc18 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &j, const int &i) const {
+    vinteg(j, i, v_dlu_, v_dlub_);
+    vinteg(j, i, v_dlv_, v_dlvb_);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void vinteg(const int &j, const int &i,
+      const ViewDouble4D &v_wk3, const ViewDouble3D &v_wk2) 
+          const {
+    const int iblock = 0;
+    v_wk2(iblock, j, i) = C0;
+    for (int k = 0; k < KM; ++k) {
+      v_wk2(iblock, j, i) += v_dzp_(k) * v_ohbu_(iblock, j, i) 
+          * v_wk3(iblock, k, j, i) *v_viv_(iblock, k, j, i);
+    }
+    return ;
+  }
+ private:
+  const ViewDouble1D v_dzp_  = *p_v_dzp;
+  const ViewDouble3D v_ohbu_ = *p_v_ohbu;
+  const ViewDouble3D v_dlub_ = *p_v_dlub;
+  const ViewDouble3D v_dlvb_ = *p_v_dlvb;
+  const ViewDouble4D v_dlu_  = *p_v_dlu;
+  const ViewDouble4D v_dlv_  = *p_v_dlv;
+  const ViewDouble4D v_viv_  = *p_v_viv;
+};
+
+class FunctorReadyc19 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    v_wka_(iblock, k, j, i) = c0f_ * std::sqrt(
+        v_up_(iblock, k, j, i) * v_up_(iblock, k, j, i)
+      + v_vp_(iblock, k, j, i) * v_vp_(iblock, k, j, i));
+    return ;
+  }
+ private:
+  const double c0f_ = CppPconstMod::c0f;
+  const ViewDouble4D v_up_  = *p_v_up;
+  const ViewDouble4D v_vp_  = *p_v_vp;
+  const ViewDouble4D v_wka_ = *p_v_wka;
+};
+
+class FunctorReadyc20 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &j, const int &i) const {
+    const int iblock = 0;
+    double sbcx(0.0), sbcy(0.0), bbcx(0.0), bbcy(0.0);
+
+    const int kmb = v_kmu_(iblock, j, i) - 1;
+
+    if (kmb >= 0) {
+      sbcx = v_su_(iblock, j, i) * od0_;
+      sbcy = v_sv_(iblock, j, i) * od0_;
+      bbcx = v_wka_(iblock, kmb, j, i) * (
+          v_up_(iblock, kmb, j, i) * cag_ + v_snlat_(iblock, j, i) 
+        * v_vp_(iblock, kmb, j, i) * sag_);
+         
+      bbcy = v_wka_(iblock, kmb, j, i) * (- v_snlat_(iblock, j, i) 
+          * v_up_(iblock, kmb, j, i) * sag_ 
+          + v_vp_(iblock, kmb, j, i) * cag_);
+    }
+    v_dlub_(iblock, j, i) += (sbcx - bbcx) * v_ohbu_(iblock, j, i);
+    v_dlvb_(iblock, j, i) += (sbcy - bbcy) * v_ohbu_(iblock, j, i);
+    return ;
+  }
+ private:
+  const double od0_ = CppPconstMod::od0;
+  const double c0f_ = CppPconstMod::c0f;
+  const double cag_ = CppPconstMod::cag;
+  const double sag_ = CppPconstMod::sag;
+  const ViewInt3D    v_kmu_   = *p_v_kmu;
+  const ViewDouble3D v_su_    = *p_v_su;
+  const ViewDouble3D v_sv_    = *p_v_sv;
+  const ViewDouble3D v_snlat_ = *p_v_snlat;
+  const ViewDouble4D v_up_    = *p_v_up;
+  const ViewDouble4D v_vp_    = *p_v_vp;
+  const ViewDouble4D v_wka_   = *p_v_wka;
+  const ViewDouble3D v_ohbu_  = *p_v_ohbu;
+  const ViewDouble3D v_dlub_  = *p_v_dlub;
+  const ViewDouble3D v_dlvb_  = *p_v_dlvb;
+};
+
+class FunctorReadyc21 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    // d0 = 1026.0D0, od0 = 1 / d0
+    const double od0 = 1.0 / 1026.0;
+    // const double aidif = 0.5;
+    // aidifm1 = 1.0 - aidif
+    const double aidifm1 = 0.5;
+    double diff_u1, diff_u2;
+    if (k == 0) {
+      diff_u1 = v_su_(iblock, j, i) * od0 * aidifm1;
+    } else {
+      diff_u1 = v_akmu_(iblock, k-1, j, i) * aidifm1 
+          * (v_up_(iblock, k-1, j, i) - v_up_(iblock, k, j, i)) 
+          * v_odz_pt_(k, 1) * v_viv_(iblock, k, j, i) 
+          + (1.0 - v_viv_(iblock, k, j, i)) 
+          * v_wka_(iblock, k-1, j, i) * aidifm1 
+          * (v_up_(iblock, k-1, j, i) * cag_ + v_snlat_(iblock, j, i) 
+          * v_vp_(iblock, k-1, j, i) * sag_);
+    }
+    if (k == KM-1) {
+      diff_u2 = v_wka_(iblock, k, j, i) * (v_up_(iblock, k, j, i) * cag_ 
+          + v_snlat_(iblock, j, i) * v_vp_(iblock, k, j, i) * sag_) 
+          * aidifm1;
+    } else {
+      diff_u2 = v_akmu_(iblock, k, j, i) * aidifm1 
+          * (v_up_(iblock, k, j, i) - v_up_(iblock, k+1, j, i)) 
+          * v_odz_pt_(k+1, 1) * v_viv_(iblock, k+1, j, i) 
+          + (1.0 - v_viv_(iblock, k+1, j, i)) * v_wka_(iblock, k, j, i) 
+          * aidifm1 * (v_up_(iblock, k, j, i) * cag_ 
+          + v_snlat_(iblock, j, i) * v_vp_(iblock, k, j, i) * sag_);
+    }
+    v_dlu_(iblock, k, j, i) += v_odz_pt_(k, 0) * (diff_u1 - diff_u2);
+    return ;
+  }
+ private:
+  const double cag_ = CppPconstMod::cag;
+  const double sag_ = CppPconstMod::sag;
+  const ViewDouble2D v_odz_pt_ = *p_v_odz_pt;
+  const ViewDouble3D v_su_     = *p_v_su;
+  const ViewDouble3D v_snlat_  = *p_v_snlat;
+  const ViewDouble4D v_up_     = *p_v_up;
+  const ViewDouble4D v_vp_     = *p_v_vp;
+  const ViewDouble4D v_dlu_    = *p_v_dlu;
+  const ViewDouble4D v_viv_    = *p_v_viv;
+  const ViewDouble4D v_wka_    = *p_v_wka;
+  const ViewDouble4D v_akmu_   = *p_v_akmu;
+};
+class FunctorReadyc22 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    const double od0 = 1.0 / 1026.0;
+    // const double aidif = 0.5;
+    // aidifm1 = 1.0 - aidif
+    const double aidifm1 = 0.5;
+    double diff_v1, diff_v2;
+    if (k == 0) {
+      diff_v1 = v_sv_(iblock, j, i) * od0 * aidifm1;
+    } else {
+      diff_v1 = v_akmu_(iblock, k-1, j, i) * aidifm1 
+          * (v_vp_(iblock, k-1, j, i) - v_vp_(iblock, k, j, i)) 
+          * v_odz_pt_(k, 1) * v_viv_(iblock, k, j, i) 
+          + (1.0 - v_viv_(iblock, k, j, i)) 
+          * v_wka_(iblock, k-1, j, i) * aidifm1 
+          * (- v_snlat_(iblock, j, i) * v_up_(iblock, k-1, j, i) 
+          * sag_ + v_vp_(iblock, k-1, j, i) * cag_);
+    }
+    if (k == KM-1) {
+      diff_v2 = v_wka_(iblock, k, j, i) * (- v_snlat_(iblock, j, i) 
+          * v_up_(iblock, k, j, i) * sag_ 
+          + v_vp_(iblock, k, j, i) * cag_) * aidifm1;
+    } else {
+      diff_v2 = v_akmu_(iblock, k, j, i) * aidifm1 * 
+          (v_vp_(iblock, k, j, i) - v_vp_(iblock, k+1, j, i)) 
+          * v_odz_pt_(k+1, 1) * v_viv_(iblock, k+1, j, i) 
+          + (1.0 - v_viv_(iblock, k+1, j, i)) * v_wka_(iblock, k, j, i) 
+          * aidifm1 * (-v_snlat_(iblock, j, i) 
+          * v_up_(iblock, k, j, i) * sag_ + v_vp_(iblock, k, j, i) * cag_);
+    }
+    v_dlv_(iblock, k, j, i) += v_odz_pt_(k, 0) * (diff_v1 - diff_v2);
+    return ;
+  }
+ private:
+  const double cag_ = CppPconstMod::cag;
+  const double sag_ = CppPconstMod::sag;
+  const ViewDouble2D v_odz_pt_ = *p_v_odz_pt;
+  const ViewDouble3D v_sv_     = *p_v_sv;
+  const ViewDouble3D v_snlat_  = *p_v_snlat;
+  const ViewDouble4D v_up_     = *p_v_up;
+  const ViewDouble4D v_vp_     = *p_v_vp;
+  const ViewDouble4D v_dlv_    = *p_v_dlv;
+  const ViewDouble4D v_viv_    = *p_v_viv;
+  const ViewDouble4D v_wka_    = *p_v_wka;
+  const ViewDouble4D v_akmu_   = *p_v_akmu;
+};
+//===========================
+
+KOKKOS_REGISTER_FOR_2D(FunctorReadyc1,  FunctorReadyc1)
+// KOKKOS_REGISTER_FOR_3D(FunctorReadyc2,  FunctorReadyc2)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc3,  FunctorReadyc3)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc4,  FunctorReadyc4)
+// KOKKOS_REGISTER_FOR_2D(FunctorReadyc5,  FunctorReadyc5)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc51,  FunctorReadyc51)
+KOKKOS_REGISTER_FOR_2D(FunctorReadyc52,  FunctorReadyc52)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc53,  FunctorReadyc53)
+KOKKOS_REGISTER_FOR_2D(FunctorReadyc54,  FunctorReadyc54)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc55,  FunctorReadyc55)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc6,  FunctorReadyc6)
+KOKKOS_REGISTER_FOR_2D(FunctorReadyc7,  FunctorReadyc7)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc8,  FunctorReadyc8)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc9,  FunctorReadyc9)
+KOKKOS_REGISTER_FOR_2D(FunctorReadyc10, FunctorReadyc10)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc11, FunctorReadyc11)
+KOKKOS_REGISTER_FOR_3D(FuncAdvMomCen1,  FuncAdvMomCen1)
+KOKKOS_REGISTER_FOR_3D(FuncAdvMomFlu1,  FuncAdvMomFlu1)
+KOKKOS_REGISTER_FOR_3D(FuncAdvMomCen2, FuncAdvMomCen2)
+KOKKOS_REGISTER_FOR_3D(FuncAdvMomFlu2,  FuncAdvMomFlu2)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc14, FunctorReadyc14)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc15, FunctorReadyc15)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc16, FunctorReadyc16)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc17, FunctorReadyc17)
+KOKKOS_REGISTER_FOR_2D(FunctorReadyc18, FunctorReadyc18)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc19, FunctorReadyc19)
+KOKKOS_REGISTER_FOR_2D(FunctorReadyc20, FunctorReadyc20)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc21, FunctorReadyc21)
+KOKKOS_REGISTER_FOR_3D(FunctorReadyc22, FunctorReadyc22)
+
+#ifdef CANUTO
 class FunctorReadyc5 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -2710,969 +3655,6 @@ class FunctorReadyc5 {
   }
 
 };
-
 #endif // CANUTO
-
-// calculate the vertical mixing on U-grid
-class FunctorReadyc6 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    if (k < KMM1) {
-      tgrid_to_ugrid(iblock, k, j, i, v_akmu_, v_akmt_);
-      v_akmu_(iblock, k, j, i) *= v_viv_(iblock, k+1, j, i);
-    } else {
-      v_akmu_(iblock, k, j, i) = C0;
-    }
-   return ;
-  }
-  KOKKOS_INLINE_FUNCTION void tgrid_to_ugrid (const int &iblock, 
-			const int &k, const int &j, const int &i,
-          const ViewDouble4D &v_ugrid, const ViewDouble4D &v_tgrid) 
-              const {
-    if (i >= 1 && j <(NY_BLOCK-1)) {
-      // v_ugrid(iblock, k, j, i) = 
-      //     v_au0_ (iblock, j, i) * v_tgrid(iblock, k, j  , i  ) +
-      //     v_aus_ (iblock, j, i) * v_tgrid(iblock, k, j+1, i  ) +
-      //     v_auw_ (iblock, j, i) * v_tgrid(iblock, k, j  , i-1) +
-      //     v_ausw_(iblock, j, i) * v_tgrid(iblock, k, j+1, i-1);
-      // v_ugrid(iblock, k, j, i) = P25 * v_tgrid(iblock, k, j  , i  ) +
-      //                            P25 * v_tgrid(iblock, k, j+1, i  ) +
-      //                            P25 * v_tgrid(iblock, k, j  , i-1) +
-      //                            P25 * v_tgrid(iblock, k, j+1, i-1);
-      v_ugrid(iblock, k, j, i) = P25 
-          * (v_tgrid(iblock, k, j  , i  ) 
-           + v_tgrid(iblock, k, j+1, i  ) 
-           + v_tgrid(iblock, k, j  , i-1) 
-           + v_tgrid(iblock, k, j+1, i-1));
-    }
-    if (i == 0 || j == (NY_BLOCK-1)) {
-      v_ugrid(iblock, k, j, i) = 0;
-    }
-    return ;
-  }
- private:
-  // const ViewDouble3D v_au0_  = *p_v_au0;
-  // const ViewDouble3D v_aus_  = *p_v_aus;
-  // const ViewDouble3D v_auw_  = *p_v_auw;
-  // const ViewDouble3D v_ausw_ = *p_v_ausw;
-  const ViewDouble4D v_viv_  = *p_v_viv;
-  const ViewDouble4D v_akmu_ = *p_v_akmu;
-  const ViewDouble4D v_akmt_ = *p_v_akmt;
-};
-//-----------------------------------------------------------------
-// COMPUTE THE ADVECTIVE TERM: ZONAL COMPONENT
-//-----------------------------------------------------------------
-class FunctorReadyc7 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    const int iblock = 0;
-    upwell_1(iblock, j, i, v_h0_);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void upwell_1 (const int &iblock,
-      const int &j, const int &i, const ViewDouble3D &v_h0wk)
-          const {
-    tgrid_to_ugrid(iblock, j, i, v_work_, v_h0wk);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void tgrid_to_ugrid (
-      const int &iblock, const int &j, const int &i,
-          const ViewDouble3D &v_ugrid, const ViewDouble3D &v_tgrid) 
-              const {
-    if (i >= 1 && j < (NY_BLOCK-1)) {
-      // v_ugrid(iblock, j, i) = 
-      //     v_au0_ (iblock, j, i) * v_tgrid(iblock, j  , i  ) +
-      //     v_aus_ (iblock, j, i) * v_tgrid(iblock, j+1, i  ) +
-      //     v_auw_ (iblock, j, i) * v_tgrid(iblock, j  , i-1) +
-      //     v_ausw_(iblock, j, i) * v_tgrid(iblock, j+1, i-1);
-      // v_ugrid(iblock, j, i) = P25 * v_tgrid(iblock, j  , i  ) +
-      //                         P25 * v_tgrid(iblock, j+1, i  ) +
-      //                         P25 * v_tgrid(iblock, j  , i-1) +
-      //                         P25 * v_tgrid(iblock, j+1, i-1);
-      v_ugrid(iblock, j, i) = P25 
-          * (v_tgrid(iblock, j  , i  ) 
-           + v_tgrid(iblock, j+1, i  ) 
-           + v_tgrid(iblock, j  , i-1) 
-           + v_tgrid(iblock, j+1, i-1));
-    }
-    if (i == 0 || j == (NY_BLOCK-1)) {
-      v_ugrid(iblock, j, i) = 0;
-    }
-    return ;
-  }
- private:
-  const ViewDouble3D v_h0_   = *p_v_h0;
-  // const ViewDouble3D v_au0_  = *p_v_au0;
-  // const ViewDouble3D v_aus_  = *p_v_aus;
-  // const ViewDouble3D v_auw_  = *p_v_auw;
-  // const ViewDouble3D v_ausw_ = *p_v_ausw;
-  const ViewDouble3D v_work_ = *p_v_work;
-};
-
-class FunctorReadyc8 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    upwell_2(iblock, k, j, i, v_u_, v_v_);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void upwell_2 (const int &iblock,
-      const int &k, const int &j, const int &i,
-          const ViewDouble4D &v_uwk, const ViewDouble4D &v_vwk)
-              const {
-    // if (i >= 1 && j < (JMT-1)) {
-      v_uk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
-          * v_ohbu_(iblock, j, i)) * v_uwk(iblock, k, j, i);
-      v_vk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
-          * v_ohbu_(iblock, j, i)) * v_vwk(iblock, k, j, i);
-    // }
-    return ;
-  }
- private:
-  const ViewDouble3D v_ohbu_ = *p_v_ohbu;
-  const ViewDouble3D v_work_ = *p_v_work;
-  const ViewDouble4D v_u_    = *p_v_u;
-  const ViewDouble4D v_v_    = *p_v_v;
-  const ViewDouble4D v_uk_   = *p_v_uk;
-  const ViewDouble4D v_vk_   = *p_v_vk;
-};
-class FunctorReadyc9 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    upwell_3(iblock, k, j, i);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void upwell_3 (const int &iblock,
-      const int &k, const int &j, const int &i) const {
-    div(iblock, k, j, i, v_wka_, v_uk_, v_vk_);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void div (const int &iblock, const int &k, const int &j, 
-      const int &i, const ViewDouble4D &v_div_out, const ViewDouble4D &v_ux, 
-          const ViewDouble4D &v_uy) const {
-    v_div_out(iblock, k, j, i) = C0;
-    if (i < (NX_BLOCK-1) && j >= 1) {
-      const int bid = 0;
-      if (k <= (v_kmt_(bid, j, i) - 1)) {
-        v_div_out(iblock, k, j, i) = P5 * (
-            (v_ux(iblock, k, j  , i+1) + v_ux(iblock, k, j-1, i+1)) * v_htw_(bid, j  , i+1)
-          - (v_ux(iblock, k, j  , i  ) + v_ux(iblock, k, j-1, i  )) * v_htw_(bid, j  , i  )
-          + (v_uy(iblock, k, j  , i+1) + v_uy(iblock, k, j  , i  )) * v_hts_(bid, j  , i  )
-          - (v_uy(iblock, k, j-1, i+1) + v_uy(iblock, k, j-1, i  )) * v_hts_(bid, j-1, i  )) 
-              * v_tarea_r_(bid, j, i);
-      }
-    }
-    return ;
-  }
- private:
-  const ViewInt3D    v_kmt_     = *p_v_kmt;
-  const ViewDouble3D v_hts_     = *p_v_hts;
-  const ViewDouble3D v_htw_     = *p_v_htw;
-  const ViewDouble3D v_tarea_r_ = *p_v_tarea_r;
-  const ViewDouble4D v_uk_      = *p_v_uk;
-  const ViewDouble4D v_vk_      = *p_v_vk;
-  const ViewDouble4D v_wka_     = *p_v_wka;
-};
-
-class FunctorReadyc10 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator() (
-      const int &j, const int &i) const {
-    upwell_4(j, i, v_h0_);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void upwell_4 (const int &j,
-      const int &i, const ViewDouble3D &v_h0wk) const {
-    const int iblock = 0;
-
-    v_work_(iblock, j, i) = C0;
-
-    if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
-      for (int k = 0; k < KM; ++k) {
-        v_work_(iblock, j, i) -= v_dzp_(k)
-            * v_wka_(iblock, k, j, i)
-                * v_vit_(iblock, k, j, i);
-      }
-      double ws = v_ws_(iblock, 0, j, i);
-      for (int k = 1; k < KM; ++k) {
-        ws = v_vit_(iblock, k, j, i) * (ws + v_dzp_(k-1) 
-            * (v_work_(iblock, j, i) * v_ohbt_(iblock, j, i)
-                + v_wka_(iblock, k-1, j, i  )));
-        v_ws_(iblock, k, j, i) = ws;
-      }
-
-      v_work_(iblock, j, i) = 1.0 / (1.0 + v_h0wk(iblock, j, i)
-          * v_ohbt_(iblock, j, i));
-
-      for (int k = 1; k < KM; ++k) {
-        v_ws_(iblock, k, j, i) *= v_work_(iblock, j, i);
-      }
-    }
-    return ;
-  }
- private:
-  const ViewDouble1D v_dzp_  = *p_v_dzp;
-  const ViewDouble3D v_h0_   = *p_v_h0;
-  const ViewDouble3D v_work_ = *p_v_work;
-  const ViewDouble3D v_ohbt_ = *p_v_ohbt;
-  const ViewDouble4D v_ws_   = *p_v_ws;
-  const ViewDouble4D v_vit_  = *p_v_vit;
-  const ViewDouble4D v_wka_  = *p_v_wka;
-};
-class FunctorReadyc11 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    tgrid_to_ugrid(iblock, k, j, i, v_wka_, v_ws_);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void tgrid_to_ugrid (
-      const int &iblock, const int &k, const int &j, const int &i,
-          const ViewDouble4D &v_ugrid, const ViewDouble4D &v_tgrid) 
-              const {
-    if (i >= 1 && j < (NY_BLOCK-1)) {
-      // v_ugrid(iblock, k, j, i) = 
-      //     v_au0_ (iblock, j, i) * v_tgrid(iblock, k, j  , i  ) +
-      //     v_aus_ (iblock, j, i) * v_tgrid(iblock, k, j+1, i  ) +
-      //     v_auw_ (iblock, j, i) * v_tgrid(iblock, k, j  , i-1) +
-      //     v_ausw_(iblock, j, i) * v_tgrid(iblock, k, j+1, i-1);
-      // v_ugrid(iblock, k, j, i) = P25 * v_tgrid(iblock, k, j  , i  ) +
-      //                            P25 * v_tgrid(iblock, k, j+1, i  ) +
-      //                            P25 * v_tgrid(iblock, k, j  , i-1) +
-      //                            P25 * v_tgrid(iblock, k, j+1, i-1);
-      v_ugrid(iblock, k, j, i) = P25 
-          * (v_tgrid(iblock, k, j  , i  ) 
-           + v_tgrid(iblock, k, j+1, i  ) 
-           + v_tgrid(iblock, k, j  , i-1) 
-           + v_tgrid(iblock, k, j+1, i-1));
-    }
-    if (i == 0 || j == (NY_BLOCK-1)) {
-      v_ugrid(iblock, k, j, i) = 0;
-    }
-    return ;
-  }
- private:
-  // const ViewDouble3D v_au0_  = *p_v_au0;
-  // const ViewDouble3D v_aus_  = *p_v_aus;
-  // const ViewDouble3D v_auw_  = *p_v_auw;
-  // const ViewDouble3D v_ausw_ = *p_v_ausw;
-  const ViewDouble4D v_ws_   = *p_v_ws;
-  const ViewDouble4D v_wka_  = *p_v_wka;
-};
-
-//-----------------------------------------------------------------
-// COMPUTE THE ADVECTIVE TERMS
-//-----------------------------------------------------------------
-// advection_momentum(u, v, wka, dlu, dlv, iblock)
-class FuncAdvMomCen1 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    advcetion_momentum_centered_1 (iblock, k, j, i,
-        v_u_, v_v_, v_dlu_, v_dlv_);
-    return ;
-  };
-  KOKKOS_INLINE_FUNCTION void advcetion_momentum_centered_1 (
-      const int &iblock, const int &k, const int &j, const int &i,
-          const ViewDouble4D &v_uuu, const ViewDouble4D &v_vvv,
-              const ViewDouble4D &v_adv_uu, const ViewDouble4D &v_adv_vv) 
-                  const {
-    v_adv_uu(iblock, k, j, i) = C0;
-    v_adv_vv(iblock, k, j, i) = C0;
-    if (i > 0 && j < (JMT-1)) {
-      v_uv_ws_face_(k, j, i, 0) = (
-          v_uuu(iblock, k, j, i-1) + v_uuu(iblock, k, j  , i))
-              * P25 * v_hue_(iblock, j  , i-1);
-      v_uv_ws_face_(k, j, i, 1) = (
-          v_vvv(iblock, k, j, i  ) + v_vvv(iblock, k, j+1, i))
-              * P25 * v_hun_(iblock, j+1, i  );
-    }
-    return ;
-  }
- private:
-  const ViewDouble3D v_hun_        = *p_v_hun;
-  const ViewDouble3D v_hue_        = *p_v_hue;
-  const ViewDouble4D v_u_          = *p_v_u;
-  const ViewDouble4D v_v_          = *p_v_v;
-  const ViewDouble4D v_dlu_        = *p_v_dlu;
-  const ViewDouble4D v_dlv_        = *p_v_dlv;
-  const ViewDouble4D v_uv_ws_face_ = *p_v_uv_ws_face;
-};
-class FuncAdvMomFlu1 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator() 
-      (const int &k, const int &j, const int &i) 
-          const {
-    const int iblock = 0;
-    advcetion_momentum_flux_1(iblock, k, j, i,
-        v_u_, v_v_, v_dlu_, v_dlv_);
-    return ;
-  };
-  KOKKOS_INLINE_FUNCTION void advcetion_momentum_flux_1(
-      const int &iblock, const int &k, const int &j, const int &i,
-          const ViewDouble4D &v_uuu, const ViewDouble4D &v_vvv,
-              const ViewDouble4D &v_adv_uu, const ViewDouble4D &v_adv_vv) 
-                  const {
-    v_adv_uu(iblock, k, j, i) = C0;
-    v_adv_vv(iblock, k, j, i) = C0;
-    if (i > 0 && j < (JMT-1)) {
-      v_uv_ws_face_(k, j, i, 0) = 
-          (v_uuu(iblock, k, j, i-1) * v_dyu_(iblock, j, i-1)  
-         + v_uuu(iblock, k, j, i  ) * v_dyu_(iblock, j, i  )) 
-              * P25;
-      v_uv_ws_face_(k, j, i, 1) = 
-          (v_vvv(iblock, k, j  , i) * v_dxu_(iblock, j  , i)  
-         + v_vvv(iblock, k, j+1, i) * v_dxu_(iblock, j+1, i))
-              * P25;
-    }
-    return ;
-  }
- private:
-  const ViewDouble3D v_dxu_        = *p_v_dxu;
-  const ViewDouble3D v_dyu_        = *p_v_dyu;
-  const ViewDouble4D v_u_          = *p_v_u;
-  const ViewDouble4D v_v_          = *p_v_v;
-  const ViewDouble4D v_dlu_        = *p_v_dlu;
-  const ViewDouble4D v_dlv_        = *p_v_dlv;
-  const ViewDouble4D v_uv_ws_face_ = *p_v_uv_ws_face;
-};
-
-class FuncAdvMomCen2 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    advcetion_momentum_centered_2 (iblock, k, j, i,
-        v_u_, v_v_, v_wka_, v_dlu_, v_dlv_);
-    return ;
-  };
-  KOKKOS_INLINE_FUNCTION void advcetion_momentum_centered_2 (
-      const int &iblock, const int &k, const int &j, const int &i,
-          const ViewDouble4D &v_uuu, const ViewDouble4D &v_vvv,
-              const ViewDouble4D &v_www, const ViewDouble4D &v_adv_uu, 
-                  const ViewDouble4D &v_adv_vv) const {
-    double adv_z1, adv_z2, adv_z3, adv_z4;
-    v_adv_uu(iblock, k, j, i) = (
-        - v_uv_ws_face_(k, j  , i  , 0) 
-            * (v_uuu(iblock, k, j  , i  ) - v_uuu(iblock, k, j  , i-1))
-        - v_uv_ws_face_(k, j  , i+1, 0) 
-            * (v_uuu(iblock, k, j  , i+1) - v_uuu(iblock, k, j  , i  ))
-        - v_uv_ws_face_(k, j  , i  , 1) 
-            * (v_uuu(iblock, k, j+1, i  ) - v_uuu(iblock, k, j  , i  ))
-        - v_uv_ws_face_(k, j-1, i  , 1) 
-            * (v_uuu(iblock, k, j  , i  ) - v_uuu(iblock, k, j-1, i  ))) 
-                * v_uarea_r_(iblock, j, i);
-
-    v_adv_vv(iblock, k, j, i) = (
-        - v_uv_ws_face_(k, j  , i  , 0) 
-            * (v_vvv(iblock, k, j  , i  ) - v_vvv(iblock, k, j  , i-1))
-        - v_uv_ws_face_(k, j  , i+1, 0)               
-            * (v_vvv(iblock, k, j  , i+1) - v_vvv(iblock, k, j  , i  ))
-        - v_uv_ws_face_(k, j  , i  , 1)               
-            * (v_vvv(iblock, k, j+1, i  ) - v_vvv(iblock, k, j  , i  ))
-        - v_uv_ws_face_(k, j-1, i  , 1)               
-            * (v_vvv(iblock, k, j  , i  ) - v_vvv(iblock, k, j-1, i  ))) 
-                * v_uarea_r_(iblock, j, i);
-
-    if (k == 0) {
-      adv_z1 = 0.0;
-      adv_z3 = 0.0;
-    } else {
-      adv_z1 = v_www(iblock, k, j, i) 
-          * (v_uuu(iblock, k-1, j, i  ) - v_uuu(iblock, k, j, i));
-      adv_z3 = v_www(iblock, k, j, i) 
-          * (v_vvv(iblock, k-1, j, i  ) - v_vvv(iblock, k, j, i));
-    }
-
-    if (k == KM-1) {
-      adv_z2 = 0.0;
-      adv_z4 = 0.0;
-    } else {
-      adv_z2 = v_www(iblock, k+1, j, i) 
-          * (v_uuu(iblock, k  , j  , i  ) - v_uuu(iblock, k+1, j, i));
-      adv_z4 = v_wka_(iblock, k+1, j, i) 
-          * (v_vvv(iblock, k  , j  , i  ) - v_vvv(iblock, k+1, j, i));
-    }
-
-    v_adv_uu(iblock, k, j, i) -= P5 * v_odzp_(k)
-        * (adv_z1 + adv_z2);
-    v_adv_vv(iblock, k, j, i) -= P5 * v_odzp_(k)
-        * (adv_z3 + adv_z4);
-    return ;
-  }
- private:
-  const ViewDouble1D v_odzp_    = *p_v_odzp;
-  const ViewDouble3D v_uarea_r_ = *p_v_uarea_r;
-  const ViewDouble4D v_u_       = *p_v_u;
-  const ViewDouble4D v_v_       = *p_v_v;
-  const ViewDouble4D v_dlu_     = *p_v_dlu;
-  const ViewDouble4D v_dlv_     = *p_v_dlv;
-  const ViewDouble4D v_wka_     = *p_v_wka;
-  const ViewDouble4D v_uv_ws_face_ = *p_v_uv_ws_face;
-};
-
-class FuncAdvMomFlu2 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator() 
-      (const int &k, const int &j, const int &i) 
-          const {
-    const int iblock = 0;
-    advcetion_momentum_flux_2(iblock, k, j, i,
-        v_u_, v_v_, v_wka_, v_dlu_, v_dlv_);
-    return ;
-  };
-  KOKKOS_INLINE_FUNCTION void advcetion_momentum_flux_2(
-      const int &iblock, const int &k, const int &j, const int &i,
-          const ViewDouble4D &v_uuu, const ViewDouble4D &v_vvv,
-              const ViewDouble4D &v_www, const ViewDouble4D &v_adv_uu, 
-                  const ViewDouble4D &v_adv_vv) const {
-    double adv_z1, adv_z2, adv_z3, adv_z4;
-    v_adv_uu(iblock, k, j, i) = (
-        - v_uv_ws_face_(k, j  , i  , 0) 
-            * (v_uuu(iblock, k, j  , i  ) + v_uuu(iblock, k, j  , i-1))
-        + v_uv_ws_face_(k, j  , i+1, 0) 
-            * (v_uuu(iblock, k, j  , i+1) + v_uuu(iblock, k, j  , i  ))
-        - v_uv_ws_face_(k, j-1, i  , 1) 
-            * (v_uuu(iblock, k, j  , i  ) + v_uuu(iblock, k, j-1, i  ))
-        + v_uv_ws_face_(k, j  , i  , 1) 
-            * (v_uuu(iblock, k, j+1, i  ) + v_uuu(iblock, k, j  , i  ))) 
-                * v_uarea_r_(iblock, j, i);
-
-    v_adv_vv(iblock, k, j, i) = (
-        - v_uv_ws_face_(k, j  , i  , 0) 
-            * (v_vvv(iblock, k, j  , i  ) + v_vvv(iblock, k, j  , i-1))
-        + v_uv_ws_face_(k, j  , i+1, 0)               
-            * (v_vvv(iblock, k, j  , i+1) + v_vvv(iblock, k, j  , i  ))
-        - v_uv_ws_face_(k, j-1, i  , 1)               
-            * (v_vvv(iblock, k, j  , i  ) + v_vvv(iblock, k, j-1, i  ))
-        + v_uv_ws_face_(k, j  , i  , 1)               
-            * (v_vvv(iblock, k, j+1, i  ) + v_vvv(iblock, k, j  , i  ))) 
-                * v_uarea_r_(iblock, j, i);
-
-    if (k == 0) {
-      adv_z1 = 0.0;
-      adv_z3 = 0.0;
-    } else {
-      adv_z1 = v_www(iblock, k, j, i) 
-          * (v_uuu(iblock, k-1, j, i  ) + v_uuu(iblock, k, j, i)) * P5;
-      adv_z3 = v_www(iblock, k, j, i) 
-          * (v_vvv(iblock, k-1, j, i  ) + v_vvv(iblock, k, j, i)) * P5;
-    }
-
-    if (k == KM-1) {
-      adv_z2 = 0.0;
-      adv_z4 = 0.0;
-    } else {
-      adv_z2 = v_www(iblock, k+1, j, i) 
-          * (v_uuu(iblock, k, j, i) + v_uuu(iblock, k+1, j, i)) * P5;
-      adv_z4 = v_www(iblock, k+1, j, i) 
-          * (v_vvv(iblock, k, j, i) - v_vvv(iblock, k+1, j, i)) * P5;
-    }
-
-    v_adv_uu(iblock, k, j, i) -= v_odzp_(k) * (adv_z2 - adv_z1);
-    v_adv_vv(iblock, k, j, i) -= v_odzp_(k) * (adv_z4 - adv_z3);
-    return ;
-  }
- private:
-  const ViewDouble1D v_odzp_    = *p_v_odzp;
-  const ViewDouble3D v_uarea_r_ = *p_v_uarea_r;
-  const ViewDouble4D v_u_       = *p_v_u;
-  const ViewDouble4D v_v_       = *p_v_v;
-  const ViewDouble4D v_dlu_     = *p_v_dlu;
-  const ViewDouble4D v_dlv_     = *p_v_dlv;
-  const ViewDouble4D v_wka_     = *p_v_wka;
-  const ViewDouble4D v_uv_ws_face_ = *p_v_uv_ws_face;
-};
-// End advection_momentum(u, v, wka, dlu, dlv, iblock)
-
-class FunctorReadyc14 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    hdiffu_del4_1(k, j, i, v_up_, v_vp_);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void hdiffu_del4_1(
-      const int &k, const int &j, const int &i,
-          const ViewDouble4D &v_umixk, const ViewDouble4D &v_vmixk)
-              const {
-    div  (k, j, i, v_wka_, v_umixk, v_vmixk);
-    zcurl(k, j, i, v_wkb_, v_umixk, v_vmixk);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void div(const int &k, const int &j, 
-      const int &i, const ViewDouble4D &v_div_out, 
-          const ViewDouble4D &v_ux, const ViewDouble4D &v_uy) const {
-    const int iblock = 0;
-    v_div_out(iblock, k, j, i) = C0;
-    if (i < (NX_BLOCK-1) && j >= 1) {
-      const int bid = 0;
-      if (k <= (v_kmt_(bid, j, i) - 1)) {
-        v_div_out(iblock, k, j, i) = P5 * (
-            (v_ux(iblock, k, j  , i+1) + v_ux(iblock, k, j-1, i+1)) * v_htw_(bid, j  , i+1)
-          - (v_ux(iblock, k, j  , i  ) + v_ux(iblock, k, j-1, i  )) * v_htw_(bid, j  , i  )
-          + (v_uy(iblock, k, j  , i+1) + v_uy(iblock, k, j  , i  )) * v_hts_(bid, j  , i  )
-          - (v_uy(iblock, k, j-1, i+1) + v_uy(iblock, k, j-1, i  )) * v_hts_(bid, j-1, i  )) 
-              * v_tarea_r_(bid, j, i);
-      }
-    }
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void zcurl (const int &k,
-      const int &j, const int &i, const ViewDouble4D &v_curl, 
-          const ViewDouble4D &v_ux, const ViewDouble4D &v_uy) 
-              const {
-    const int iblock = 0;
-    v_curl(iblock, k, j, i) = C0;
-    if (i >= 1 && j >= 1) {
-      const int bid = 0;
-      if (k <= v_kmt_(bid, j, i) - 1) {
-        v_curl(iblock, k, j, i) = P5 * (
-            v_uy(iblock, k, j  , i  ) * v_dyu_(bid, j  , i  )
-          + v_uy(iblock, k, j-1, i  ) * v_dyu_(bid, j-1, i  )
-          - v_uy(iblock, k, j  , i-1) * v_dyu_(bid, j  , i-1)
-          - v_uy(iblock, k, j-1, i-1) * v_dyu_(bid, j-1, i-1)
-          - v_ux(iblock, k, j  , i  ) * v_dxu_(bid, j  , i  )
-          - v_ux(iblock, k, j  , i-1) * v_dxu_(bid, j  , i-1)
-          + v_ux(iblock, k, j-1, i  ) * v_dxu_(bid, j-1, i  )
-          + v_ux(iblock, k, j-1, i-1) * v_dxu_(bid, j-1, i-1));
-      }
-    }
-    return ;
-  }
- private:
-  const ViewInt3D    v_kmt_     = *p_v_kmt;
-  const ViewDouble3D v_dxu_     = *p_v_dxu;
-  const ViewDouble3D v_dyu_     = *p_v_dyu;
-  const ViewDouble3D v_hts_     = *p_v_hts;
-  const ViewDouble3D v_htw_     = *p_v_htw;
-  const ViewDouble3D v_tarea_r_ = *p_v_tarea_r;
-  const ViewDouble4D v_up_      = *p_v_up;
-  const ViewDouble4D v_vp_      = *p_v_vp;
-  const ViewDouble4D v_wka_     = *p_v_wka;
-  const ViewDouble4D v_wkb_     = *p_v_wkb;
-};
-
-class FunctorReadyc15 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-
-    hdiffu_del4_2 (k, j, i, v_up_, v_vp_);
-
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void hdiffu_del4_2 (
-      const int &k, const int &j, const int &i,
-          const ViewDouble4D &v_umixk, const ViewDouble4D &v_vmixk)
-              const {
-
-    if (i >= (ib_-2) && i < (ie_+1) && j >= (jb_-2) && j < (je_+1)) {
-      const int bid = 0;
-      const double cc = v_du_cnsewm_(bid, j, i, 0) 
-          + v_du_cnsewm_(bid, j, i, 5);
-      v_d2uk_(k, j, i) = (           cc * v_umixk(bid, k, j  , i  )
-           + v_du_cnsewm_(bid, j, i, 1) * v_umixk(bid, k, j-1, i  )
-           + v_du_cnsewm_(bid, j, i, 2) * v_umixk(bid, k, j+1, i  )
-           + v_du_cnsewm_(bid, j, i, 3) * v_umixk(bid, k, j  , i+1)
-           + v_du_cnsewm_(bid, j, i, 4) * v_umixk(bid, k, j  , i-1))
-          + (v_dm_cnsew_ (bid, j, i, 0) * v_vmixk(bid, k, j  , i  )
-           + v_dm_cnsew_ (bid, j, i, 1) * v_vmixk(bid, k, j-1, i  )
-           + v_dm_cnsew_ (bid, j, i, 2) * v_vmixk(bid, k, j+1, i  )
-           + v_dm_cnsew_ (bid, j, i, 3) * v_vmixk(bid, k, j  , i+1)
-           + v_dm_cnsew_ (bid, j, i, 4) * v_vmixk(bid, k, j  , i-1));
-      
-      v_d2vk_(k, j, i) = (           cc * v_vmixk(bid, k, j  , i  )
-           + v_du_cnsewm_(bid, j, i, 1) * v_vmixk(bid, k, j-1, i  )
-           + v_du_cnsewm_(bid, j, i, 2) * v_vmixk(bid, k, j+1, i  )
-           + v_du_cnsewm_(bid, j, i, 3) * v_vmixk(bid, k, j  , i+1)
-           + v_du_cnsewm_(bid, j, i, 4) * v_vmixk(bid, k, j  , i-1))
-          - (v_dm_cnsew_ (bid, j, i, 0) * v_umixk(bid, k, j  , i  )
-           + v_dm_cnsew_ (bid, j, i, 1) * v_umixk(bid, k, j-1, i  )
-           + v_dm_cnsew_ (bid, j, i, 2) * v_umixk(bid, k, j+1, i  )
-           + v_dm_cnsew_ (bid, j, i, 3) * v_umixk(bid, k, j  , i+1)
-           + v_dm_cnsew_ (bid, j, i, 4) * v_umixk(bid, k, j  , i-1));
-    }
-    return ;
-  }
- private:
-  const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
-  const int jb_ = CppBlocks::jb;
-  const int je_ = CppBlocks::je;
-  const ViewDouble3D v_d2uk_      = *p_v_d2uk;
-  const ViewDouble3D v_d2vk_      = *p_v_d2vk;
-  const ViewDouble4D v_up_        = *p_v_up;
-  const ViewDouble4D v_vp_        = *p_v_vp;
-  const ViewDouble4D v_dm_cnsew_  = *p_v_dm_cnsew;
-  const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
-};
-class FunctorReadyc16 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-
-    hdiffu_del4_3 (iblock, k, j, i);
-
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void hdiffu_del4_3 (const int &iblock,
-      const int &k, const int &j, const int &i) const {
-    const int bid = 0;
-
-    double am_factor = 1.0;
-    const double amf = v_amf_(bid, j, i);
-    if (i >= (ib_-2) && i < (ie_+1) && j >= (jb_-2) && j < (je_+1)) {
-      double gradx1, grady1;
-      grad (k, j, i, gradx1, grady1, v_wka_);
-      gradx1 *= gradx1;
-      grady1 *= grady1;
-      double gradx2, grady2;
-      grad (k, j, i, gradx2, grady2, v_wkb_);
-      gradx2 *= gradx2;
-      grady2 *= grady2;
-      const double sqrt_uarea = sqrt (v_uarea_(bid, j, i));
-      const double dxdy = sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * 45.0;
-      am_factor = sqrt(gradx1 + gradx2 + grady1 + grady2)  
-          * dxdy / fabs(am_ * amf);
-    }
-    am_factor = fmin(40.0, am_factor);
-    am_factor = fmax(1.0,  am_factor);
-    if (k <= v_kmu_(bid, j, i) - 1) {
-      v_d2uk_(k, j, i) *= am_factor * amf;
-      v_d2vk_(k, j, i) *= am_factor * amf;
-    } else {
-      v_d2uk_(k, j, i) = C0; 
-      v_d2vk_(k, j, i) = C0;
-    }
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void grad (const int &k, const int &j,
-      const int &i, double &gradx, double &grady, const ViewDouble4D &v_f) 
-              const {
-    const int bid = 0;
-    gradx = 0.0;
-    grady = 0.0;
-    if (i >= 1 && j < (NY_BLOCK-1)) {
-      if (k <= v_kmu_(bid, j, i) - 1) {
-        gradx = v_dxyur_(bid, j, i, 0) * P5 * 
-            (v_f(bid, k, j+1, i  ) - v_f(bid, k, j, i-1) - 
-             v_f(bid, k, j+1, i-1) + v_f(bid, k, j, i  ));
-      
-        grady = v_dxyur_(bid, j, i, 1) * P5 * 
-            (v_f(bid, k, j+1, i  ) - v_f(bid, k, j, i-1) + 
-             v_f(bid, k, j+1, i-1) - v_f(bid, k, j, i  ));
-      }
-    }
-    return ;
-  }
- private:
-  const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
-  const int jb_ = CppBlocks::jb;
-  const int je_ = CppBlocks::je;
-  const double am_ = CppHmixDel4::am;
-  const ViewInt3D    v_kmu_   = *p_v_kmu;
-  const ViewDouble3D v_d2uk_  = *p_v_d2uk;
-  const ViewDouble3D v_d2vk_  = *p_v_d2vk;
-  const ViewDouble3D v_amf_   = *p_v_amf;
-  const ViewDouble3D v_uarea_ = *p_v_uarea;
-  const ViewDouble4D v_wka_   = *p_v_wka;
-  const ViewDouble4D v_wkb_   = *p_v_wkb;
-  const ViewDouble4D v_dxyur_ = *p_v_dxyur;
-};
-class FunctorReadyc17 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    double hduk, hdvk;
-    hdiffu_del4_4 (iblock, k, j, i, hduk, hdvk);
-    v_dlu_(iblock, k, j, i) += hduk;
-    v_dlv_(iblock, k, j, i) += hdvk;
-  return ;
-  }
-  KOKKOS_INLINE_FUNCTION void hdiffu_del4_4 (
-      const int &iblock, const int &k, const int &j, const int &i,
-          double &hduk, double &hdvk)
-                  const {
-    const int bid = 0;
-    hduk = C0;
-    hdvk = C0;
-    if (i >= (ib_-1) && i < (ie_) && j >= (jb_-1) && j < (je_)) {
-      const double cc = v_du_cnsewm_(bid, j, i, 0) 
-          + v_du_cnsewm_(bid, j, i, 5);
-      hduk = am_ * ((               cc * v_d2uk_(k, j  , i  )
-          + v_du_cnsewm_(bid, j, i, 1) * v_d2uk_(k, j-1, i  )
-          + v_du_cnsewm_(bid, j, i, 2) * v_d2uk_(k, j+1, i  )
-          + v_du_cnsewm_(bid, j, i, 3) * v_d2uk_(k, j  , i+1)
-          + v_du_cnsewm_(bid, j, i, 4) * v_d2uk_(k, j  , i-1))
-         + (v_dm_cnsew_( bid, j, i, 0) * v_d2vk_(k, j  , i  )
-          + v_dm_cnsew_( bid, j, i, 1) * v_d2vk_(k, j-1, i  )
-          + v_dm_cnsew_( bid, j, i, 2) * v_d2vk_(k, j+1, i  )
-          + v_dm_cnsew_( bid, j, i, 3) * v_d2vk_(k, j  , i+1)
-          + v_dm_cnsew_( bid, j, i, 4) * v_d2vk_(k, j  , i-1)));
-   
-      hdvk = am_ * ((               cc * v_d2vk_(k, j  , i  )
-          + v_du_cnsewm_(bid, j, i, 1) * v_d2vk_(k, j-1, i  )
-          + v_du_cnsewm_(bid, j, i, 2) * v_d2vk_(k, j+1, i  )
-          + v_du_cnsewm_(bid, j, i, 3) * v_d2vk_(k, j  , i+1)
-          + v_du_cnsewm_(bid, j, i, 4) * v_d2vk_(k, j  , i-1))
-         - (v_dm_cnsew_( bid, j, i, 0) * v_d2uk_(k, j  , i  )
-          + v_dm_cnsew_( bid, j, i, 1) * v_d2uk_(k, j-1, i  )
-          + v_dm_cnsew_( bid, j, i, 2) * v_d2uk_(k, j+1, i  )
-          + v_dm_cnsew_( bid, j, i, 3) * v_d2uk_(k, j  , i+1)
-          + v_dm_cnsew_( bid, j, i, 4) * v_d2uk_(k, j  , i-1)));
-    }
-    if (k > v_kmu_(bid, j, i) - 1) {
-      hduk = C0;
-      hdvk = C0;
-    }
-    return ;
-  }
- private:
-  const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
-  const int jb_ = CppBlocks::jb;
-  const int je_ = CppBlocks::je;
-  const double am_ = CppHmixDel4::am;
-  const ViewInt3D    v_kmu_       = *p_v_kmu;
-  const ViewDouble3D v_d2uk_      = *p_v_d2uk;
-  const ViewDouble3D v_d2vk_      = *p_v_d2vk;
-  const ViewDouble4D v_dlu_       = *p_v_dlu;
-  const ViewDouble4D v_dlv_       = *p_v_dlv;
-  const ViewDouble4D v_dm_cnsew_  = *p_v_dm_cnsew;
-  const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
-};
-
-//-----------------------------------------------------------------
-// VERTICAL INTEGRATION
-//-----------------------------------------------------------------
-class FunctorReadyc18 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    vinteg(j, i, v_dlu_, v_dlub_);
-    vinteg(j, i, v_dlv_, v_dlvb_);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void vinteg(const int &j, const int &i,
-      const ViewDouble4D &v_wk3, const ViewDouble3D &v_wk2) 
-          const {
-    const int iblock = 0;
-    v_wk2(iblock, j, i) = C0;
-    for (int k = 0; k < KM; ++k) {
-      v_wk2(iblock, j, i) += v_dzp_(k) * v_ohbu_(iblock, j, i) 
-          * v_wk3(iblock, k, j, i) *v_viv_(iblock, k, j, i);
-    }
-    return ;
-  }
- private:
-  const ViewDouble1D v_dzp_  = *p_v_dzp;
-  const ViewDouble3D v_ohbu_ = *p_v_ohbu;
-  const ViewDouble3D v_dlub_ = *p_v_dlub;
-  const ViewDouble3D v_dlvb_ = *p_v_dlvb;
-  const ViewDouble4D v_dlu_  = *p_v_dlu;
-  const ViewDouble4D v_dlv_  = *p_v_dlv;
-  const ViewDouble4D v_viv_  = *p_v_viv;
-};
-
-class FunctorReadyc19 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    v_wka_(iblock, k, j, i) = c0f_ * sqrt(
-        v_up_(iblock, k, j, i) * v_up_(iblock, k, j, i)
-      + v_vp_(iblock, k, j, i) * v_vp_(iblock, k, j, i));
-    return ;
-  }
- private:
-  const double c0f_ = CppPconstMod::c0f;
-  const ViewDouble4D v_up_  = *p_v_up;
-  const ViewDouble4D v_vp_  = *p_v_vp;
-  const ViewDouble4D v_wka_ = *p_v_wka;
-};
-
-class FunctorReadyc20 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    const int iblock = 0;
-    double sbcx(0.0), sbcy(0.0), bbcx(0.0), bbcy(0.0);
-
-    const int kmb = v_kmu_(iblock, j, i) - 1;
-
-    if (kmb >= 0) {
-      sbcx = v_su_(iblock, j, i) * od0_;
-      sbcy = v_sv_(iblock, j, i) * od0_;
-      bbcx = v_wka_(iblock, kmb, j, i) * (
-          v_up_(iblock, kmb, j, i) * cag_ + v_snlat_(iblock, j, i) 
-        * v_vp_(iblock, kmb, j, i) * sag_);
-         
-      bbcy = v_wka_(iblock, kmb, j, i) * (- v_snlat_(iblock, j, i) 
-          * v_up_(iblock, kmb, j, i) * sag_ 
-          + v_vp_(iblock, kmb, j, i) * cag_);
-    }
-    v_dlub_(iblock, j, i) += (sbcx - bbcx) * v_ohbu_(iblock, j, i);
-    v_dlvb_(iblock, j, i) += (sbcy - bbcy) * v_ohbu_(iblock, j, i);
-    return ;
-  }
- private:
-  const double od0_ = CppPconstMod::od0;
-  const double c0f_ = CppPconstMod::c0f;
-  const double cag_ = CppPconstMod::cag;
-  const double sag_ = CppPconstMod::sag;
-  const ViewInt3D    v_kmu_   = *p_v_kmu;
-  const ViewDouble3D v_su_    = *p_v_su;
-  const ViewDouble3D v_sv_    = *p_v_sv;
-  const ViewDouble3D v_snlat_ = *p_v_snlat;
-  const ViewDouble4D v_up_    = *p_v_up;
-  const ViewDouble4D v_vp_    = *p_v_vp;
-  const ViewDouble4D v_wka_   = *p_v_wka;
-  const ViewDouble3D v_ohbu_  = *p_v_ohbu;
-  const ViewDouble3D v_dlub_  = *p_v_dlub;
-  const ViewDouble3D v_dlvb_  = *p_v_dlvb;
-};
-
-class FunctorReadyc21 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    // d0 = 1026.0D0, od0 = 1 / d0
-    const double od0 = 1.0 / 1026.0;
-    // const double aidif = 0.5;
-    // aidifm1 = 1.0 - aidif
-    const double aidifm1 = 0.5;
-    double diff_u1, diff_u2;
-    if (k == 0) {
-      diff_u1 = v_su_(iblock, j, i) * od0 * aidifm1;
-    } else {
-      diff_u1 = v_akmu_(iblock, k-1, j, i) * aidifm1 
-          * (v_up_(iblock, k-1, j, i) - v_up_(iblock, k, j, i)) 
-          * v_odz_pt_(k, 1) * v_viv_(iblock, k, j, i) 
-          + (1.0 - v_viv_(iblock, k, j, i)) 
-          * v_wka_(iblock, k-1, j, i) * aidifm1 
-          * (v_up_(iblock, k-1, j, i) * cag_ + v_snlat_(iblock, j, i) 
-          * v_vp_(iblock, k-1, j, i) * sag_);
-    }
-    if (k == KM-1) {
-      diff_u2 = v_wka_(iblock, k, j, i) * (v_up_(iblock, k, j, i) * cag_ 
-          + v_snlat_(iblock, j, i) * v_vp_(iblock, k, j, i) * sag_) 
-          * aidifm1;
-    } else {
-      diff_u2 = v_akmu_(iblock, k, j, i) * aidifm1 
-          * (v_up_(iblock, k, j, i) - v_up_(iblock, k+1, j, i)) 
-          * v_odz_pt_(k+1, 1) * v_viv_(iblock, k+1, j, i) 
-          + (1.0 - v_viv_(iblock, k+1, j, i)) * v_wka_(iblock, k, j, i) 
-          * aidifm1 * (v_up_(iblock, k, j, i) * cag_ 
-          + v_snlat_(iblock, j, i) * v_vp_(iblock, k, j, i) * sag_);
-    }
-    v_dlu_(iblock, k, j, i) += v_odz_pt_(k, 0) * (diff_u1 - diff_u2);
-    return ;
-  }
- private:
-  const double cag_ = CppPconstMod::cag;
-  const double sag_ = CppPconstMod::sag;
-  const ViewDouble2D v_odz_pt_ = *p_v_odz_pt;
-  const ViewDouble3D v_su_     = *p_v_su;
-  const ViewDouble3D v_snlat_  = *p_v_snlat;
-  const ViewDouble4D v_up_     = *p_v_up;
-  const ViewDouble4D v_vp_     = *p_v_vp;
-  const ViewDouble4D v_dlu_    = *p_v_dlu;
-  const ViewDouble4D v_viv_    = *p_v_viv;
-  const ViewDouble4D v_wka_    = *p_v_wka;
-  const ViewDouble4D v_akmu_   = *p_v_akmu;
-};
-class FunctorReadyc22 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    const int iblock = 0;
-    const double od0 = 1.0 / 1026.0;
-    // const double aidif = 0.5;
-    // aidifm1 = 1.0 - aidif
-    const double aidifm1 = 0.5;
-    double diff_v1, diff_v2;
-    if (k == 0) {
-      diff_v1 = v_sv_(iblock, j, i) * od0 * aidifm1;
-    } else {
-      diff_v1 = v_akmu_(iblock, k-1, j, i) * aidifm1 
-          * (v_vp_(iblock, k-1, j, i) - v_vp_(iblock, k, j, i)) 
-          * v_odz_pt_(k, 1) * v_viv_(iblock, k, j, i) 
-          + (1.0 - v_viv_(iblock, k, j, i)) 
-          * v_wka_(iblock, k-1, j, i) * aidifm1 
-          * (- v_snlat_(iblock, j, i) * v_up_(iblock, k-1, j, i) 
-          * sag_ + v_vp_(iblock, k-1, j, i) * cag_);
-    }
-    if (k == KM-1) {
-      diff_v2 = v_wka_(iblock, k, j, i) * (- v_snlat_(iblock, j, i) 
-          * v_up_(iblock, k, j, i) * sag_ 
-          + v_vp_(iblock, k, j, i) * cag_) * aidifm1;
-    } else {
-      diff_v2 = v_akmu_(iblock, k, j, i) * aidifm1 * 
-          (v_vp_(iblock, k, j, i) - v_vp_(iblock, k+1, j, i)) 
-          * v_odz_pt_(k+1, 1) * v_viv_(iblock, k+1, j, i) 
-          + (1.0 - v_viv_(iblock, k+1, j, i)) * v_wka_(iblock, k, j, i) 
-          * aidifm1 * (-v_snlat_(iblock, j, i) 
-          * v_up_(iblock, k, j, i) * sag_ + v_vp_(iblock, k, j, i) * cag_);
-    }
-    v_dlv_(iblock, k, j, i) += v_odz_pt_(k, 0) * (diff_v1 - diff_v2);
-    return ;
-  }
- private:
-  const double cag_ = CppPconstMod::cag;
-  const double sag_ = CppPconstMod::sag;
-  const ViewDouble2D v_odz_pt_ = *p_v_odz_pt;
-  const ViewDouble3D v_sv_     = *p_v_sv;
-  const ViewDouble3D v_snlat_  = *p_v_snlat;
-  const ViewDouble4D v_up_     = *p_v_up;
-  const ViewDouble4D v_vp_     = *p_v_vp;
-  const ViewDouble4D v_dlv_    = *p_v_dlv;
-  const ViewDouble4D v_viv_    = *p_v_viv;
-  const ViewDouble4D v_wka_    = *p_v_wka;
-  const ViewDouble4D v_akmu_   = *p_v_akmu;
-};
-//===========================
-
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc1,  FunctorReadyc1)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc2,  FunctorReadyc2)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc3,  FunctorReadyc3)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc4,  FunctorReadyc4)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc5,  FunctorReadyc5)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc51,  FunctorReadyc51)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc52,  FunctorReadyc52)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc53,  FunctorReadyc53)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc54,  FunctorReadyc54)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc55,  FunctorReadyc55)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc6,  FunctorReadyc6)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc7,  FunctorReadyc7)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc8,  FunctorReadyc8)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc9,  FunctorReadyc9)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc10, FunctorReadyc10)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc11, FunctorReadyc11)
-KOKKOS_REGISTER_FOR_3D(FuncAdvMomCen1,  FuncAdvMomCen1)
-KOKKOS_REGISTER_FOR_3D(FuncAdvMomFlu1,  FuncAdvMomFlu1)
-KOKKOS_REGISTER_FOR_3D(FuncAdvMomCen2, FuncAdvMomCen2)
-KOKKOS_REGISTER_FOR_3D(FuncAdvMomFlu2,  FuncAdvMomFlu2)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc14, FunctorReadyc14)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc15, FunctorReadyc15)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc16, FunctorReadyc16)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc17, FunctorReadyc17)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc18, FunctorReadyc18)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc19, FunctorReadyc19)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc20, FunctorReadyc20)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc21, FunctorReadyc21)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc22, FunctorReadyc22)
 
 #endif // LICOM3_KOKKKOS_SRC_KOKKOS_IMPL_KOKKOS_READYC_HPP_

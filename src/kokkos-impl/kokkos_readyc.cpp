@@ -3,12 +3,13 @@
 
 #include "kokkos_readyc.hpp"
 
+extern "C" void readyc_debug_(double* wk11,double* wk22,double* wk33,double*wk44, double*wk55,double*wk66,double*wk77);
+
 void kokkos_readyc () {
 
   using Kokkos::parallel_for;
   using Kokkos::MDRangePolicy;
 
-  // using CppDomain::    blocks_clinic;
   using CppPconstMod::adv_momentum;
 
 #ifdef BCKMEX
@@ -20,8 +21,8 @@ void kokkos_readyc () {
   parallel_for ("readyc_1", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorReadyc1());
 
-  parallel_for ("readyc_2", MDRangePolicy<Kokkos::Rank<3>> (
-      koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorReadyc2());
+  // parallel_for ("readyc_2", MDRangePolicy<Kokkos::Rank<3>> (
+  //     koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorReadyc2());
 
   parallel_for ("readyc_3", MDRangePolicy<Kokkos::Rank<3>> (
       koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorReadyc3());
@@ -30,31 +31,27 @@ void kokkos_readyc () {
       koArr3D{0, 0, 0}, koArr3D{KMM1, JMT, IMT}, tile3D), FunctorReadyc4());
 
 #ifdef BCKMEX
-  parallel_for("readyc_7",
-      MDRangePolicy<Kokkos::Rank<2>>
-          ({0, 0}, {IMT, JMT}), 
-              functor_readyc_7(v_diff_back, v_diff_back_sh, v_diff_nh));
-  parallel_for("readyc_8",
-      MDRangePolicy<Kokkos::Rank<2>>
-          ({0, 0}, {IMT, JMT}), 
-              functor_readyc_8(v_diff_back, v_diff_back_sh, v_diff_nh));
+  parallel_for("readyc_7", MDRangePolicy<Kokkos::Rank<2>>
+      ({0, 0}, {IMT, JMT}), functor_readyc_7(v_diff_back, v_diff_back_sh, v_diff_nh));
+  parallel_for("readyc_8", MDRangePolicy<Kokkos::Rank<2>>
+      ({0, 0}, {IMT, JMT}), functor_readyc_8(v_diff_back, v_diff_back_sh, v_diff_nh));
 #endif // BCKMEX
 
 #ifdef CANUTO
-  // turb_2
   // parallel_for ("readyc_5", MDRangePolicy<Kokkos::Rank<2>> (
   //     koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc5());
   parallel_for ("readyc_51", MDRangePolicy<Kokkos::Rank<3>> (
       koArr3D{0, 1, 1}, koArr3D{KM, JMT-1, IMT-1}, tile3D), FunctorReadyc51());
+  // turb_2
   parallel_for ("readyc_52", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc52());
+  // End turb_2
   parallel_for ("readyc_53", MDRangePolicy<Kokkos::Rank<3>> (
       koArr3D{0, 1, 1}, koArr3D{KM, JMT-1, IMT-1}, tile3D), FunctorReadyc53());
   parallel_for ("readyc_54", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorReadyc54());
   parallel_for ("readyc_55", MDRangePolicy<Kokkos::Rank<3>> (
       koArr3D{0, 1, 1}, koArr3D{KM-1, JMT-1, IMT-1}, tile3D), FunctorReadyc55());
-  // End turb_2
 
   parallel_for ("readyc_6", MDRangePolicy<Kokkos::Rank<3>> (
       koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorReadyc6());
@@ -184,6 +181,16 @@ void kokkos_readyc () {
   }
   exit(0);
 #endif // CANUTO
+
+  readyc_debug_(
+    (*p_v_dlu).data(),
+    (*p_v_dlv).data(),
+    (*p_v_dlub).data(),
+    (*p_v_dlvb).data(),
+    (*p_v_rit).data(),
+    (*p_v_wk2).data(),
+    (*p_v_wk3).data()
+  );
 
   return ;
 }
