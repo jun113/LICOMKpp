@@ -41,7 +41,7 @@ void kokkos_barotr() {
 
     parallel_for ("barotr_3", MDRangePolicy<Kokkos::Rank<2>> (
         koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr3());
-
+    
     //---------------------------------------
 #ifdef LICOM_ENABLE_TEST_BAROTR
     my_time.testTime_start("barotr haloupdate work");

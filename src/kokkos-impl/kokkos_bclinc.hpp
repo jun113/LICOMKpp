@@ -121,9 +121,9 @@ class FunctorBclinc2 {
     return ;
   }
  private:
-  const double c0f_  = CppPconstMod::c0f;
-  const double cag_  = CppPconstMod::cag;
-  const double sag_  = CppPconstMod::sag;
+  const double c0f_ = CppPconstMod::c0f;
+  const double cag_ = CppPconstMod::cag;
+  const double sag_ = CppPconstMod::sag;
   const ViewInt3D    v_kmu_   = *p_v_kmu;
   const ViewDouble3D v_bbcx_  = *p_v_bbcx;
   const ViewDouble3D v_bbcy_  = *p_v_bbcy;
@@ -541,22 +541,24 @@ class FunctorBclinc12 {
       const ViewDouble4D &v_wk3, const ViewDouble4D &v_wk2) 
           const {
     const int iblock = 0;
-    v_wk2(iblock, 0, j, i) = C0;
+    double wk2 = C0;
     for (int k = 0; k < KM; ++k) {
-      v_wk2(iblock, 0, j, i) += v_dzp_(k) * v_ohbu_(iblock, j, i) 
+      wk2 += v_dzp_(k) * v_ohbu_(iblock, j, i) 
           * v_wk3(iblock, k, j, i) *v_viv_(iblock, k, j, i);
     }
+    v_wk2(iblock, 0, j, i) = wk2;
     return ;
   }
   KOKKOS_INLINE_FUNCTION void vinteg_2 (const int &j, const int &i,
       const ViewDouble4D &v_wk3, const ViewDouble4D &v_wk2) 
           const {
     const int iblock = 0;
-    v_wk2(iblock, 1, j, i) = C0;
+    double wk2 = C0;
     for (int k = 0; k < KM; ++k) {
-      v_wk2(iblock, 1, j, i) += v_dzp_(k) * v_ohbu_(iblock, j, i) 
+      wk2 += v_dzp_(k) * v_ohbu_(iblock, j, i) 
           * v_wk3(iblock, k, j, i) *v_viv_(iblock, k, j, i);
     }
+    v_wk2(iblock, 1, j, i) = wk2;
     return ;
   }
  private:
@@ -707,11 +709,12 @@ class FunctorBclinc16 {
       const ViewDouble4D &v_wk3, const ViewDouble3D &v_wk2) 
           const {
     const int iblock = 0;
-    v_wk2(iblock, j, i) = C0;
+    double wk2 = C0;
     for (int k = 0; k < KM; ++k) {
-      v_wk2(iblock, j, i) += v_dzp_(k) * v_ohbu_(iblock, j, i) 
+      wk2 += v_dzp_(k) * v_ohbu_(iblock, j, i) 
           * v_wk3(iblock, k, j, i) *v_viv_(iblock, k, j, i);
     }
+    v_wk2(iblock, j, i) = wk2;
     return ;
   }
  private:

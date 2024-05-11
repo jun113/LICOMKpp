@@ -350,8 +350,11 @@ class FunctorBarotr7 {
     double am_factor = 1.0;
     const double amf = v_amf_(bid, j, i);
     if (i >= (ib_-2) && i < (ie_+1) && j >= (jb_-2) && j < (je_+1)) {
-      const double sqrt_uarea = sqrt (v_uarea_(bid, j, i));
-      const double dxdy = sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * 45.0;
+      // const double sqrt_uarea = std::sqrt (v_uarea_(bid, j, i));
+      // const double dxdy = sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * 45.0;
+      const long double sqrt_uarea = static_cast<long double>(std::sqrt (v_uarea_(bid, j, i)));
+      const double dxdy = static_cast<double>(sqrt_uarea * sqrt_uarea * 
+          sqrt_uarea * sqrt_uarea * sqrt_uarea * 45.0);
       double gradx1, grady1;
       grad (j, i, gradx1, grady1, v_curl_);
       gradx1 *= gradx1;
