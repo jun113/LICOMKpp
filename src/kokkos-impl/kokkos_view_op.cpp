@@ -3590,7 +3590,7 @@ static void kokkos_init_tmp_var() {
 
 #ifdef BIHAR
   dt2k = new double[KM * JMT * IMT];
-  new (p_v_dt2k) ViewDouble2D(dt2k, KM, JMT, IMT);
+  new (p_v_dt2k) ViewDouble3D(dt2k, KM, JMT, IMT);
 #endif // BIHAR
 
   nn = new int[JMT];

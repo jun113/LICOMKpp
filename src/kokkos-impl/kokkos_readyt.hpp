@@ -148,8 +148,6 @@ class FunctorReadyt2 {
       const double rholo = dens(tlo, slo, k+1);
       v_rict_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) 
           * od0_ * G * (rholo - rhoup) * v_odzt_(k+1);
-    } else {
-      v_rict_(iblock, k, j, i) = 0.0;
     }
     // jst = 1, jet = ny_block
     // if (j >= (JST-1) && j < JET) {

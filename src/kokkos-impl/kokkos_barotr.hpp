@@ -689,26 +689,26 @@ class FunctorBarotr15 {
       const ViewDouble3D &v_tmix) const {
     const int bid = 0;
     // n s e w c
-    v_c_cnsew_(0, j, i, 1) = (k <= v_kmt_nsew_(bid, j, i, 0) && k <= v_kmt_(bid, j, i))
-        ? v_dt_nsew_(bid, j, i, 0) : C0;
-    v_c_cnsew_(0, j, i, 2) = (k <= v_kmt_nsew_(bid, j, i, 1) && k <= v_kmt_(bid, j, i))
-        ? v_dt_nsew_(bid, j, i, 1) : C0;
-    v_c_cnsew_(0, j, i, 3) = (k <= v_kmt_nsew_(bid, j, i, 2) && k <= v_kmt_(bid, j, i))
-        ? v_dt_nsew_(bid, j, i, 2) : C0;
-    v_c_cnsew_(0, j, i, 4) = (k <= v_kmt_nsew_(bid, j, i, 3) && k <= v_kmt_(bid, j, i))
-        ? v_dt_nsew_(bid, j, i, 3) : C0;
+    // v_c_cnsew_(0, j, i, 1) = (k <= v_kmt_nsew_(bid, j, i, 0) && k <= v_kmt_(bid, j, i))
+    //     ? v_dt_nsew_(bid, j, i, 0) : C0;
+    // v_c_cnsew_(0, j, i, 2) = (k <= v_kmt_nsew_(bid, j, i, 1) && k <= v_kmt_(bid, j, i))
+    //     ? v_dt_nsew_(bid, j, i, 1) : C0;
+    // v_c_cnsew_(0, j, i, 3) = (k <= v_kmt_nsew_(bid, j, i, 2) && k <= v_kmt_(bid, j, i))
+    //     ? v_dt_nsew_(bid, j, i, 2) : C0;
+    // v_c_cnsew_(0, j, i, 4) = (k <= v_kmt_nsew_(bid, j, i, 3) && k <= v_kmt_(bid, j, i))
+    //     ? v_dt_nsew_(bid, j, i, 3) : C0;
 
-    v_c_cnsew_(0, j, i, 0) = -(v_c_cnsew_(0, j, i, 1) + v_c_cnsew_(0, j, i, 2) 
-                             + v_c_cnsew_(0, j, i, 3) + v_c_cnsew_(0, j, i, 4));
+    // v_c_cnsew_(0, j, i, 0) = -(v_c_cnsew_(0, j, i, 1) + v_c_cnsew_(0, j, i, 2) 
+    //                          + v_c_cnsew_(0, j, i, 3) + v_c_cnsew_(0, j, i, 4));
 
-    if (i >= (ib_ - 2) && i < (ie_ + 1) && j >= (jb_ - 2) && j < (je_ + 1)) {
-      v_d2tk(0, j, i) = v_ahf_(bid, j, i) * 
-          (v_c_cnsew_(0, j, i, 0) * v_tmix(iblock, j    , i    ) 
-         + v_c_cnsew_(0, j, i, 1) * v_tmix(iblock, j - 1, i    ) 
-         + v_c_cnsew_(0, j, i, 2) * v_tmix(iblock, j + 1, i    ) 
-         + v_c_cnsew_(0, j, i, 3) * v_tmix(iblock, j    , i + 1) 
-         + v_c_cnsew_(0, j, i, 4) * v_tmix(iblock, j    , i - 1));
-    }
+    // if (i >= (ib_ - 2) && i < (ie_ + 1) && j >= (jb_ - 2) && j < (je_ + 1)) {
+    //   v_d2tk(0, j, i) = v_ahf_(bid, j, i) * 
+    //       (v_c_cnsew_(0, j, i, 0) * v_tmix(iblock, j    , i    ) 
+    //      + v_c_cnsew_(0, j, i, 1) * v_tmix(iblock, j - 1, i    ) 
+    //      + v_c_cnsew_(0, j, i, 2) * v_tmix(iblock, j + 1, i    ) 
+    //      + v_c_cnsew_(0, j, i, 3) * v_tmix(iblock, j    , i + 1) 
+    //      + v_c_cnsew_(0, j, i, 4) * v_tmix(iblock, j    , i - 1));
+    // }
     return;
   }
 
@@ -717,13 +717,13 @@ class FunctorBarotr15 {
   const int ie_ = CppBlocks::ib;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
-  const ViewInt3D v_kmt_        = *p_v_kmt;
-  const ViewInt4D v_kmt_nsew_   = *p_v_kmt_nsew;
+  // const ViewInt3D v_kmt_        = *p_v_kmt;
+  // const ViewInt4D v_kmt_nsew_   = *p_v_kmt_nsew;
   const ViewDouble3D v_dt2k_    = *p_v_dt2k;
-  const ViewDouble3D v_ahf_     = *p_v_ahf;
+  // const ViewDouble3D v_ahf_     = *p_v_ahf;
   const ViewDouble3D v_h0p_     = *p_v_h0p;
-  const ViewDouble4D v_c_cnsew_ = *p_v_c_cnsew;
-  const ViewDouble4D v_dt_nsew_ = *p_v_dt_nsew;
+  // const ViewDouble4D v_c_cnsew_ = *p_v_c_cnsew;
+  // const ViewDouble4D v_dt_nsew_ = *p_v_dt_nsew;
 };
 
 class FunctorBarotr16 {
@@ -736,7 +736,8 @@ class FunctorBarotr16 {
     v_work_(iblock, j, i) = v_vit_(iblock, 0, j, i) * (hdtk - v_div_out_(j, i));
     return;
   }
-  KOKKOS_INLINE_FUNCTION void hdifft_del4_2 (const int &j, const int &i,
+  KOKKOS_INLINE_FUNCTION 
+  void hdifft_del4_2 (const int &j, const int &i,
       const ViewDouble3D &v_d2tk, double &hdtk) const {
     hdtk = C0;
     if (i >= (ib_ - 1) && i < ie_ && j >= (jb_ - 1) && j < je_) {
