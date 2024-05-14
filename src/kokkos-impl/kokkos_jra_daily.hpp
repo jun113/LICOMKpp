@@ -273,21 +273,21 @@ class FunctorNear2 {
 
 class FunctorJRADaily1 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    double uu(0.0), vv(0.0);
-    if ((j >= JSM - 1) && (j < JEM) && (i >= 1) && (i < IMM)) {
-      const double epsln = 1e-25;
-      const double tmp = v_vit_(0, 0, j, i) / (
-          v_viv_(0, 0, j  , i) + v_viv_(0, 0, j  , i+1)
-        + v_viv_(0, 0, j-1, i) + v_viv_(0, 0, j-1, i+1) + epsln);
-
-      uu = tmp * (v_u_(0, 0, j  , i) + v_u_(0, 0, j  , i+1)
-                + v_u_(0, 0, j-1, i) + v_u_(0, 0, j-1, i+1));
-      vv = tmp * (v_v_(0, 0, j  , i) + v_v_(0, 0, j  , i+1)
-                + v_v_(0, 0, j-1, i) + v_v_(0, 0, j-1, i+1));
-    }
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     if (v_vit_(0, 0, j, i) > 0.5) {
+      double uu(0.0), vv(0.0);
+      if ((j >= JSM - 1) && (j < JEM) && (i >= 1) && (i < IMM)) {
+        const double epsln = 1e-25;
+        uu = (v_u_(0, 0, j  , i) + v_u_(0, 0, j  , i+1)
+            + v_u_(0, 0, j-1, i) + v_u_(0, 0, j-1, i+1)) 
+         / (v_viv_(0, 0, j  , i) + v_viv_(0, 0, j  , i+1)
+          + v_viv_(0, 0, j-1, i) + v_viv_(0, 0, j-1, i+1) + epsln);
+        vv = (v_v_(0, 0, j  , i) + v_v_(0, 0, j  , i+1)
+            + v_v_(0, 0, j-1, i) + v_v_(0, 0, j-1, i+1))
+         / (v_viv_(0, 0, j  , i) + v_viv_(0, 0, j  , i+1)
+          + v_viv_(0, 0, j-1, i) + v_viv_(0, 0, j-1, i+1) + epsln);
+      }
       // transfer core data to what the subroutine need
       // relative speed to surface currents
       v_windx_(j, i) = v_wspdu3_(j, i) - uu;
@@ -300,6 +300,7 @@ class FunctorJRADaily1 {
       v_model_sst_(j, i) = v_at_(0, 0, 0, j, i) + tok;
  
       v_qs_(j, i) = 0.98 * 640380.0 * std::exp(-5107.4 / v_model_sst_(j, i)) / 1.22;
+
       // temperature to potential temperature
       v_theta_(j, i) = v_tsa3_(j, i) * std::pow(100000.0 / v_psa3_(j, i), 0.286);
       v_runoff_(0, j, i) = v_runoff3_(j, i);
@@ -342,18 +343,19 @@ class FunctorJRADaily1 {
 
 class FunctorJRADaily2 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     const double vit_times_one_minus_seaice = 
         v_vit_(0, 0, j, i) * (1.0 - v_seaice_(0, j, i));
+    const long double model_sst = static_cast<long double>(v_model_sst_(j, i));
+    const double model_sst_4 = static_cast<double>(
+        model_sst * model_sst * model_sst * model_sst);
 
     v_sshf_(0, j, i) = v_core_sensible_(j, i) * vit_times_one_minus_seaice;
     v_lthf_(0, j, i) = (v_core_latent_(j, i) - v_snow3_(j, i) * 3.335e5) 
         * vit_times_one_minus_seaice;
 
-    double tmp_sst = v_model_sst_(j, i) * v_model_sst_(j, i);
-    tmp_sst *= tmp_sst;
-    v_lwv_(0, j, i) = (0.95*v_lwv3_(j, i) - 0.95*5.67e-8*tmp_sst)
+    v_lwv_(0, j, i) = (0.95*v_lwv3_(j, i) - 0.95*5.67e-8*model_sst_4)
         * vit_times_one_minus_seaice;
 
     // tmp1 and tmp2 in Fortran code
@@ -361,7 +363,7 @@ class FunctorJRADaily2 {
     v_zz_(j, i) = - v_core_tau_(j, i) * v_windy_(j, i) * v_vit_(0, 0, j, i);
 
     v_nswv_(0, j, i) = v_lwv_(0, j, i) + v_sshf_(0, j, i) + v_lthf_(0, j, i);
-    v_swv_(0, j, i) = 0.934 * v_swv3_(j, i) * vit_times_one_minus_seaice;
+    v_swv_(0, j, i) = (1.0 - 0.066) * v_swv3_(j, i) * vit_times_one_minus_seaice;
 
     v_fresh_(0, j, i) = - (v_core_latent_(j, i) / (2.5e+6) 
         + v_rain3_(j, i) + v_snow3_(j, i) + v_runoff3_(j, i))
@@ -440,25 +442,24 @@ class FunctorNcarOceanFluxesJra {
     v_u_del_(v_u_del), v_t_(v_t), v_ts_(v_ts), v_q_(v_q), 
         v_qs_(v_qs), v_z_(v_z), v_avail_(v_avail), v_sh_(v_sh), 
             v_lh_(v_lh), v_tau_(v_tau), v_ustar_(v_ustar) {}
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     double cd = 0.0;
     double ch = 0.0;
     double ce = 0.0;
             
     if (v_avail_(0, 0, j, i) > 0.5) {
       const double grav(9.80), vonkarm(0.40);
-      const double reciprocal_vonkarm = 2.5;
 
       const double tv = v_t_(j, i) * (1.0 + 0.608 * v_q_(j, i));
       const double u  = std::max(v_u_del_(j, i), 0.5);
       double u10      = u;
 
-      double cd_n10    = (2.7/u10 + 0.142 + 0.0764*u10) * 0.001;
+      double cd_n10    = (2.7/u10 + 0.142 + 0.0764*u10) / 1.0e3;
       double cd_n10_rt = std::sqrt(cd_n10);
-      double ce_n10    = 34.6 * cd_n10_rt * 0.001;
+      double ce_n10    = 34.6 * cd_n10_rt / 1.0e3;
       double stab      = 0.5 + sign(0.5, v_t_(j, i) - v_ts_(j, i));
-      double ch_n10    = (18.0 * stab + 32.7 * (1.0 - stab)) * cd_n10_rt * 0.001;
+      double ch_n10    = (18.0 * stab + 32.7 * (1.0 - stab)) * cd_n10_rt / 1.0e3;
  
       cd = cd_n10;
       ch = ch_n10;
@@ -467,45 +468,47 @@ class FunctorNcarOceanFluxesJra {
       double bstar;
       for (int jj = 0; jj < 2; ++jj) {
         // for: 1, n_itts. n_itts = 2
-      // Monin-Obukhov iteration
-      const double cd_rt = std::sqrt(cd);
-      v_ustar_(0, j, i) = cd_rt * u;
-      const double tstar = (ch / cd_rt) * (v_t_(j, i) - v_ts_(j, i));
-      const double qstar = (ce / cd_rt) * (v_q_(j, i) - v_qs_(j, i));
-      bstar = grav * (tstar/tv + qstar/(v_q_(j, i) + 1.0/0.608));
+        // Monin-Obukhov iteration
+        const double cd_rt = std::sqrt(cd);
+        v_ustar_(0, j, i) = cd_rt * u;
+        const double tstar = (ch / cd_rt) * (v_t_(j, i) - v_ts_(j, i));
+        const double qstar = (ce / cd_rt) * (v_q_(j, i) - v_qs_(j, i));
+        bstar = grav * (tstar/tv + qstar/(v_q_(j, i) + 1.0/0.608));
  
-      double zeta = vonkarm * bstar * v_z_(j, i) / 
-          (v_ustar_(0, j, i) * v_ustar_(0, j, i));
-      zeta = sign(std::min(std::abs(zeta), 10.0), zeta);
+       double zeta = vonkarm * bstar * v_z_(j, i) / 
+            (v_ustar_(0, j, i) * v_ustar_(0, j, i));
+        zeta = sign(std::min(std::abs(zeta), 10.0), zeta);
  
-      double x2 = std::sqrt(std::abs(1.0 - 16.0 * zeta));
-      x2 = std::max(x2, 1.0);
-      const double x = std::sqrt(x2);
-      double psi_m;
-      double psi_h;
-      if (zeta > 0.0) {
-        psi_m = - 5.0 * zeta;
-        psi_h = psi_m;
-      } else {
-        psi_m = std::log((1.0 + 2.0*x + x2) * (1.0+x2)*0.125) - 2.0 * (std::atan(x) - std::atan(1.0));
-        psi_h = 2.0 * std::log((1.0 + x2) * 0.5);
-      }
-      u10 = u / (1.0 + cd_n10_rt * (std::log(v_z_(j, i) * 0.1) - psi_m) * reciprocal_vonkarm);
+       double x2 = std::sqrt(std::abs(1.0 - 16.0 * zeta));
+        x2 = std::max(x2, 1.0);
+        const double x = std::sqrt(x2);
+        double psi_m;
+        double psi_h;
+        if (zeta > 0.0) {
+          psi_m = - 5.0 * zeta;
+          psi_h = psi_m;
+        } else {
+          psi_m = std::log((1.0 + 2.0*x + x2) * (1.0+x2)/8.0) - 
+              2.0 * (std::atan(x) - std::atan(1.0));
+          psi_h = 2.0 * std::log((1.0 + x2) / 2.0);
+        }
+        u10 = u / (1.0 + cd_n10_rt * (std::log(v_z_(j, i) / 10.0) - psi_m) / vonkarm);
  
-      cd_n10    = (2.7/u10 + 0.142 + 0.0764*u10) * 0.001;
-      cd_n10_rt = std::sqrt(cd_n10);
-      ce_n10    = 34.6 * cd_n10_rt * 0.001;
-      stab      = 0.5 + sign(0.5, zeta);
-      ch_n10    = (18.0*stab + 32.7*(1.0-stab)) * cd_n10_rt * 0.001;
-      // diagnostic
-      // z0     = 10 * exp(-vonkarm / cd_n10_rt);
-      double xx = (std::log(v_z_(j, i) * 0.1) - psi_m) * reciprocal_vonkarm;
-      const double tmp = (1.0 + cd_n10_rt * xx);
-      cd        = cd_n10 / (tmp * tmp);
-      xx = (std::log(v_z_(j, i) * 0.1) - psi_h) * reciprocal_vonkarm;
+        cd_n10    = (2.7/u10 + 0.142 + 0.0764*u10) / 1.0e3;
+        cd_n10_rt = std::sqrt(cd_n10);
+        ce_n10    = 34.6 * cd_n10_rt / 1.0e3;
+        stab      = 0.5 + sign(0.5, zeta);
+        ch_n10    = (18.0*stab + 32.7*(1.0-stab)) * cd_n10_rt / 1.0e3;
+        // diagnostic
+        // z0     = 10 * exp(-vonkarm / cd_n10_rt);
+        // double xx = (std::log(v_z_(j, i) * 0.1) - psi_m) * reciprocal_vonkarm;
+        double xx = (std::log(v_z_(j, i) * 0.1) - psi_m) / vonkarm;
+        const double tmp = (1.0 + cd_n10_rt * xx);
+        cd        = cd_n10 / (tmp * tmp);
+        xx = (std::log(v_z_(j, i) / 10.0) - psi_h) / vonkarm;
  
-      ch = ch_n10 / (1.0 + ch_n10 * xx / cd_n10_rt) * std::sqrt(cd / cd_n10);
-      ce = ce_n10 / (1.0 + ce_n10 * xx / cd_n10_rt) * std::sqrt(cd / cd_n10);
+        ch = ch_n10 / (1.0 + ch_n10 * xx / cd_n10_rt) * std::sqrt(cd / cd_n10);
+        ce = ce_n10 / (1.0 + ce_n10 * xx / cd_n10_rt) * std::sqrt(cd / cd_n10);
       }
     }
     const double L  = 2.5e6;

@@ -382,7 +382,7 @@ void pop_halo_update(T* const array, const int &I0,
           bufTripole2D[i]    = xavg;
           bufTripole2D[iDst] = xavg;
         } else {
-          xavg = 0.5 * (abs(x1) + abs(x2));
+          xavg = 0.5 * (std::abs(x1) + std::abs(x2));
           bufTripole2D[i]    = isign * sign(xavg, x2);
           bufTripole2D[iDst] = isign * sign(xavg, x1);
         }
@@ -404,7 +404,7 @@ void pop_halo_update(T* const array, const int &I0,
           bufTripole2D[i]    = xavg;
           bufTripole2D[iDst] = xavg;
         } else {
-          xavg = 0.5 * (abs(x1) + abs(x2));
+          xavg = 0.5 * (std::abs(x1) + std::abs(x2));
           bufTripole2D[i]    = isign * sign(xavg, x2);
           bufTripole2D[iDst] = isign * sign(xavg, x1);
         }
@@ -726,7 +726,7 @@ void pop_halo_update(T* const array,
             iDst = nxGlobal - i - 2;
             x1 = bufTripole3D[k * strideBuf + i];
             x2 = bufTripole3D[k * strideBuf + iDst];
-            xavg = 0.5 * (abs(x1) + abs(x2));
+            xavg = 0.5 * (std::abs(x1) + std::abs(x2));
             bufTripole3D[k * strideBuf + i]    = isign * sign(xavg, x2);
             bufTripole3D[k * strideBuf + iDst] = isign * sign(xavg, x1);
           }
@@ -758,7 +758,7 @@ void pop_halo_update(T* const array,
             iDst = nxGlobal - i - 1;
             x1 = bufTripole3D[k * strideBuf + i];
             x2 = bufTripole3D[k * strideBuf + iDst];
-            xavg = 0.5 * (abs(x1) + abs(x2));
+            xavg = 0.5 * (std::abs(x1) + std::abs(x2));
             bufTripole3D[k * strideBuf + i]    = isign * sign(xavg, x2);
             bufTripole3D[k * strideBuf + iDst] = isign * sign(xavg, x1);
           }
@@ -1121,7 +1121,7 @@ void pop_halo_update_priority_k (T* const array,
               bufTripole3D[i   *I2 + k] = xavg;
               bufTripole3D[iDst*I2 + k] = xavg;
             } else {
-              xavg = 0.5 * (abs(x1) + abs(x2));
+              xavg = 0.5 * (std::abs(x1) + std::abs(x2));
               bufTripole3D[i   *I2 + k] = isign * sign(xavg, x2);
               bufTripole3D[iDst*I2 + k] = isign * sign(xavg, x1);
             }

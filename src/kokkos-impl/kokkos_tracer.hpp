@@ -523,8 +523,6 @@ class FuncAdvTraTsp2 {
   KOKKOS_INLINE_FUNCTION void advection_tracer_tspas_2 (
       const int &iblock, const int &n, const int &k, const int &j, const int &i,
           const ViewDouble4D &v_www, const ViewDouble5D &v_ttt) const {
-    const double two_times_tarea_r = 2.0 * v_tarea_r_(iblock, j, i);
-    const double dts_times_two_times_tarea_r = dts_ * two_times_tarea_r;
 
     const double adv_x0 = 
         (v_ttt(iblock, n, k, j, i+1) + v_ttt(iblock, n, k, j, i  ))
@@ -538,37 +536,33 @@ class FuncAdvTraTsp2 {
       - (v_ttt(iblock, n, k, j  , i) + v_ttt(iblock, n, k, j-1, i))
             * v_uv_ws_face_(k, j-1, i, 1)) * v_tarea_r_(iblock, j, i);
     
-    const double adv_xy1 = - dts_times_two_times_tarea_r
-        * (v_ttt(iblock, n, k, j, i+1) - v_ttt(iblock, n, k, j, i))
+    const double adv_xy1 = - dts_ * (v_ttt(iblock, n, k, j, i+1) - v_ttt(iblock, n, k, j, i))
+        * 2.0 * v_tarea_r_(iblock, j, i)
             * v_uv_ws_face_(k, j, i+1, 0) * v_uv_ws_face_(k, j, i+1, 0)
                 / (v_h_tu_swen_(iblock, j, i+1, 0, 0) * v_h_tu_swen_(iblock, j, i+1, 0, 1));
-                // / (v_htw_(iblock, j, i+1) * v_hun_(iblock, j, i+1));
 
-    const double adv_xy2 = dts_times_two_times_tarea_r
-        * (v_ttt(iblock, n, k, j, i) - v_ttt(iblock, n, k, j, i-1))
+    const double adv_xy2 = dts_ * (v_ttt(iblock, n, k, j, i) - v_ttt(iblock, n, k, j, i-1))
+        * 2.0 * v_tarea_r_(iblock, j, i)
             * v_uv_ws_face_(k, j, i  , 0) * v_uv_ws_face_(k, j, i  , 0)
                 / (v_h_tu_swen_(iblock, j, i, 0, 0) * v_h_tu_swen_(iblock, j, i, 0, 1));
-                // / (v_htw_(iblock, j, i) * v_hun_(iblock, j, i));
 
-    const double adv_xy3 = - dts_times_two_times_tarea_r
-        * (v_ttt(iblock, n, k, j+1, i) - v_ttt(iblock, n, k, j, i))
+    const double adv_xy3 = - dts_ * (v_ttt(iblock, n, k, j+1, i) - v_ttt(iblock, n, k, j, i))
+        * 2.0 * v_tarea_r_(iblock, j, i)
             * v_uv_ws_face_(k, j  , i, 1) * v_uv_ws_face_(k, j  , i, 1)
                 / (v_h_tu_swen_(iblock, j, i, 1, 0) * v_h_tu_swen_(iblock, j, i, 1, 1));
-                // / (v_hts_(iblock, j, i) * v_hue_(iblock, j, i));
 
-    const double adv_xy4 = dts_times_two_times_tarea_r
-        * (v_ttt(iblock, n, k, j, i) - v_ttt(iblock, n, k, j-1, i))
+    const double adv_xy4 = dts_ * (v_ttt(iblock, n, k, j, i) - v_ttt(iblock, n, k, j-1, i))
+        * 2.0 * v_tarea_r_(iblock, j, i)
             * v_uv_ws_face_(k, j-1, i, 1) * v_uv_ws_face_(k, j-1, i, 1)
                 / (v_h_tu_swen_(iblock, j-1, i, 1, 0) * v_h_tu_swen_(iblock, j-1, i, 1, 1));
-                // / (v_hts_(iblock, j-1, i) * v_hue_(iblock, j-1, i));
 
     const double adv_c1 = - v_ttt(iblock, n, k, j, i)
         * (v_uv_ws_face_(k, j, i+1, 0) - v_uv_ws_face_(k, j, i, 0))
-            * two_times_tarea_r;
+            * v_tarea_r_(iblock, j, i) * 2.0;
              
     const double adv_c2 = - v_ttt(iblock, n, k, j, i)
         * (v_uv_ws_face_(k, j, i, 1) - v_uv_ws_face_(k, j-1, i, 1))
-            * two_times_tarea_r;
+            * v_tarea_r_(iblock, j, i) * 2.0;
 
     double adv_za, adv_zc;
     double adv_zb1, adv_zb2;
@@ -1525,17 +1519,16 @@ class FunctorTracer25 {
     const int iblock = 0;
     // const double aidif = 0.5;
     const double one_minus_aidif = 0.5;
-    const double tmp = 1.0 / v_odzp_(0);
     if (v_kmt_(iblock, j, i) > 0) {
 #ifdef COUP
       if (boundary_restore_ == 2) {
         v_stf_(iblock, j, i) = v_ssf_(iblock, j, i)
-            * tmp + (gamma_ * 50.0 * v_odzp_(0))
+            / v_odzp_(0) + (gamma_ * 50.0 * v_odzp_(0))
                 * (v_sss_(iblock, j, i) - v_atb_(iblock, 1, 1, j, i))
                     * v_ifrac_(iblock, j, i) 
-            * tmp + (gamma_ * 30.0 / 365.0 / 4.0 * 50.0 * v_odzp_(0))
+            / v_odzp_(0) + (gamma_ * 30.0 / 365.0 / 4.0 * 50.0 * v_odzp_(0))
                 * (v_sss_(iblock, j, i) - v_atb_(iblock, 1, 1, j, i))
-                    * tmp;
+                    / v_odzp_(0);
       } else {
         v_stf_(iblock, j, i) = v_ssf_(iblock, j, i) / v_odzp_(0);
       }
@@ -1544,13 +1537,13 @@ class FunctorTracer25 {
       v_stf_(iblock, j, i) = (v_fresh_(iblock, j, i) * 34.7 * od0_ * 1.0e-3
           + gamma_ 
               * (v_sss_(iblock, j, i) - v_atb_(iblock, 1, 1, j, i))
-                  * v_seaice_(iblock, j, i) * tmp
+                  * v_seaice_(iblock, j, i) / v_odzp_(0)
           + gamma_ * 30.0 / 365.0 / 4.0 * 50.0
               * (v_sss_(iblock, j, i) - v_atb_(iblock, 1, 1, j, i))
-                  * tmp * (1.0 - v_seaice_(iblock, j, i)));
+                  / v_odzp_(0) * (1.0 - v_seaice_(iblock, j, i)));
 #else  // FRC_CORE
       v_stf_(iblock, j, i) = gamma_ * (v_sss_(iblock, j, i) 
-          - v_atb_(iblock, 1, 1, j, i)) * tmp;
+          - v_atb_(iblock, 1, 1, j, i)) / v_odzp_(0);
 #endif // FRC_CORE
 #endif // COUP
       v_tf_(iblock, 0, j, i) += v_stf_(iblock, j, i)
@@ -1751,29 +1744,34 @@ class FunctorTracer32 {
 
       for (int k = 1; k <= kz; ++k) {
         a8[k] = v_dcb(iblock, k-1, j, i) * v_odzt_(k  ) * v_odzp_(k)
-            * c2dtts_times_aidif;
+            // * c2dtts_times_aidif;
+            * c2dtts * aidif;
 
         d8[k] = v_wk(iblock, k, j, i);
       }
       for (int k = 1; k <= kz-1; ++k) {
         c8[k] = v_dcb(iblock, k  , j, i) * v_odzt_(k+1) * v_odzp_(k)
-            * c2dtts_times_aidif;
+            // * c2dtts_times_aidif;
+            * c2dtts * aidif;
 
         b8[k] = 1.0 + a8[k] + c8[k];
         e8[k] = 0.0;
         f8[k] = 0.0;
       }
       // k = 0
-      a8[0] = v_odzp_(0) * c2dtts_times_aidif;
+      // a8[0] = v_odzp_(0) * c2dtts_times_aidif;
+      a8[0] = v_odzp_(0) * c2dtts * aidif;
       c8[0] = v_dcb(iblock, 0, j, i) * v_odzt_(1) * v_odzp_(0)
-          * c2dtts_times_aidif;
+            // * c2dtts_times_aidif;
+            * c2dtts * aidif;
       b8[0] = 1.0 + c8[0];
       d8[0] = v_wk(iblock, 0, j, i);
       e8[0] = 0.0;
       f8[0] = 0.0;
 
       b8[kz] = 1.0 + a8[kz];
-      c8[kz] = v_odzp_(kz) * c2dtts_times_aidif;
+      // c8[kz] = v_odzp_(kz) * c2dtts_times_aidif;
+      c8[kz] = v_odzp_(kz) * c2dtts * aidif;
 
       e8[kz+1] = 0.0;
       f8[kz+1] = 0.0;

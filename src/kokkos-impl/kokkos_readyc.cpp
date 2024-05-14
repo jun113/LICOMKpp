@@ -3,8 +3,6 @@
 
 #include "kokkos_readyc.hpp"
 
-extern "C" void readyc_debug_(double* wk11,double* wk22,double* wk33,double*wk44, double*wk55,double*wk66,double*wk77);
-
 void kokkos_readyc () {
 
   using Kokkos::parallel_for;
@@ -181,16 +179,6 @@ void kokkos_readyc () {
   }
   exit(0);
 #endif // CANUTO
-
-  readyc_debug_(
-    (*p_v_dlu).data(),
-    (*p_v_dlv).data(),
-    (*p_v_dlub).data(),
-    (*p_v_dlvb).data(),
-    (*p_v_rit).data(),
-    (*p_v_wk2).data(),
-    (*p_v_wk3).data()
-  );
 
   return ;
 }

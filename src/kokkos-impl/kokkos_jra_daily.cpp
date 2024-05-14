@@ -777,7 +777,6 @@ void kokkos_jra_daily_low (const int &iday) {
   parallel_for ("jra_daily_2", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorJRADaily2());
 
-
   // ! tau to U/V grid
   parallel_for ("jra_daily_3", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{JST-1, 1}, koArr2D{JEM, IMM}, tile2D), FunctorJRADaily3());

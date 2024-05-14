@@ -453,8 +453,15 @@ void kokkos_tracer() {
       double err_norm1;
       double err_norm2 = 0.0;
 
-      Kokkos::parallel_reduce ("tracer_26", MDRangePolicy<Kokkos::Rank<2>> (
-          koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracer26(), err_norm2);
+      for (int j = 2; j < JMT-2; ++j) {
+        for (int i = 2; i < IMT-2; ++i) {
+          err_norm2 += (*p_v_tarea)(0, j, i) 
+              * (*p_v_net)(0, 1, j, i) * (*p_v_vit)(0, 0, j, i);
+        }
+      }
+    //   Kokkos::parallel_reduce ("tracer_26", MDRangePolicy<Kokkos::Rank<2>> (
+    //       koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracer26(), err_norm2);
+
 #ifdef SPMD
 
       MPI_Reduce (&err_norm2, &err_norm1, 1, MPI_DOUBLE,
@@ -469,9 +476,10 @@ void kokkos_tracer() {
       fw_norm2 = err_norm2;
 
       parallel_for ("tracer_27", MDRangePolicy<Kokkos::Rank<2>> (
-          koArr2D{JST-1, 0}, koArr2D{JET, IMT}, tile2D), FunctorTracer27(err_norm2));
+          koArr2D{JST-1, 0}, koArr2D{JMT, IMT}, tile2D), FunctorTracer27(err_norm2));
 #endif // SSSNORM
     } else {
+      // for temperature
       parallel_for ("tracer_28", MDRangePolicy<Kokkos::Rank<2>> (
           koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorTracer28());
       parallel_for ("tracer_29", MDRangePolicy<Kokkos::Rank<2>> (

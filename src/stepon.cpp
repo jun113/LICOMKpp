@@ -346,7 +346,7 @@ void stepon(const int &mm) {
   my_time.icesnow_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-  daily_update_d2h();
+  // daily_update_d2h();
   energy_();
 //**********************
 
@@ -379,7 +379,6 @@ void stepon(const int &mm) {
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
     kokkos_convadj();
-    // cpp_convadj();
 #endif // LICOM_ENABLE_KOKKOS
 
 #ifdef LICOM_ENABLE_NCU

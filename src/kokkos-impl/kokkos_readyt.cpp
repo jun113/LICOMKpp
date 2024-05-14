@@ -4,12 +4,6 @@
 
 #include "kokkos_readyt.hpp"
 
-extern "C" void readyt_debug_(
-    double* wk1,double* wk2,double* wk3,double* wk4,double* wk5,
-    double* wk6,
-    double* wk7
-);
-
 void kokkos_readyt() {
 
   using Kokkos::parallel_for;
@@ -86,14 +80,6 @@ void kokkos_readyt() {
   parallel_for ("readyt_13", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}), FunctorReadyt13());
 
-  readyt_debug_((*p_v_rict).data(),
-  (*p_v_gg).data(),
-  (*p_v_pp).data(),
-  (*p_v_alpha).data(),
-  (*p_v_beta).data(),
-  (*p_v_dlu).data(),
-  (*p_v_dlv).data()
-  );
   return ;
 }
 #endif // LICOM_ENABLE_KOKKOS

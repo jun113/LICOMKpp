@@ -34,8 +34,8 @@
 #undef  SUPHIGH 
 #undef  DAILYACC
 #undef  DAILYBUGDET
-#define BLCKX   45
-#define BLCKY	37
+#define BLCKX   30
+#define BLCKY	22
 #define NJMT	218 
 #define NIMT	360
 #define NKM     30 
