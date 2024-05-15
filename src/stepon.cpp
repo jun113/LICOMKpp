@@ -53,6 +53,10 @@ void stepon(const int &mm) {
   num_step_per_day = num_step_per_day + 1;
 
   curr_ymd_licom = iyfm * 10000 + mon0 * 100 + iday;   
+//   fortran_mpi_barrier_();
+// if (CppParamMod::mytid == 0) {
+//   printf("stepon\n");
+// }
 
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.readyt_start();
@@ -346,7 +350,7 @@ void stepon(const int &mm) {
   my_time.icesnow_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-  // daily_update_d2h();
+  daily_update_d2h();
   energy_();
 //**********************
 

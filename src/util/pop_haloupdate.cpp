@@ -838,7 +838,7 @@ void pop_haloupdate_bclinc_33 (const int &len_k, const int &n_layers) {
 }
 */
 
-void pop_haloupdate_tracer_1(const int &len_k, const int &n_layers) {
+void pop_haloupdate_tracer_net (const int &len_k, const int &n_layers) {
 
   // net
   using CppTracerMod::net;

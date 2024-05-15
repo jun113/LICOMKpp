@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 CUR_DIR=$(pwd)
-echo "Current dir:"
+echo "Currently dir:"
 echo $CUR_DIR
 
 if [ ! -d "${CUR_DIR}/../build" ]; then

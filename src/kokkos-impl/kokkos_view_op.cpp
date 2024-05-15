@@ -2877,8 +2877,8 @@ static void kokkos_init_work_mod() {
   //     IMT_GLOBAL * JMT_GLOBAL);
 
   // TODO can opt
-  p_v_work1_g = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_work2_g = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  // p_v_work1_g = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+  // p_v_work2_g = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
   // p_v_work3_g = (ViewDouble2D *) malloc(sizeof(ViewDouble2D) *
   //     IMT_GLOBAL * JMT_GLOBAL);
 
@@ -2934,10 +2934,10 @@ static void kokkos_init_work_mod() {
   new (p_v_stf) ViewDouble3D("pointer_view_stf",
       MAX_BLOCKS_CLINIC, JMT, IMT);
 
-  new (p_v_work1_g) ViewDouble2D("pointer_view_work1_g",
-      JMT_GLOBAL, IMT_GLOBAL); 
-  new (p_v_work2_g) ViewDouble2D("pointer_view_work2_g",
-      JMT_GLOBAL, IMT_GLOBAL); 
+  // new (p_v_work1_g) ViewDouble2D("pointer_view_work1_g",
+  //     JMT_GLOBAL, IMT_GLOBAL); 
+  // new (p_v_work2_g) ViewDouble2D("pointer_view_work2_g",
+  //     JMT_GLOBAL, IMT_GLOBAL); 
 
   UnManagedViewDouble3D h_v_pxb (&pxb[0][0][0],
       MAX_BLOCKS_CLINIC, JMT, IMT);
@@ -3040,12 +3040,12 @@ static void kokkos_init_work_mod() {
   new (p_v_stf) ViewDouble3D(stf,
       MAX_BLOCKS_CLINIC, JMT, IMT);
 
-  work1_g = new double[JMT_GLOBAL * IMT_GLOBAL];
-  work2_g = new double[JMT_GLOBAL * IMT_GLOBAL];
-  new (p_v_work1_g) ViewDouble2D(work1_g,
-      JMT_GLOBAL, IMT_GLOBAL); 
-  new (p_v_work2_g) ViewDouble2D(work2_g,
-      JMT_GLOBAL, IMT_GLOBAL); 
+  // work1_g = new double[JMT_GLOBAL * IMT_GLOBAL];
+  // work2_g = new double[JMT_GLOBAL * IMT_GLOBAL];
+  // new (p_v_work1_g) ViewDouble2D(work1_g,
+  //     JMT_GLOBAL, IMT_GLOBAL); 
+  // new (p_v_work2_g) ViewDouble2D(work2_g,
+  //     JMT_GLOBAL, IMT_GLOBAL); 
 #endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
   free_work_mod_();
   return ;
@@ -3520,11 +3520,11 @@ static void kokkos_init_tmp_var() {
   new (p_v_ppc) ViewDouble4D(ppc,
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
-  alpha = new double[MAX_BLOCKS_CLINIC * KM * JMT * IMT];
-  beta  = new double[MAX_BLOCKS_CLINIC * KM * JMT * IMT];
-  new (p_v_alpha) ViewDouble4D(alpha,
+  CppTmpVar::alpha = new double[MAX_BLOCKS_CLINIC * KM * JMT * IMT];
+  CppTmpVar::beta  = new double[MAX_BLOCKS_CLINIC * KM * JMT * IMT];
+  new (p_v_alpha) ViewDouble4D(CppTmpVar::alpha,
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
-  new (p_v_beta)  ViewDouble4D(beta,
+  new (p_v_beta)  ViewDouble4D(CppTmpVar::beta,
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
   wp12 = new double[MAX_BLOCKS_CLINIC * KM * JMT * IMT];

@@ -350,11 +350,14 @@ class FunctorBarotr7 {
     double am_factor = 1.0;
     const double amf = v_amf_(bid, j, i);
     if (i >= (ib_-2) && i < (ie_+1) && j >= (jb_-2) && j < (je_+1)) {
-      // const double sqrt_uarea = std::sqrt (v_uarea_(bid, j, i));
-      // const double dxdy = sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * sqrt_uarea * 45.0;
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+      const double dxdy = std::pow (std::sqrt (v_uarea_(bid, j, i)), 5) * 45.0;
+#else
       const long double sqrt_uarea = static_cast<long double>(std::sqrt (v_uarea_(bid, j, i)));
       const double dxdy = static_cast<double>(sqrt_uarea * sqrt_uarea * 
           sqrt_uarea * sqrt_uarea * sqrt_uarea * 45.0);
+#endif
+
       double gradx1, grady1;
       grad (j, i, gradx1, grady1, v_curl_);
       gradx1 *= gradx1;
@@ -689,26 +692,26 @@ class FunctorBarotr15 {
       const ViewDouble3D &v_tmix) const {
     const int bid = 0;
     // n s e w c
-    // v_c_cnsew_(0, j, i, 1) = (k <= v_kmt_nsew_(bid, j, i, 0) && k <= v_kmt_(bid, j, i))
-    //     ? v_dt_nsew_(bid, j, i, 0) : C0;
-    // v_c_cnsew_(0, j, i, 2) = (k <= v_kmt_nsew_(bid, j, i, 1) && k <= v_kmt_(bid, j, i))
-    //     ? v_dt_nsew_(bid, j, i, 1) : C0;
-    // v_c_cnsew_(0, j, i, 3) = (k <= v_kmt_nsew_(bid, j, i, 2) && k <= v_kmt_(bid, j, i))
-    //     ? v_dt_nsew_(bid, j, i, 2) : C0;
-    // v_c_cnsew_(0, j, i, 4) = (k <= v_kmt_nsew_(bid, j, i, 3) && k <= v_kmt_(bid, j, i))
-    //     ? v_dt_nsew_(bid, j, i, 3) : C0;
+    v_c_cnsew_(0, j, i, 1) = (k <= v_kmt_nsew_(bid, j, i, 0) && k <= v_kmt_(bid, j, i))
+        ? v_dt_nsew_(bid, j, i, 0) : C0;
+    v_c_cnsew_(0, j, i, 2) = (k <= v_kmt_nsew_(bid, j, i, 1) && k <= v_kmt_(bid, j, i))
+        ? v_dt_nsew_(bid, j, i, 1) : C0;
+    v_c_cnsew_(0, j, i, 3) = (k <= v_kmt_nsew_(bid, j, i, 2) && k <= v_kmt_(bid, j, i))
+        ? v_dt_nsew_(bid, j, i, 2) : C0;
+    v_c_cnsew_(0, j, i, 4) = (k <= v_kmt_nsew_(bid, j, i, 3) && k <= v_kmt_(bid, j, i))
+        ? v_dt_nsew_(bid, j, i, 3) : C0;
 
-    // v_c_cnsew_(0, j, i, 0) = -(v_c_cnsew_(0, j, i, 1) + v_c_cnsew_(0, j, i, 2) 
-    //                          + v_c_cnsew_(0, j, i, 3) + v_c_cnsew_(0, j, i, 4));
+    v_c_cnsew_(0, j, i, 0) = -(v_c_cnsew_(0, j, i, 1) + v_c_cnsew_(0, j, i, 2) 
+                             + v_c_cnsew_(0, j, i, 3) + v_c_cnsew_(0, j, i, 4));
 
-    // if (i >= (ib_ - 2) && i < (ie_ + 1) && j >= (jb_ - 2) && j < (je_ + 1)) {
-    //   v_d2tk(0, j, i) = v_ahf_(bid, j, i) * 
-    //       (v_c_cnsew_(0, j, i, 0) * v_tmix(iblock, j    , i    ) 
-    //      + v_c_cnsew_(0, j, i, 1) * v_tmix(iblock, j - 1, i    ) 
-    //      + v_c_cnsew_(0, j, i, 2) * v_tmix(iblock, j + 1, i    ) 
-    //      + v_c_cnsew_(0, j, i, 3) * v_tmix(iblock, j    , i + 1) 
-    //      + v_c_cnsew_(0, j, i, 4) * v_tmix(iblock, j    , i - 1));
-    // }
+    if (i >= (ib_ - 2) && i < (ie_ + 1) && j >= (jb_ - 2) && j < (je_ + 1)) {
+      v_d2tk(0, j, i) = v_ahf_(bid, j, i) * 
+          (v_c_cnsew_(0, j, i, 0) * v_tmix(iblock, j    , i    ) 
+         + v_c_cnsew_(0, j, i, 1) * v_tmix(iblock, j - 1, i    ) 
+         + v_c_cnsew_(0, j, i, 2) * v_tmix(iblock, j + 1, i    ) 
+         + v_c_cnsew_(0, j, i, 3) * v_tmix(iblock, j    , i + 1) 
+         + v_c_cnsew_(0, j, i, 4) * v_tmix(iblock, j    , i - 1));
+    }
     return;
   }
 
@@ -717,13 +720,13 @@ class FunctorBarotr15 {
   const int ie_ = CppBlocks::ib;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
-  // const ViewInt3D v_kmt_        = *p_v_kmt;
-  // const ViewInt4D v_kmt_nsew_   = *p_v_kmt_nsew;
+  const ViewInt3D v_kmt_        = *p_v_kmt;
+  const ViewInt4D v_kmt_nsew_   = *p_v_kmt_nsew;
   const ViewDouble3D v_dt2k_    = *p_v_dt2k;
-  // const ViewDouble3D v_ahf_     = *p_v_ahf;
+  const ViewDouble3D v_ahf_     = *p_v_ahf;
   const ViewDouble3D v_h0p_     = *p_v_h0p;
-  // const ViewDouble4D v_c_cnsew_ = *p_v_c_cnsew;
-  // const ViewDouble4D v_dt_nsew_ = *p_v_dt_nsew;
+  const ViewDouble4D v_c_cnsew_ = *p_v_c_cnsew;
+  const ViewDouble4D v_dt_nsew_ = *p_v_dt_nsew;
 };
 
 class FunctorBarotr16 {

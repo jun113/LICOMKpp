@@ -982,7 +982,6 @@ class FunctorReadyc52 {
       const int &ixmax,     // imax
       const double &delta,  // dand2on2
       const double &rat     /* rnd2on2 */ ) const {
-    // printf ("interp1d_expabs\n");
   
     int lx0(0), lx1(0);
     
@@ -2444,1217 +2443,1217 @@ KOKKOS_REGISTER_FOR_3D(FunctorReadyc21, FunctorReadyc21)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc22, FunctorReadyc22)
 
 #ifdef CANUTO
-class FunctorReadyc5 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    if (v_vit_(0, 0, j, i) > 0.5) {
-      const int iblock = 0;
-// #ifdef __sw_slave__
-//       double* wk1 = (double*) ldm_malloc (sizeof(double) * (KM-1));
-//       double* wk2 = (double*) ldm_malloc (sizeof(double) * (KM-1));
-//       double* wk3 = (double*) ldm_malloc (sizeof(double) * (KM-1));
+// class FunctorReadyc5 {
+//  public:
+//   KOKKOS_INLINE_FUNCTION void operator () (
+//       const int &j, const int &i) const {
+//     if (v_vit_(0, 0, j, i) > 0.5) {
+//       const int iblock = 0;
+// // #ifdef __sw_slave__
+// //       double* wk1 = (double*) ldm_malloc (sizeof(double) * (KM-1));
+// //       double* wk2 = (double*) ldm_malloc (sizeof(double) * (KM-1));
+// //       double* wk3 = (double*) ldm_malloc (sizeof(double) * (KM-1));
 
-//       double* wp1 = (double*) ldm_malloc (sizeof(double) * KM);
-//       double* wp2 = (double*) ldm_malloc (sizeof(double) * KM);
-//       double* wp3 = (double*) ldm_malloc (sizeof(double) * KM);
-//       double* wp4 = (double*) ldm_malloc (sizeof(double) * KM);
-//       double* wp5 = (double*) ldm_malloc (sizeof(double) * KM);
-//       double* wp6 = (double*) ldm_malloc (sizeof(double) * KM);
-//       double* wp7 = (double*) ldm_malloc (sizeof(double) * KM);
-//       double* wp8 = (double*) ldm_malloc (sizeof(double) * KM);
+// //       double* wp1 = (double*) ldm_malloc (sizeof(double) * KM);
+// //       double* wp2 = (double*) ldm_malloc (sizeof(double) * KM);
+// //       double* wp3 = (double*) ldm_malloc (sizeof(double) * KM);
+// //       double* wp4 = (double*) ldm_malloc (sizeof(double) * KM);
+// //       double* wp5 = (double*) ldm_malloc (sizeof(double) * KM);
+// //       double* wp6 = (double*) ldm_malloc (sizeof(double) * KM);
+// //       double* wp7 = (double*) ldm_malloc (sizeof(double) * KM);
+// //       double* wp8 = (double*) ldm_malloc (sizeof(double) * KM);
 
-//       double* akm_back = (double*) ldm_malloc (sizeof(double) * (KM-1));
-//       double* akt_back = (double*) ldm_malloc (sizeof(double) * (KM-1));
-//       double* aks_back = (double*) ldm_malloc (sizeof(double) * (KM-1));
-// #else
-      double wk1[KM-1], wk2[KM-1], wk3[KM-1];
-      double wp1[KM], wp3[KM], wp4[KM];
-      double wp5[KM], wp6[KM], wp7[KM], wp8[KM];
-// #endif // __sw_slave__
+// //       double* akm_back = (double*) ldm_malloc (sizeof(double) * (KM-1));
+// //       double* akt_back = (double*) ldm_malloc (sizeof(double) * (KM-1));
+// //       double* aks_back = (double*) ldm_malloc (sizeof(double) * (KM-1));
+// // #else
+//       double wk1[KM-1], wk2[KM-1], wk3[KM-1];
+//       double wp1[KM], wp3[KM], wp4[KM];
+//       double wp5[KM], wp6[KM], wp7[KM], wp8[KM];
+// // #endif // __sw_slave__
 
-      for (int k = 0; k < KM; ++k) {
-        wp1[k] = 0.0;
-        wp3[k] = 0.0;
-        wp4[k] = 0.0;
-        wp5[k] = 0.0;
-        wp6[k] = 0.0;
-        wp7[k] = 0.0;
-        wp8[k] = 0.0;
-      }
-      const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
-      for (int k = 0; k < kmt_m1; ++k) {
-        wp8[k] = - v_vit_(iblock, k+1, j, i) * v_zkp_(k+1) * 1.0e+2;
-      }
+//       for (int k = 0; k < KM; ++k) {
+//         wp1[k] = 0.0;
+//         wp3[k] = 0.0;
+//         wp4[k] = 0.0;
+//         wp5[k] = 0.0;
+//         wp6[k] = 0.0;
+//         wp7[k] = 0.0;
+//         wp8[k] = 0.0;
+//       }
+//       const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
+//       for (int k = 0; k < kmt_m1; ++k) {
+//         wp8[k] = - v_vit_(iblock, k+1, j, i) * v_zkp_(k+1) * 1.0e+2;
+//       }
 
-      for (int k = 0; k < kmt_m1; ++k) {
-        if (v_vit_(iblock, k+1, j, i) > 0.0) {
-          const double tmp = v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
-          wp1[k] = v_at_(iblock, 0, k, j, i) - (v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) * tmp;
-          wp4[k] = v_rit_(iblock, k, j, i);
-          wp5[k] = v_ricdttms_(iblock, k, j, i);
-          wp6[k] = v_s2t_(iblock, k, j, i);
-          wp7[k] = v_rict_(iblock, k, j, i);
+//       for (int k = 0; k < kmt_m1; ++k) {
+//         if (v_vit_(iblock, k+1, j, i) > 0.0) {
+//           const double tmp = v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
+//           wp1[k] = v_at_(iblock, 0, k, j, i) - (v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) * tmp;
+//           wp4[k] = v_rit_(iblock, k, j, i);
+//           wp5[k] = v_ricdttms_(iblock, k, j, i);
+//           wp6[k] = v_s2t_(iblock, k, j, i);
+//           wp7[k] = v_rict_(iblock, k, j, i);
 
-          wp3[k] = (v_pdensity_(iblock, k, j, i) + (v_pdensity_(iblock, k+1, j, i) -  v_pdensity_(iblock, k, j, i)) * tmp) * 1.e-3;
-        }
+//           wp3[k] = (v_pdensity_(iblock, k, j, i) + (v_pdensity_(iblock, k+1, j, i) -  v_pdensity_(iblock, k, j, i)) * tmp) * 1.e-3;
+//         }
 
-        // wp1[k] = v_vit_(iblock, k+1, j, i) * 
-        //     (v_at_(iblock, 0, k, j, i) - (v_at_(iblock, 0, k, j, i) - v_at_(i, j, k+1, 0, iblock)) * 
-        //         v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1)));
-        // wp4[k] =  v_vit_(iblock, k+1, j, i) * v_rit_(iblock, k, j, i);
-        // wp5[k] =  v_vit_(iblock, k+1, j, i) * v_ricdttms_(iblock, k, j, i);
-        // wp6[k] =  v_vit_(iblock, k+1, j, i) * v_s2t_(iblock, k, j, i);
-        // wp7[k] =  v_vit_(iblock, k+1, j, i) * v_rict_(iblock, k, j, i);
+//         // wp1[k] = v_vit_(iblock, k+1, j, i) * 
+//         //     (v_at_(iblock, 0, k, j, i) - (v_at_(iblock, 0, k, j, i) - v_at_(i, j, k+1, 0, iblock)) * 
+//         //         v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1)));
+//         // wp4[k] =  v_vit_(iblock, k+1, j, i) * v_rit_(iblock, k, j, i);
+//         // wp5[k] =  v_vit_(iblock, k+1, j, i) * v_ricdttms_(iblock, k, j, i);
+//         // wp6[k] =  v_vit_(iblock, k+1, j, i) * v_s2t_(iblock, k, j, i);
+//         // wp7[k] =  v_vit_(iblock, k+1, j, i) * v_rict_(iblock, k, j, i);
 
-        // wp3[k] =  v_vit_(iblock, k+1, j, i) * (v_pdensity_(iblock, k, j, i) + 
-        //     (v_pdensity_(iblock, k+1, j, i) -  v_pdensity_(iblock, k, j, i)) * 
-        //         v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1))) * 1.e-3;
-      }
-      // TODO vit can reduce
-      double wp10 = v_vit_(iblock, 0, j, i) * v_buoytur_(iblock, j, i) * 1.0e+4;
-      double wp11 = v_vit_(iblock, 0, j, i) * v_buoysol_(iblock, j, i) * 1.0e+4;
+//         // wp3[k] =  v_vit_(iblock, k+1, j, i) * (v_pdensity_(iblock, k, j, i) + 
+//         //     (v_pdensity_(iblock, k+1, j, i) -  v_pdensity_(iblock, k, j, i)) * 
+//         //         v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1))) * 1.e-3;
+//       }
+//       // TODO vit can reduce
+//       double wp10 = v_vit_(iblock, 0, j, i) * v_buoytur_(iblock, j, i) * 1.0e+4;
+//       double wp11 = v_vit_(iblock, 0, j, i) * v_buoysol_(iblock, j, i) * 1.0e+4;
 
-#ifdef CANUTOMIXOUT
-      // To do something
-#endif // CANUTOMIXOUT
-#ifdef CANUTO2010
-      // Fortran
-      call canuto_2010_interface(wk1, wk2, wk3, wk4, 
-          amld(i,j,iblock) ,tau_mag, wp1, wp2, wp3, wp4, wp5, 
-          wp7, wp6, ulat(i,j,iblock)/degtorad , wp8, 
-          kmt(i,j,iblock), iblock, j, i, isc)
-#endif // CANUTO2010
-      double mldtmp;
-// #ifdef __sw_slave__
-// #else
-      double akm_back[KM-1];
-      double akt_back[KM-1];
-      double aks_back[KM-1];
-// #endif
+// #ifdef CANUTOMIXOUT
+//       // To do something
+// #endif // CANUTOMIXOUT
+// #ifdef CANUTO2010
+//       // Fortran
+//       call canuto_2010_interface(wk1, wk2, wk3, wk4, 
+//           amld(i,j,iblock) ,tau_mag, wp1, wp2, wp3, wp4, wp5, 
+//           wp7, wp6, ulat(i,j,iblock)/degtorad , wp8, 
+//           kmt(i,j,iblock), iblock, j, i, isc)
+// #endif // CANUTO2010
+//       double mldtmp;
+// // #ifdef __sw_slave__
+// // #else
+//       double akm_back[KM-1];
+//       double akt_back[KM-1];
+//       double aks_back[KM-1];
+// // #endif
 
-      turb_2(wp8, wp1, wp3, wp4, wp5, wp6, 
-          dfricmx_ * 1.0e+4, dwndmix_ * 1.0e+4, 
-              akm_back, akt_back, aks_back,
-                  wp7, wp10, wp11, v_fcort_(iblock, j, i), 
-                      mldtmp, wk1, wk2, wk3, kmt_m1, KM-1, 1, 0);
+//       turb_2(wp8, wp1, wp3, wp4, wp5, wp6, 
+//           dfricmx_ * 1.0e+4, dwndmix_ * 1.0e+4, 
+//               akm_back, akt_back, aks_back,
+//                   wp7, wp10, wp11, v_fcort_(iblock, j, i), 
+//                       mldtmp, wk1, wk2, wk3, kmt_m1, KM-1, 1, 0);
 
-      v_amld_(iblock, j, i) = mldtmp * 1.0e-2;
+//       v_amld_(iblock, j, i) = mldtmp * 1.0e-2;
 
-#ifdef TIDEMIX
-      for (int k = 0; k < KM; ++k) {
-        v_ak_tide_(iblock, k, j, i) = 0.0;
-      }
-      for (int k = 0; k < kmt_m1; ++k) {
-        v_ak_tide_(iblock, k, j, i) = BACK_TIDALMIXING + MIXING_EF * 
-            LOCAL_MIXING_FRACTION * v_wave_dis_(iblock, j, i) * 
-            v_fz_tide_(iblock, k, j, i) /
-            (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * wp3[k] * 1000.0);
+// #ifdef TIDEMIX
+//       for (int k = 0; k < KM; ++k) {
+//         v_ak_tide_(iblock, k, j, i) = 0.0;
+//       }
+//       for (int k = 0; k < kmt_m1; ++k) {
+//         v_ak_tide_(iblock, k, j, i) = BACK_TIDALMIXING + MIXING_EF * 
+//             LOCAL_MIXING_FRACTION * v_wave_dis_(iblock, j, i) * 
+//             v_fz_tide_(iblock, k, j, i) /
+//             (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * wp3[k] * 1000.0);
 
-        v_ak_tide_(iblock, k, j, i) = fmin(v_ak_tide_(iblock, k, j, i),
-            MAX_TIDALMIXING);
+//         v_ak_tide_(iblock, k, j, i) = fmin(v_ak_tide_(iblock, k, j, i),
+//             MAX_TIDALMIXING);
 
-        v_richardson_(iblock, k, j, i) = v_rict_(iblock, k, j, i);
-        v_fztidal_(iblock, k, j, i)    = v_fz_tide_(iblock, k, j, i);
-        v_wp3_tidal_(iblock, k, j, i)  = wp3[k];
-      }
-#ifdef CANUTOMIXOUT
-#endif // CANUTOMIXOUT
-      for (int k = kmt_m1 - 2; k >= 0; --k) {
-        v_ak_tide_(iblock, k, j, i) = fmin(v_ak_tide_(iblock, k, j, i),
-            v_ak_tide_(iblock, k+1, j, i));
-      }
-#endif // TIDEMIX
-      const float tmp_ncc = 1.0 / static_cast<float>(ncc_);
+//         v_richardson_(iblock, k, j, i) = v_rict_(iblock, k, j, i);
+//         v_fztidal_(iblock, k, j, i)    = v_fz_tide_(iblock, k, j, i);
+//         v_wp3_tidal_(iblock, k, j, i)  = wp3[k];
+//       }
+// #ifdef CANUTOMIXOUT
+// #endif // CANUTOMIXOUT
+//       for (int k = kmt_m1 - 2; k >= 0; --k) {
+//         v_ak_tide_(iblock, k, j, i) = fmin(v_ak_tide_(iblock, k, j, i),
+//             v_ak_tide_(iblock, k+1, j, i));
+//       }
+// #endif // TIDEMIX
+//       const float tmp_ncc = 1.0 / static_cast<float>(ncc_);
 
-      for (int k = 0; k < KM - 1; ++k) {
-#ifdef TIDEMIX
-        v_akmt_(iblock, k, j, i) = wk1[k] * 1.0e-4 +
-            v_ak_tide_(iblock, k, j, i) * 5.0;
-        // v_akt_(iblock, 0, k, j, i) += (wk2[k] * 1.0e-4 + 
-        //     v_ak_tide_(iblock, k, j, i)) / 
-        //         static_cast<float>(ncc_);
-        // v_akt_(iblock, 1, k, j, i) += (wk3[k] * 1.0e-4 + 
-        //     v_ak_tide_(iblock, k, j, i)) / 
-        //         static_cast<float>(ncc_);
-        v_akt_(iblock, 0, k, j, i) += (wk2[k] * 1.0e-4 + 
-            v_ak_tide_(iblock, k, j, i)) * tmp_ncc;
-        v_akt_(iblock, 1, k, j, i) += (wk3[k] * 1.0e-4 + 
-            v_ak_tide_(iblock, k, j, i)) * tmp_ncc;
-#ifdef BCKMEX
-        v_akmt_(iblock, k, j, i) += diff_back[iblock][j][i] * 
-            10.0 * 1.0e-4;
-        v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] /
-                static_cast<float>(ncc) * 1.0e-4;
-        v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] /
-                static_cast<float>(ncc) * 1.0e-4;
-#endif // BCKMEX
-#else // TIDEMIX
-        v_akmt_(iblock, k, j, i) = wk1[k] * 1.0e-4;
-        v_akt_(iblock, 0, k, j, i) += wk2[k] * 1.0e-4 / 
-            static_cast<float>(ncc_);
-        v_akt_(iblock, 1, k, j, i) += wk3[k] * 1.0e-4 / 
-            static_cast<float>(ncc_);
-#ifdef BCKMEX
-        v_akmt_(iblock, k, j, i)   += diff_back[iblock][j][i] * 
-            10.0 * 1.0e-4;
-        v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] / 
-            static_cast<float>(ncc_) * 1.0e-4;
-        v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] / 
-            static_cast<float>(ncc_) * 1.0e-4;
-#endif // BCKMEX
-#endif // TIDEMIX
-      }
-// #ifdef __sw_slave__
-//       ldm_free (wk1, sizeof(double) * (KM-1));
-//       ldm_free (wk2, sizeof(double) * (KM-1));
-//       ldm_free (wk3, sizeof(double) * (KM-1));
+//       for (int k = 0; k < KM - 1; ++k) {
+// #ifdef TIDEMIX
+//         v_akmt_(iblock, k, j, i) = wk1[k] * 1.0e-4 +
+//             v_ak_tide_(iblock, k, j, i) * 5.0;
+//         // v_akt_(iblock, 0, k, j, i) += (wk2[k] * 1.0e-4 + 
+//         //     v_ak_tide_(iblock, k, j, i)) / 
+//         //         static_cast<float>(ncc_);
+//         // v_akt_(iblock, 1, k, j, i) += (wk3[k] * 1.0e-4 + 
+//         //     v_ak_tide_(iblock, k, j, i)) / 
+//         //         static_cast<float>(ncc_);
+//         v_akt_(iblock, 0, k, j, i) += (wk2[k] * 1.0e-4 + 
+//             v_ak_tide_(iblock, k, j, i)) * tmp_ncc;
+//         v_akt_(iblock, 1, k, j, i) += (wk3[k] * 1.0e-4 + 
+//             v_ak_tide_(iblock, k, j, i)) * tmp_ncc;
+// #ifdef BCKMEX
+//         v_akmt_(iblock, k, j, i) += diff_back[iblock][j][i] * 
+//             10.0 * 1.0e-4;
+//         v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] /
+//                 static_cast<float>(ncc) * 1.0e-4;
+//         v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] /
+//                 static_cast<float>(ncc) * 1.0e-4;
+// #endif // BCKMEX
+// #else // TIDEMIX
+//         v_akmt_(iblock, k, j, i) = wk1[k] * 1.0e-4;
+//         v_akt_(iblock, 0, k, j, i) += wk2[k] * 1.0e-4 / 
+//             static_cast<float>(ncc_);
+//         v_akt_(iblock, 1, k, j, i) += wk3[k] * 1.0e-4 / 
+//             static_cast<float>(ncc_);
+// #ifdef BCKMEX
+//         v_akmt_(iblock, k, j, i)   += diff_back[iblock][j][i] * 
+//             10.0 * 1.0e-4;
+//         v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] / 
+//             static_cast<float>(ncc_) * 1.0e-4;
+//         v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] / 
+//             static_cast<float>(ncc_) * 1.0e-4;
+// #endif // BCKMEX
+// #endif // TIDEMIX
+//       }
+// // #ifdef __sw_slave__
+// //       ldm_free (wk1, sizeof(double) * (KM-1));
+// //       ldm_free (wk2, sizeof(double) * (KM-1));
+// //       ldm_free (wk3, sizeof(double) * (KM-1));
 
-//       ldm_free (wp1, sizeof(double) * KM);
-//       ldm_free (wp2, sizeof(double) * KM);
-//       ldm_free (wp3, sizeof(double) * KM);
-//       ldm_free (wp4, sizeof(double) * KM);
-//       ldm_free (wp5, sizeof(double) * KM);
-//       ldm_free (wp6, sizeof(double) * KM);
-//       ldm_free (wp7, sizeof(double) * KM);
-//       ldm_free (wp8, sizeof(double) * KM);
+// //       ldm_free (wp1, sizeof(double) * KM);
+// //       ldm_free (wp2, sizeof(double) * KM);
+// //       ldm_free (wp3, sizeof(double) * KM);
+// //       ldm_free (wp4, sizeof(double) * KM);
+// //       ldm_free (wp5, sizeof(double) * KM);
+// //       ldm_free (wp6, sizeof(double) * KM);
+// //       ldm_free (wp7, sizeof(double) * KM);
+// //       ldm_free (wp8, sizeof(double) * KM);
 
-//       ldm_free (akm_back, sizeof(double) * (KM-1));
-//       ldm_free (akt_back, sizeof(double) * (KM-1));
-//       ldm_free (aks_back, sizeof(double) * (KM-1));
-// #endif // __sw_slave__
-    }
-    return ;
-  };
- private:
-  const int ncc_     = CppPconstMod::ncc;
-  const double dfricmx_ = CppPconstMod::dfricmx;
-  const double dwndmix_ = CppPconstMod::dwndmix;
+// //       ldm_free (akm_back, sizeof(double) * (KM-1));
+// //       ldm_free (akt_back, sizeof(double) * (KM-1));
+// //       ldm_free (aks_back, sizeof(double) * (KM-1));
+// // #endif // __sw_slave__
+//     }
+//     return ;
+//   };
+//  private:
+//   const int ncc_     = CppPconstMod::ncc;
+//   const double dfricmx_ = CppPconstMod::dfricmx;
+//   const double dwndmix_ = CppPconstMod::dwndmix;
 
-  const double b1_         = CppCanutoMod::b1;
-  const double dri_        = CppCanutoMod::dri;
-  const double rri_        = CppCanutoMod::rri;
-  const double rnd2on2_    = CppCanutoMod::rnd2on2;
-  const double dand2on2_   = CppCanutoMod::dand2on2;
-  const double deltheta_r_ = CppCanutoMod::deltheta_r;
-  const double theta_rcrp_ = CppCanutoMod::theta_rcrp;
-  const double theta_rcrn_ = CppCanutoMod::theta_rcrn;
+//   const double b1_         = CppCanutoMod::b1;
+//   const double dri_        = CppCanutoMod::dri;
+//   const double rri_        = CppCanutoMod::rri;
+//   const double rnd2on2_    = CppCanutoMod::rnd2on2;
+//   const double dand2on2_   = CppCanutoMod::dand2on2;
+//   const double deltheta_r_ = CppCanutoMod::deltheta_r;
+//   const double theta_rcrp_ = CppCanutoMod::theta_rcrp;
+//   const double theta_rcrn_ = CppCanutoMod::theta_rcrn;
 
-  const ViewInt1D    v_irimax_     = *p_v_irimax;
-  const ViewInt3D    v_kmt_        = *p_v_kmt;
-  const ViewDouble1D v_dzp_        = *p_v_dzp;
-  const ViewDouble1D v_zkp_        = *p_v_zkp;
-  const ViewDouble1D v_rib_        = *p_v_rib;
-  const ViewDouble1D v_ridb_       = *p_v_ridb;
-  const ViewDouble1D v_sma1_       = *p_v_sma1;
-  const ViewDouble1D v_sha1_       = *p_v_sha1;
-  const ViewDouble1D v_ssa1_       = *p_v_ssa1;
-  const ViewDouble1D v_and2on2a1_  = *p_v_and2on2a1;
-  const ViewDouble1D v_amtaun2a1_  = *p_v_amtaun2a1;
-  const ViewDouble1D v_back_ra_r_  = *p_v_back_ra_r;
-  const ViewDouble1D v_sm_r1_      = *p_v_sm_r1;
-  const ViewDouble1D v_sh_r1_      = *p_v_sh_r1;
-  const ViewDouble1D v_ss_r1_      = *p_v_ss_r1;
-  const ViewDouble1D v_slq2_r1_    = *p_v_slq2_r1;
-  const ViewDouble2D v_smb_        = *p_v_smb;
-  const ViewDouble2D v_shb_        = *p_v_shb;
-  const ViewDouble2D v_ssb_        = *p_v_ssb;
-  const ViewDouble2D v_slq2b_      = *p_v_slq2b;
-  const ViewDouble3D v_amld_       = *p_v_amld;
-  const ViewDouble3D v_fcort_      = *p_v_fcort;
-  const ViewDouble3D v_buoytur_    = *p_v_buoytur;
-  const ViewDouble3D v_buoysol_    = *p_v_buoysol;
-  const ViewDouble3D v_wave_dis_   = *p_v_wave_dis;
-  const ViewDouble4D v_rit_        = *p_v_rit;
-  const ViewDouble4D v_rict_       = *p_v_rict;
-  const ViewDouble4D v_akmt_       = *p_v_akmt;
-  const ViewDouble4D v_fztidal_    = *p_v_fztidal;
-  const ViewDouble4D v_wp3_tidal_  = *p_v_wp3_tidal;
-  const ViewDouble4D v_pdensity_   = *p_v_pdensity;
-  const ViewDouble4D v_ricdttms_   = *p_v_ricdttms;
-  const ViewDouble4D v_richardson_ = *p_v_richardson;
-  const ViewDouble4D v_ak_tide_    = *p_v_ak_tide;
-  const ViewDouble4D v_fz_tide_    = *p_v_fz_tide;
-  const ViewDouble4D v_s2t_        = *p_v_s2t;
-  const ViewDouble4D v_vit_        = *p_v_vit;
-  const ViewDouble5D v_at_         = *p_v_at;
-  const ViewDouble5D v_akt_        = *p_v_akt;
+//   const ViewInt1D    v_irimax_     = *p_v_irimax;
+//   const ViewInt3D    v_kmt_        = *p_v_kmt;
+//   const ViewDouble1D v_dzp_        = *p_v_dzp;
+//   const ViewDouble1D v_zkp_        = *p_v_zkp;
+//   const ViewDouble1D v_rib_        = *p_v_rib;
+//   const ViewDouble1D v_ridb_       = *p_v_ridb;
+//   const ViewDouble1D v_sma1_       = *p_v_sma1;
+//   const ViewDouble1D v_sha1_       = *p_v_sha1;
+//   const ViewDouble1D v_ssa1_       = *p_v_ssa1;
+//   const ViewDouble1D v_and2on2a1_  = *p_v_and2on2a1;
+//   const ViewDouble1D v_amtaun2a1_  = *p_v_amtaun2a1;
+//   const ViewDouble1D v_back_ra_r_  = *p_v_back_ra_r;
+//   const ViewDouble1D v_sm_r1_      = *p_v_sm_r1;
+//   const ViewDouble1D v_sh_r1_      = *p_v_sh_r1;
+//   const ViewDouble1D v_ss_r1_      = *p_v_ss_r1;
+//   const ViewDouble1D v_slq2_r1_    = *p_v_slq2_r1;
+//   const ViewDouble2D v_smb_        = *p_v_smb;
+//   const ViewDouble2D v_shb_        = *p_v_shb;
+//   const ViewDouble2D v_ssb_        = *p_v_ssb;
+//   const ViewDouble2D v_slq2b_      = *p_v_slq2b;
+//   const ViewDouble3D v_amld_       = *p_v_amld;
+//   const ViewDouble3D v_fcort_      = *p_v_fcort;
+//   const ViewDouble3D v_buoytur_    = *p_v_buoytur;
+//   const ViewDouble3D v_buoysol_    = *p_v_buoysol;
+//   const ViewDouble3D v_wave_dis_   = *p_v_wave_dis;
+//   const ViewDouble4D v_rit_        = *p_v_rit;
+//   const ViewDouble4D v_rict_       = *p_v_rict;
+//   const ViewDouble4D v_akmt_       = *p_v_akmt;
+//   const ViewDouble4D v_fztidal_    = *p_v_fztidal;
+//   const ViewDouble4D v_wp3_tidal_  = *p_v_wp3_tidal;
+//   const ViewDouble4D v_pdensity_   = *p_v_pdensity;
+//   const ViewDouble4D v_ricdttms_   = *p_v_ricdttms;
+//   const ViewDouble4D v_richardson_ = *p_v_richardson;
+//   const ViewDouble4D v_ak_tide_    = *p_v_ak_tide;
+//   const ViewDouble4D v_fz_tide_    = *p_v_fz_tide;
+//   const ViewDouble4D v_s2t_        = *p_v_s2t;
+//   const ViewDouble4D v_vit_        = *p_v_vit;
+//   const ViewDouble5D v_at_         = *p_v_at;
+//   const ViewDouble5D v_akt_        = *p_v_akt;
 
-  KOKKOS_INLINE_FUNCTION void turb_2(
-      const double (&z)[KM],        // wp8
-      const double (&t)[KM],        // wp1
-      const double (&rh)[KM],       // wp3
-            double (&ri)[KM],       // wp4
-      const double (&rid)[KM],      // wp5
-            double (&s2)[KM],       // wp6
-      const double &fricmx,         // DFRICMX * 1.0e+4
-      const double &wndmix,         // DWNDMIX * 1.0e+4
-            double (&v_back)[KM-1], // akm_back
-            double (&t_back)[KM-1], // akt_back
-            double (&s_back)[KM-1], // aks_back
-      const double (&an2)[KM],      // wp7
-      const double &buoytur,        // wp10
-      const double &buoysol,        // wp11
-      const double &coriol,         // fcort[iblock][j][i]
-            double &amld,           // mldtmp
-            double (&akm)[KM-1],    // wk1
-            double (&akh)[KM-1],    // wk2
-            double (&aks)[KM-1],    // wk3
-      const int    &n,              // iwk
-      const int    &nmax,           // km - 1
-      const int    &isurfuse,       // 1
-      const int    &ifextermld      // 0
-  ) const {
+//   KOKKOS_INLINE_FUNCTION void turb_2(
+//       const double (&z)[KM],        // wp8
+//       const double (&t)[KM],        // wp1
+//       const double (&rh)[KM],       // wp3
+//             double (&ri)[KM],       // wp4
+//       const double (&rid)[KM],      // wp5
+//             double (&s2)[KM],       // wp6
+//       const double &fricmx,         // DFRICMX * 1.0e+4
+//       const double &wndmix,         // DWNDMIX * 1.0e+4
+//             double (&v_back)[KM-1], // akm_back
+//             double (&t_back)[KM-1], // akt_back
+//             double (&s_back)[KM-1], // aks_back
+//       const double (&an2)[KM],      // wp7
+//       const double &buoytur,        // wp10
+//       const double &buoysol,        // wp11
+//       const double &coriol,         // fcort[iblock][j][i]
+//             double &amld,           // mldtmp
+//             double (&akm)[KM-1],    // wk1
+//             double (&akh)[KM-1],    // wk2
+//             double (&aks)[KM-1],    // wk3
+//       const int    &n,              // iwk
+//       const int    &nmax,           // km - 1
+//       const int    &isurfuse,       // 1
+//       const int    &ifextermld      // 0
+//   ) const {
 
-    double an = 0.0;
-    double sh_back = 0.0;
-    double sm_back = 0.0;
-    double ss_back = 0.0;
-    double slq2_back = 0.0;
+//     double an = 0.0;
+//     double sh_back = 0.0;
+//     double sm_back = 0.0;
+//     double ss_back = 0.0;
+//     double slq2_back = 0.0;
  
-    double ri1  = 0.0;
-    double rid1 = 0.0;
+//     double ri1  = 0.0;
+//     double rid1 = 0.0;
  
-    int ifbelow;
-    int ifpureshear = 0;
+//     int ifbelow;
+//     int ifpureshear = 0;
  
-    int ifnofsmall = 0;
+//     int ifnofsmall = 0;
  
-    int nb = std::max(0, n);
-    double visc_cbu_limit1 = fricmx;
-    double diff_cbt_limit1 = fricmx;
-    double buoytot = buoytur + buoysol;
+//     int nb = std::max(0, n);
+//     double visc_cbu_limit1 = fricmx;
+//     double diff_cbt_limit1 = fricmx;
+//     double buoytot = buoytur + buoysol;
  
-    // if (ifextermld == 0) {
-    //   if (n > 0) {
-    //       formld(z, t, amld, n);
-    //   } else if (n == 0) {
-    //     amld = z[0];
-    //   } else {
-    //     amld = 0.0;
-    //   }
-    // }
-    // if (ifextermld == 0) {
-      if (n > 0) {
-          formld(z, t, amld, n);
-      } else if (n == 0) {
-        amld = z[0];
-      } else {
-        amld = 0.0;
-      }
-    // }
+//     // if (ifextermld == 0) {
+//     //   if (n > 0) {
+//     //       formld(z, t, amld, n);
+//     //   } else if (n == 0) {
+//     //     amld = z[0];
+//     //   } else {
+//     //     amld = 0.0;
+//     //   }
+//     // }
+//     // if (ifextermld == 0) {
+//       if (n > 0) {
+//           formld(z, t, amld, n);
+//       } else if (n == 0) {
+//         amld = z[0];
+//       } else {
+//         amld = 0.0;
+//       }
+//     // }
  
-    double al0 = 0.17 * amld;
+//     double al0 = 0.17 * amld;
  
-    ifbelow = 0;
+//     ifbelow = 0;
  
-    // int icall(0);
-    // int ipoint(0);
-    // int iproblem(0)
-    // int inegproblem(0);
+//     // int icall(0);
+//     // int ipoint(0);
+//     // int iproblem(0)
+//     // int inegproblem(0);
  
-    double sm, sh, ss;
-    double slq2, epson2;
+//     double sm, sh, ss;
+//     double slq2, epson2;
 
-    double epsy[KM];
-    bool lifepsy[KM];
+//     double epsy[KM];
+//     bool lifepsy[KM];
 
-    // !020219D REFERENCE NOTE: START OF PRIMARY LOOP OVER DEPTH LEVELS.
-    for (int k = 0; k < n; ++k) {
+//     // !020219D REFERENCE NOTE: START OF PRIMARY LOOP OVER DEPTH LEVELS.
+//     for (int k = 0; k < n; ++k) {
   
-      double amtaun2(0.0);
+//       double amtaun2(0.0);
   
-      ifnofsmall = 0;
-      if (an2[k] >= 0.0) {
-        an = sqrt(an2[k]);
-      }
-      if ((an / fabs(coriol)) < 1.0) {
-        ifnofsmall = 1;
-      }
+//       ifnofsmall = 0;
+//       if (an2[k] >= 0.0) {
+//         an = sqrt(an2[k]);
+//       }
+//       if ((an / fabs(coriol)) < 1.0) {
+//         ifnofsmall = 1;
+//       }
   
-      ri1 = ri[k];
+//       ri1 = ri[k];
   
-      // if (ifsali == 1), ifsali = 1 in canuto_mod_2002
-      // 981104 Use Ri_d = Ri_C - Ri_T in salinity-temperature turbulence model.
-      rid1 = rid[k];
-      const double and2 = rid[k] / (ri[k] + 1.0e-25) * an2[k];
-      double and2on2 = and2 / (an2[k] + 1.0e-25);
+//       // if (ifsali == 1), ifsali = 1 in canuto_mod_2002
+//       // 981104 Use Ri_d = Ri_C - Ri_T in salinity-temperature turbulence model.
+//       rid1 = rid[k];
+//       const double and2 = rid[k] / (ri[k] + 1.0e-25) * an2[k];
+//       double and2on2 = and2 / (an2[k] + 1.0e-25);
   
-      if (an2[k] < v_rib_(0) * s2[k]) {
-        ifpureshear = 1;
-      } else {
-        ifpureshear = 0;
-      }
+//       if (an2[k] < v_rib_(0) * s2[k]) {
+//         ifpureshear = 1;
+//       } else {
+//         ifpureshear = 0;
+//       }
 
-      // ifastexpabs = 1 in canuto_mod_2002
-      if (ifpureshear == 1) {
-        const int imax = MT;
+//       // ifastexpabs = 1 in canuto_mod_2002
+//       if (ifpureshear == 1) {
+//         const int imax = MT;
   
-        interp1d_expabs(and2on2, amtaun2, 
-            sm, sh, ss, imax, dand2on2_, rnd2on2_);
+//         interp1d_expabs(and2on2, amtaun2, 
+//             sm, sh, ss, imax, dand2on2_, rnd2on2_);
   
-        slq2 = (-amtaun2) / ((b1_ * b1_) * ri[k] + 1.0e-25);
-      }
+//         slq2 = (-amtaun2) / ((b1_ * b1_) * ri[k] + 1.0e-25);
+//       }
 
-      if (ifpureshear != 1) {
-        interp2d_expabs(ri1, rid1, slq2, sm, sh, ss);
-      }
+//       if (ifpureshear != 1) {
+//         interp2d_expabs(ri1, rid1, slq2, sm, sh, ss);
+//       }
   
-      if (ifpureshear != 1) {
-        if (slq2 < 0.0) {
-          return ;
-        }
-        if (slq2 == 0) {
-          ifbelow = 1;
-        }
-      }
+//       if (ifpureshear != 1) {
+//         if (slq2 < 0.0) {
+//           return ;
+//         }
+//         if (slq2 == 0) {
+//           ifbelow = 1;
+//         }
+//       }
   
-      // bool lifupper = (((IFEPSON2  < 2) || (ifbelow == 0) || 
-      //     ((IFDEEPLAT > 0) && (ifnofsmall == 1)) || 
-      //     ((ri1 < 0.0) && (k <= 2))) && (slq2 > 0.0));
-      bool lifupper = (((ifbelow == 0) || (ifnofsmall == 1) || 
-          ((ri1 < 0.0) && (k <= 2))) && (slq2 > 0.0));
+//       // bool lifupper = (((IFEPSON2  < 2) || (ifbelow == 0) || 
+//       //     ((IFDEEPLAT > 0) && (ifnofsmall == 1)) || 
+//       //     ((ri1 < 0.0) && (k <= 2))) && (slq2 > 0.0));
+//       bool lifupper = (((ifbelow == 0) || (ifnofsmall == 1) || 
+//           ((ri1 < 0.0) && (k <= 2))) && (slq2 > 0.0));
   
-      // ++ipoint;
-      // if (k == 0) {
-      //   ++icall;
-      // }
-      epsy[k] = 0.0;
-      lifepsy[k] = false;
+//       // ++ipoint;
+//       // if (k == 0) {
+//       //   ++icall;
+//       // }
+//       epsy[k] = 0.0;
+//       lifepsy[k] = false;
   
-      // if ((isurfuse == 1) && n > 0) {
-      if (n > 0) {
-        if (slq2 == 0.0) {
-          epsy[k] = 0.0;
-        } else {
-          epsy[k] = - buoytot
-              / ((1.0 / ((b1_ * b1_) * slq2)) - 0.5 * sm);
-        }
-        lifepsy[k] = ((epsy[k] >= 0.0) && lifupper);
-        // if ((epsy[k] < 0.0) && lifupper) {
-        //   ++iproblem;
-        //   if (ri1 < 0.0) {
-        //     ++inegproblem;
-        //   }
-        // }
-      }
+//       // if ((isurfuse == 1) && n > 0) {
+//       if (n > 0) {
+//         if (slq2 == 0.0) {
+//           epsy[k] = 0.0;
+//         } else {
+//           epsy[k] = - buoytot
+//               / ((1.0 / ((b1_ * b1_) * slq2)) - 0.5 * sm);
+//         }
+//         lifepsy[k] = ((epsy[k] >= 0.0) && lifupper);
+//         // if ((epsy[k] < 0.0) && lifupper) {
+//         //   ++iproblem;
+//         //   if (ri1 < 0.0) {
+//         //     ++inegproblem;
+//         //   }
+//         // }
+//       }
 
-      // if ilomega == 1, ilomega = 0 in canuto_mod_2002
+//       // if ilomega == 1, ilomega = 0 in canuto_mod_2002
   
-      double akz = 0.4 * z[k];
-      double al = akz * al0 / (al0 + akz);
+//       double akz = 0.4 * z[k];
+//       double al = akz * al0 / (al0 + akz);
   
-      double al2 = al * al;
+//       double al2 = al * al;
   
-      // if (!(((IFEPSON2 == 2) && (ifbelow == 1)) || lifepsy[k])) {
-      if (!(ifbelow == 1 || lifepsy[k])) {
-        if (ri1 > 0.0) {
-          const double anlq2 = slq2 * ri1;
-          if (anlq2 > 0.281) {
-            al2  = 0.281 / anlq2 * al2;
-            // if icondear == 0, icondear = 0 in canuto_mod_2002
-            slq2 = 0.281 / (ri1 + 1.0e-20);
-          }
-        }
-      }
+//       // if (!(((IFEPSON2 == 2) && (ifbelow == 1)) || lifepsy[k])) {
+//       if (!(ifbelow == 1 || lifepsy[k])) {
+//         if (ri1 > 0.0) {
+//           const double anlq2 = slq2 * ri1;
+//           if (anlq2 > 0.281) {
+//             al2  = 0.281 / anlq2 * al2;
+//             // if icondear == 0, icondear = 0 in canuto_mod_2002
+//             slq2 = 0.281 / (ri1 + 1.0e-20);
+//           }
+//         }
+//       }
   
-      double epson2_;
-      if (an2[k] < 0.0) {
-        // Just to "hold the place". Value irrelevent here.
-        epson2_ = EPSON2__;
-      } else {
-        double eplatidepend;
-        // if ifdeeplat, ifdeeplat = 1 in canuto_mod_2002
-        if (ifnofsmall == 1) {
-          eplatidepend = 0.0;
-        } else {
-	 	      eplatidepend = eplatidepend_(fabs(coriol), an);
-        }
+//       double epson2_;
+//       if (an2[k] < 0.0) {
+//         // Just to "hold the place". Value irrelevent here.
+//         epson2_ = EPSON2__;
+//       } else {
+//         double eplatidepend;
+//         // if ifdeeplat, ifdeeplat = 1 in canuto_mod_2002
+//         if (ifnofsmall == 1) {
+//           eplatidepend = 0.0;
+//         } else {
+// 	 	      eplatidepend = eplatidepend_(fabs(coriol), an);
+//         }
   
-        eplatidepend = fmax(eplatidepend, EPLATIDEPENDMIN);
+//         eplatidepend = fmax(eplatidepend, EPLATIDEPENDMIN);
   
-        epson2_ = EPSON2__ * eplatidepend;
-      }
+//         epson2_ = EPSON2__ * eplatidepend;
+//       }
   
-      // if ifepson2 >= 1, ifepson2 = 2 in canuto_mod_2002
-      // if ifbotenhance == 0, ifbotenhance = 0 in canuto_mod_2002
-      epson2 = epson2_;
+//       // if ifepson2 >= 1, ifepson2 = 2 in canuto_mod_2002
+//       // if ifbotenhance == 0, ifbotenhance = 0 in canuto_mod_2002
+//       epson2 = epson2_;
   
-      // if ifback >= 4 and ifsali == 0, ifback = 5 and ifsali = 1 in canuto_mod_2002
-      // if ifsali > 0, ifsali = 1 in canuto_mod_2002
-      // if ifsalback == 1, 2, 3, ifsaliback = 5 in canuto_mod_2002
-      // if ifsalback >= 4, ifsaliback = 5 in canuto_mod_2002
-      // if ifsalback == 4, ifsaliback = 5 in canuto_mod_2002
-      // else
+//       // if ifback >= 4 and ifsali == 0, ifback = 5 and ifsali = 1 in canuto_mod_2002
+//       // if ifsali > 0, ifsali = 1 in canuto_mod_2002
+//       // if ifsalback == 1, 2, 3, ifsaliback = 5 in canuto_mod_2002
+//       // if ifsalback >= 4, ifsaliback = 5 in canuto_mod_2002
+//       // if ifsalback == 4, ifsaliback = 5 in canuto_mod_2002
+//       // else
 
-      int ifrafglt = 0;
+//       int ifrafglt = 0;
   
-      double rit(0.0), ric(0.0);
-      double back_ra_r1;
-      double back_ri1,  back_ric1;
-      double back_rid1, back_rit1;
-      double theta_r(0.0);
-      double deltheta_r1;
-      int itheta_r0(0), itheta_r1(0);
-      int jtheta_r0(0);
-      double ra_r;
+//       double rit(0.0), ric(0.0);
+//       double back_ra_r1;
+//       double back_ri1,  back_ric1;
+//       double back_rid1, back_rit1;
+//       double theta_r(0.0);
+//       double deltheta_r1;
+//       int itheta_r0(0), itheta_r1(0);
+//       int jtheta_r0(0);
+//       double ra_r;
   
-      const double tmp_deltheta_r = 1.0 / deltheta_r_;
-      if (ri[k] <= 0.0) {
-        back_ra_r1 = 0.0;
-        back_rit1  = 0.0;
-        back_ric1  = 0.0;
-        back_ri1   = 0.0;
-        back_rid1  = 0.0;
-      } else {
-        // rit = (ri[k] + rid[k]) / 2.0;
-        // ric = (ri[k] - rid[k]) / 2.0;
-        rit = (ri[k] + rid[k]) * 0.5;
-        ric = (ri[k] - rid[k]) * 0.5;
-        ra_r = sqrt((rit * rit) + (ric * ric));
+//       const double tmp_deltheta_r = 1.0 / deltheta_r_;
+//       if (ri[k] <= 0.0) {
+//         back_ra_r1 = 0.0;
+//         back_rit1  = 0.0;
+//         back_ric1  = 0.0;
+//         back_ri1   = 0.0;
+//         back_rid1  = 0.0;
+//       } else {
+//         // rit = (ri[k] + rid[k]) / 2.0;
+//         // ric = (ri[k] - rid[k]) / 2.0;
+//         rit = (ri[k] + rid[k]) * 0.5;
+//         ric = (ri[k] - rid[k]) * 0.5;
+//         ra_r = sqrt((rit * rit) + (ric * ric));
   
-        if (rit == 0.0) {
-          if (ric == 0.0) {
-            theta_r = atan(1.0);
-          } else {
-            // theta_r = PI / 2.0;
-            theta_r = PI * 0.5;
-          }
-        } else {
-          theta_r = atan(ric / rit);
-        }
-        // if (fabs(theta_r) > (PI / 2.0)) {
-        if (fabs(theta_r) > (PI * 0.5)) {
-          return ;
-        }
-        // if (theta_r < (-PI) / 4.0) {
-        if (theta_r < (-PI) * 0.25) {
-          theta_r += PI;
-        }
+//         if (rit == 0.0) {
+//           if (ric == 0.0) {
+//             theta_r = atan(1.0);
+//           } else {
+//             // theta_r = PI / 2.0;
+//             theta_r = PI * 0.5;
+//           }
+//         } else {
+//           theta_r = atan(ric / rit);
+//         }
+//         // if (fabs(theta_r) > (PI / 2.0)) {
+//         if (fabs(theta_r) > (PI * 0.5)) {
+//           return ;
+//         }
+//         // if (theta_r < (-PI) / 4.0) {
+//         if (theta_r < (-PI) * 0.25) {
+//           theta_r += PI;
+//         }
   
-        jtheta_r0 = static_cast<int>(
-            // (theta_r + (PI / 4.0)) / deltheta_r_);
-            (theta_r + (PI * 0.25)) * tmp_deltheta_r);
+//         jtheta_r0 = static_cast<int>(
+//             // (theta_r + (PI / 4.0)) / deltheta_r_);
+//             (theta_r + (PI * 0.25)) * tmp_deltheta_r);
   
-        itheta_r0 = jtheta_r0 - N_THETA_R_OCT;
-        itheta_r1 = itheta_r0 + 1;
+//         itheta_r0 = jtheta_r0 - N_THETA_R_OCT;
+//         itheta_r1 = itheta_r0 + 1;
   
-        double theta_r0 = itheta_r0 * deltheta_r_;
-        double theta_r1 = itheta_r1 * deltheta_r_;
+//         double theta_r0 = itheta_r0 * deltheta_r_;
+//         double theta_r1 = itheta_r1 * deltheta_r_;
   
-        if ((theta_r0 <= theta_rcrp_) &&
-             (theta_r > theta_rcrp_)) {
-          theta_r    = theta_r1;
-          theta_r0   = theta_r1;
-          itheta_r0  = itheta_r1;
-          itheta_r1 += 1;
-          theta_r1  += deltheta_r_;
-        } else if ((theta_r1 >= theta_rcrn_) &&
-                   (theta_r  < theta_rcrn_)) {
-          theta_r    = theta_r0;
-          theta_r1   = theta_r0;
-          itheta_r1  = itheta_r0;
-          itheta_r0 -= 1;
-          theta_r0  -= deltheta_r_;
-        }
+//         if ((theta_r0 <= theta_rcrp_) &&
+//              (theta_r > theta_rcrp_)) {
+//           theta_r    = theta_r1;
+//           theta_r0   = theta_r1;
+//           itheta_r0  = itheta_r1;
+//           itheta_r1 += 1;
+//           theta_r1  += deltheta_r_;
+//         } else if ((theta_r1 >= theta_rcrn_) &&
+//                    (theta_r  < theta_rcrn_)) {
+//           theta_r    = theta_r0;
+//           theta_r1   = theta_r0;
+//           itheta_r1  = itheta_r0;
+//           itheta_r0 -= 1;
+//           theta_r0  -= deltheta_r_;
+//         }
   
-        if ((itheta_r1 > 3 * N_THETA_R_OCT) ||
-            (itheta_r0 < - N_THETA_R_OCT)) {
-          return ;
-        }
+//         if ((itheta_r1 > 3 * N_THETA_R_OCT) ||
+//             (itheta_r0 < - N_THETA_R_OCT)) {
+//           return ;
+//         }
   
-        deltheta_r1 = theta_r - theta_r0;
+//         deltheta_r1 = theta_r - theta_r0;
   
-        const double delback_ra_r = 
-            v_back_ra_r_(N_THETA_R_OCT + itheta_r1) 
-                - v_back_ra_r_(N_THETA_R_OCT + itheta_r0);
+//         const double delback_ra_r = 
+//             v_back_ra_r_(N_THETA_R_OCT + itheta_r1) 
+//                 - v_back_ra_r_(N_THETA_R_OCT + itheta_r0);
   
-        const double dback_ra_r_o_dtheta = 
-            // delback_ra_r / deltheta_r_;
-            delback_ra_r * tmp_deltheta_r;
+//         const double dback_ra_r_o_dtheta = 
+//             // delback_ra_r / deltheta_r_;
+//             delback_ra_r * tmp_deltheta_r;
   
-        back_ra_r1 = v_back_ra_r_(N_THETA_R_OCT + itheta_r0) 
-            + deltheta_r1 * dback_ra_r_o_dtheta;
+//         back_ra_r1 = v_back_ra_r_(N_THETA_R_OCT + itheta_r0) 
+//             + deltheta_r1 * dback_ra_r_o_dtheta;
   
-        ifrafglt = 0;
+//         ifrafglt = 0;
 
-        // if ifrafgmax == 1, ifrafgmax = 1 in canuto_mod_2002
+//         // if ifrafgmax == 1, ifrafgmax = 1 in canuto_mod_2002
   
-        if ((theta_r <= theta_rcrp_) ||
-            (theta_r >= theta_rcrn_)) {
-          if (back_ra_r1 > ra_r) {
-            ifrafglt = 1;
-            back_ra_r1 = ra_r;
-          }
-        }
+//         if ((theta_r <= theta_rcrp_) ||
+//             (theta_r >= theta_rcrn_)) {
+//           if (back_ra_r1 > ra_r) {
+//             ifrafglt = 1;
+//             back_ra_r1 = ra_r;
+//           }
+//         }
   
-        if (back_ra_r1 < 0.0) {
-          return ;
-        }
-        back_rit1 = cos(theta_r) * back_ra_r1;
-        back_ric1 = sin(theta_r) * back_ra_r1;
-        back_ri1  = back_rit1 + back_ric1;
-        back_rid1 = back_rit1 - back_ric1;
-      }
-      // End if ifsalback > 4
+//         if (back_ra_r1 < 0.0) {
+//           return ;
+//         }
+//         back_rit1 = cos(theta_r) * back_ra_r1;
+//         back_ric1 = sin(theta_r) * back_ra_r1;
+//         back_ri1  = back_rit1 + back_ric1;
+//         back_rid1 = back_rit1 - back_ric1;
+//       }
+//       // End if ifsalback > 4
   
-      if (ri[k] > 0.0) {
+//       if (ri[k] > 0.0) {
   
-        // ifbg_theta_interp = 1 in canuto_mod_2002
-        // if ((IFBG_THETA_INTERP == 0) ||
-        //     (ifrafglt == 1)) {
-        if (ifrafglt == 1) {
-          // if ifastexpabs == 1, ifastexpabs = 1 in canuto_mod_2002
-          interp2d_expabs(back_ri1, back_rid1,
-              slq2_back, sm_back, sh_back, ss_back);
+//         // ifbg_theta_interp = 1 in canuto_mod_2002
+//         // if ((IFBG_THETA_INTERP == 0) ||
+//         //     (ifrafglt == 1)) {
+//         if (ifrafglt == 1) {
+//           // if ifastexpabs == 1, ifastexpabs = 1 in canuto_mod_2002
+//           interp2d_expabs(back_ri1, back_rid1,
+//               slq2_back, sm_back, sh_back, ss_back);
 
-        // ifbg_theta_interp = 1 in canuto_mod_2002
-        // } else if(IFBG_THETA_INTERP == 1) {
-        } else if(true) {
-          // !000315 Interpolate 1D table of background vs. theta_r instead.
-          deltheta_r1 = theta_r - itheta_r0 * deltheta_r_;
+//         // ifbg_theta_interp = 1 in canuto_mod_2002
+//         // } else if(IFBG_THETA_INTERP == 1) {
+//         } else if(true) {
+//           // !000315 Interpolate 1D table of background vs. theta_r instead.
+//           deltheta_r1 = theta_r - itheta_r0 * deltheta_r_;
   
-          const double delsm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r1)
-              - v_sm_r1_(N_THETA_R_OCT + itheta_r0);
+//           const double delsm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r1)
+//               - v_sm_r1_(N_THETA_R_OCT + itheta_r0);
   
-          // const double dsm_back_o_dtheta = delsm_back / deltheta_r_;
-          const double dsm_back_o_dtheta = delsm_back * tmp_deltheta_r;
+//           // const double dsm_back_o_dtheta = delsm_back / deltheta_r_;
+//           const double dsm_back_o_dtheta = delsm_back * tmp_deltheta_r;
   
-          sm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r0)
-              + deltheta_r1 * dsm_back_o_dtheta;
+//           sm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r0)
+//               + deltheta_r1 * dsm_back_o_dtheta;
   
-          const double delsh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r1)
-              - v_sh_r1_(N_THETA_R_OCT + itheta_r0);
+//           const double delsh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r1)
+//               - v_sh_r1_(N_THETA_R_OCT + itheta_r0);
   
-          // const double dsh_back_o_dtheta = delsh_back / deltheta_r_;
-          const double dsh_back_o_dtheta = delsh_back * tmp_deltheta_r;
+//           // const double dsh_back_o_dtheta = delsh_back / deltheta_r_;
+//           const double dsh_back_o_dtheta = delsh_back * tmp_deltheta_r;
   
-          sh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r0)
-              + deltheta_r1 * dsh_back_o_dtheta;
+//           sh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r0)
+//               + deltheta_r1 * dsh_back_o_dtheta;
   
-          const double delss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r1)
-              - v_ss_r1_(N_THETA_R_OCT + itheta_r0);
+//           const double delss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r1)
+//               - v_ss_r1_(N_THETA_R_OCT + itheta_r0);
   
-          // const double dss_back_o_dtheta = delss_back / deltheta_r_;
-          const double dss_back_o_dtheta = delss_back * tmp_deltheta_r;
+//           // const double dss_back_o_dtheta = delss_back / deltheta_r_;
+//           const double dss_back_o_dtheta = delss_back * tmp_deltheta_r;
   
-          ss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r0)
-              + deltheta_r1 * dss_back_o_dtheta;
+//           ss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r0)
+//               + deltheta_r1 * dss_back_o_dtheta;
   
-          const double delslq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r1)
-              - v_slq2_r1_(N_THETA_R_OCT + itheta_r0);
+//           const double delslq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r1)
+//               - v_slq2_r1_(N_THETA_R_OCT + itheta_r0);
   
-          // const double dslq2_back_o_dtheta = delslq2_back / deltheta_r_;
-          const double dslq2_back_o_dtheta = delslq2_back * tmp_deltheta_r;
+//           // const double dslq2_back_o_dtheta = delslq2_back / deltheta_r_;
+//           const double dslq2_back_o_dtheta = delslq2_back * tmp_deltheta_r;
   
-          slq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r0)
-              + deltheta_r1 * dslq2_back_o_dtheta;
-        } else {
-          return ;
-        }
-        if (slq2_back < 0.0) {
-          return ;
-        }
-      } // not go to 19
+//           slq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r0)
+//               + deltheta_r1 * dslq2_back_o_dtheta;
+//         } else {
+//           return ;
+//         }
+//         if (slq2_back < 0.0) {
+//           return ;
+//         }
+//       } // not go to 19
 
-      // 19 continue
-      if (ri1 < 0.0) {
-        sm_back = 0.0;
-        sh_back = 0.0;
-        ss_back = 0.0;
-      }
+//       // 19 continue
+//       if (ri1 < 0.0) {
+//         sm_back = 0.0;
+//         sh_back = 0.0;
+//         ss_back = 0.0;
+//       }
   
-      if ((sm_back < 0.0) || (sh_back < 0.0) ||
-          (ss_back < 0.0)) {
-        return ;
-      }
+//       if ((sm_back < 0.0) || (sh_back < 0.0) ||
+//           (ss_back < 0.0)) {
+//         return ;
+//       }
       
-      //double tmp_back;
+//       //double tmp_back;
 
-      // if ifepson2 == 0, ifepson2 = 2 in canuto_mod_2002
-      // if ifepson2 >  0, ifepson2 = 2 in canuto_mod_2002
-      const double tmp_back = 0.5 * b1_ * b1_
-          * back_ri1 * slq2_back * epson2;
+//       // if ifepson2 == 0, ifepson2 = 2 in canuto_mod_2002
+//       // if ifepson2 >  0, ifepson2 = 2 in canuto_mod_2002
+//       const double tmp_back = 0.5 * b1_ * b1_
+//           * back_ri1 * slq2_back * epson2;
   
-      v_back[k] = tmp_back * sm_back;
-      t_back[k] = tmp_back * sh_back;
-      s_back[k] = tmp_back * ss_back;
+//       v_back[k] = tmp_back * sm_back;
+//       t_back[k] = tmp_back * sh_back;
+//       s_back[k] = tmp_back * ss_back;
   
-      if ((v_back[k] < 0.0) || (t_back[k] < 0.0)
-          || (s_back[k] < 0.0)) {
-        return ;
-      }
-      if((ri[k] > 0.0) && ((v_back[k] == 0.0)
-          || (t_back[k] == 0.0) || (s_back[k] == 0.0))) {
-        return ;
-      }
+//       if ((v_back[k] < 0.0) || (t_back[k] < 0.0)
+//           || (s_back[k] < 0.0)) {
+//         return ;
+//       }
+//       if((ri[k] > 0.0) && ((v_back[k] == 0.0)
+//           || (t_back[k] == 0.0) || (s_back[k] == 0.0))) {
+//         return ;
+//       }
   
-      double aldeep[NBIG];
+//       double aldeep[NBIG];
   
-      aldeep[k] = 0.0;
+//       aldeep[k] = 0.0;
   
-      double tmp(0.0);
+//       double tmp(0.0);
   
-      // if ifepson2 == 2, ifepson2 = 2 in canuto_mod_2002
-      // if ((IFEPSON2 == 2) && (ifbelow == 1)) {
-      //   if ((ri1 >= 0.0) || ((IFDEEPLAT == 2) && (ifnofsmall == 1))) {
-      if (ifbelow == 1) {
-        if (ri1 >= 0.0) {
-          tmp = 0.5 * b1_ * b1_ * ri1 * slq2 * epson2;
-        } else if (k > 1) {
-          double delz, delrh, del2rh;
-          if (k == n - 1) {
-            delz   = z [k] - z [k-1];
-            delrh  = rh[k] - rh[k-1];
-            del2rh = rh[k] - 2.0 * rh[k-1] + rh[k-2];
-          } else {
-            delz   = z [k+1] - z [k-1];
-            delrh  = rh[k+1] - rh[k-1];
-            del2rh = rh[k+1] - 2.0 * rh[k] + rh[k-1];
-          }
+//       // if ifepson2 == 2, ifepson2 = 2 in canuto_mod_2002
+//       // if ((IFEPSON2 == 2) && (ifbelow == 1)) {
+//       //   if ((ri1 >= 0.0) || ((IFDEEPLAT == 2) && (ifnofsmall == 1))) {
+//       if (ifbelow == 1) {
+//         if (ri1 >= 0.0) {
+//           tmp = 0.5 * b1_ * b1_ * ri1 * slq2 * epson2;
+//         } else if (k > 1) {
+//           double delz, delrh, del2rh;
+//           if (k == n - 1) {
+//             delz   = z [k] - z [k-1];
+//             delrh  = rh[k] - rh[k-1];
+//             del2rh = rh[k] - 2.0 * rh[k-1] + rh[k-2];
+//           } else {
+//             delz   = z [k+1] - z [k-1];
+//             delrh  = rh[k+1] - rh[k-1];
+//             del2rh = rh[k+1] - 2.0 * rh[k] + rh[k-1];
+//           }
   
-          const double dzrh = delrh / delz;
-          const double d2zrh = 4.0 * del2rh / (delz * delz);
-          const double rdzlndzrh = dzrh / d2zrh;
-          const double al0deep = 0.17 * fabs(rdzlndzrh);
-          akz = 0.4 * z[k];
-          aldeep[k] = akz * al0deep / (al0deep + akz);
-          al2 = aldeep[k] * aldeep[k];
+//           const double dzrh = delrh / delz;
+//           const double d2zrh = 4.0 * del2rh / (delz * delz);
+//           const double rdzlndzrh = dzrh / d2zrh;
+//           const double al0deep = 0.17 * fabs(rdzlndzrh);
+//           akz = 0.4 * z[k];
+//           aldeep[k] = akz * al0deep / (al0deep + akz);
+//           al2 = aldeep[k] * aldeep[k];
   
-          if (ifpureshear == 1) {
-            // GO TO 21
-            tmp = 0.5 * (b1_ * b1_) * al2
-                * sqrt(-an2[k] / amtaun2);
+//           if (ifpureshear == 1) {
+//             // GO TO 21
+//             tmp = 0.5 * (b1_ * b1_) * al2
+//                 * sqrt(-an2[k] / amtaun2);
        
-            akm[k] = fmin(tmp * sm + v_back[k],
-                visc_cbu_limit1);
-            akh[k] = fmin(tmp * sh + t_back[k],
-                diff_cbt_limit1);
-            aks[k] = fmin(tmp * ss + s_back[k],
-                diff_cbt_limit1);
-            continue ;
-          } else if (IFSHEARMIN) {
-            s2[k] = fmax(s2[k], S2MIN);
-          }
-          tmp = 0.5 * b1_ * al2
-              * sqrt(s2[k] / (slq2 + 1.0e-40));
-        } else {
-          if (ifpureshear == 1) {
-            // GO TO 21
-            tmp = 0.5 * (b1_ * b1_) * al2
-                * sqrt(-an2[k] / amtaun2);
+//             akm[k] = fmin(tmp * sm + v_back[k],
+//                 visc_cbu_limit1);
+//             akh[k] = fmin(tmp * sh + t_back[k],
+//                 diff_cbt_limit1);
+//             aks[k] = fmin(tmp * ss + s_back[k],
+//                 diff_cbt_limit1);
+//             continue ;
+//           } else if (IFSHEARMIN) {
+//             s2[k] = fmax(s2[k], S2MIN);
+//           }
+//           tmp = 0.5 * b1_ * al2
+//               * sqrt(s2[k] / (slq2 + 1.0e-40));
+//         } else {
+//           if (ifpureshear == 1) {
+//             // GO TO 21
+//             tmp = 0.5 * (b1_ * b1_) * al2
+//                 * sqrt(-an2[k] / amtaun2);
        
-            akm[k] = fmin(tmp * sm + v_back[k],
-                visc_cbu_limit1);
-            akh[k] = fmin(tmp * sh + t_back[k],
-                diff_cbt_limit1);
-            aks[k] = fmin(tmp * ss + s_back[k],
-                diff_cbt_limit1);
-            continue ;
-          } else if (IFSHEARMIN) {
-            s2[k] = fmax(s2[k], S2MIN);
-          }
-          if (lifepsy[k]) {
-            tmp = 0.5 * epsy[k] / (s2[k] + 1.0e-40);
-          } else {
-            tmp = 0.5 * b1_ * al2
-                * sqrt(s2[k] / (slq2 + 1.0e-40));
-          }
-        }
-      } else {
-        if (ifpureshear == 1) {
-            // GO TO 21
-            tmp = 0.5 * (b1_ * b1_) * al2
-                * sqrt(-an2[k] / amtaun2);
-            akm[k] = fmin(tmp * sm + v_back[k],
-                visc_cbu_limit1);
-            akh[k] = fmin(tmp * sh + t_back[k],
-                diff_cbt_limit1);
-            aks[k] = fmin(tmp * ss + s_back[k],
-                diff_cbt_limit1);
-            continue ;
-        } else if (IFSHEARMIN) {
-          s2[k] = fmax(s2[k], S2MIN);
-        }
-        if (lifepsy[k]) {
-          tmp = 0.5 * epsy[k] / (s2[k] + 1.0e-40);
-        } else {
-          tmp = 0.5 * b1_ * al2
-              * sqrt(s2[k] / (slq2 + 1.0e-40));
-        }
-      }
-      // 21
-      if (ifpureshear == 1) {
-        tmp = 0.5 * (b1_ * b1_) * al2
-            * sqrt(-an2[k] / amtaun2);
-      }
+//             akm[k] = fmin(tmp * sm + v_back[k],
+//                 visc_cbu_limit1);
+//             akh[k] = fmin(tmp * sh + t_back[k],
+//                 diff_cbt_limit1);
+//             aks[k] = fmin(tmp * ss + s_back[k],
+//                 diff_cbt_limit1);
+//             continue ;
+//           } else if (IFSHEARMIN) {
+//             s2[k] = fmax(s2[k], S2MIN);
+//           }
+//           if (lifepsy[k]) {
+//             tmp = 0.5 * epsy[k] / (s2[k] + 1.0e-40);
+//           } else {
+//             tmp = 0.5 * b1_ * al2
+//                 * sqrt(s2[k] / (slq2 + 1.0e-40));
+//           }
+//         }
+//       } else {
+//         if (ifpureshear == 1) {
+//             // GO TO 21
+//             tmp = 0.5 * (b1_ * b1_) * al2
+//                 * sqrt(-an2[k] / amtaun2);
+//             akm[k] = fmin(tmp * sm + v_back[k],
+//                 visc_cbu_limit1);
+//             akh[k] = fmin(tmp * sh + t_back[k],
+//                 diff_cbt_limit1);
+//             aks[k] = fmin(tmp * ss + s_back[k],
+//                 diff_cbt_limit1);
+//             continue ;
+//         } else if (IFSHEARMIN) {
+//           s2[k] = fmax(s2[k], S2MIN);
+//         }
+//         if (lifepsy[k]) {
+//           tmp = 0.5 * epsy[k] / (s2[k] + 1.0e-40);
+//         } else {
+//           tmp = 0.5 * b1_ * al2
+//               * sqrt(s2[k] / (slq2 + 1.0e-40));
+//         }
+//       }
+//       // 21
+//       if (ifpureshear == 1) {
+//         tmp = 0.5 * (b1_ * b1_) * al2
+//             * sqrt(-an2[k] / amtaun2);
+//       }
   
-      akm[k] = fmin(tmp * sm + v_back[k],
-          visc_cbu_limit1);
-      akh[k] = fmin(tmp * sh + t_back[k],
-          diff_cbt_limit1);
-      aks[k] = fmin(tmp * ss + s_back[k],
-          diff_cbt_limit1);
-    } // End for k in 0:n
+//       akm[k] = fmin(tmp * sm + v_back[k],
+//           visc_cbu_limit1);
+//       akh[k] = fmin(tmp * sh + t_back[k],
+//           diff_cbt_limit1);
+//       aks[k] = fmin(tmp * ss + s_back[k],
+//           diff_cbt_limit1);
+//     } // End for k in 0:n
 
-    for (int k = nb+1; k < nmax; ++k) {
-      akm[k] = 0.0;
-      akh[k] = 0.0;
-      aks[k] = 0.0;
-    }
+//     for (int k = nb+1; k < nmax; ++k) {
+//       akm[k] = 0.0;
+//       akh[k] = 0.0;
+//       aks[k] = 0.0;
+//     }
  
-    if (n > 0) {
-      if (akm[0] < wndmix) {
-        akm[0] = wndmix;
-      }
-      if (akh[0] < wndmix) {
-        akh[0] = wndmix;
-      }
-      if (aks[0] < wndmix) {
-        aks[0] = wndmix;
-      }
-    }
-    return ;
-  }
+//     if (n > 0) {
+//       if (akm[0] < wndmix) {
+//         akm[0] = wndmix;
+//       }
+//       if (akh[0] < wndmix) {
+//         akh[0] = wndmix;
+//       }
+//       if (aks[0] < wndmix) {
+//         aks[0] = wndmix;
+//       }
+//     }
+//     return ;
+//   }
 
-  KOKKOS_INLINE_FUNCTION void formld(
-      const double (&z)[KM], const double (&t)[KM],
-          double &amld, const int &n) const {
-    for (int k = 0; k < n; ++k) {
-      if (fabs(t[k] - t[0]) > 0.1) {
-#ifdef D_PRECISION
-        const double tm = t[0] - sign_double(0.1, t[0] - t[k]);
-#else
-        const double tm = t[0] - sign_float(0.1,   t[0] - t[k]);
-#endif // D_PRECISION
-        amld = z[k] + (z[k-1] - z[k]) *
-            (tm - t[k]) / (t[k-1] - t[k] + 1.e-20);
-        return ;
-      }
-    }
-    amld = z[n-1];
-    return ;
-  }
+//   KOKKOS_INLINE_FUNCTION void formld(
+//       const double (&z)[KM], const double (&t)[KM],
+//           double &amld, const int &n) const {
+//     for (int k = 0; k < n; ++k) {
+//       if (fabs(t[k] - t[0]) > 0.1) {
+// #ifdef D_PRECISION
+//         const double tm = t[0] - sign_double(0.1, t[0] - t[k]);
+// #else
+//         const double tm = t[0] - sign_float(0.1,   t[0] - t[k]);
+// #endif // D_PRECISION
+//         amld = z[k] + (z[k-1] - z[k]) *
+//             (tm - t[k]) / (t[k-1] - t[k] + 1.e-20);
+//         return ;
+//       }
+//     }
+//     amld = z[n-1];
+//     return ;
+//   }
 
-  KOKKOS_INLINE_FUNCTION int sign_int(const double &x, const double &y) const {
-    return y >= 0 ? std::abs(static_cast<int>(x)) 
-        : - std::abs(static_cast<int>(x));
-  }
+//   KOKKOS_INLINE_FUNCTION int sign_int(const double &x, const double &y) const {
+//     return y >= 0 ? std::abs(static_cast<int>(x)) 
+//         : - std::abs(static_cast<int>(x));
+//   }
 
-  KOKKOS_INLINE_FUNCTION int sign_float(const double &x, const double &y) const {
-    return y >= 0.0 ? std::abs(static_cast<float>(x)) 
-       : - std::abs(static_cast<float>(x));
-  }
+//   KOKKOS_INLINE_FUNCTION int sign_float(const double &x, const double &y) const {
+//     return y >= 0.0 ? std::abs(static_cast<float>(x)) 
+//        : - std::abs(static_cast<float>(x));
+//   }
 
-  KOKKOS_INLINE_FUNCTION double sign_double(const double &x, const double &y) const {
-    return y >= 0.0 ? fabs(x) : - fabs(x);
-  }
+//   KOKKOS_INLINE_FUNCTION double sign_double(const double &x, const double &y) const {
+//     return y >= 0.0 ? fabs(x) : - fabs(x);
+//   }
 
-  KOKKOS_INLINE_FUNCTION void interp1d_expabs(
-      double &x,            // and2on2
-      double &slq2,         // amtaun2
-      double &sm,           // sm
-      double &sh,           // sh
-      double &ss,           // ss
-      const int &ixmax,     // imax
-      const double &delta,  // dand2on2
-      const double &rat     /* rnd2on2 */ ) const {
-    // printf ("interp1d_expabs\n");
+//   KOKKOS_INLINE_FUNCTION void interp1d_expabs(
+//       double &x,            // and2on2
+//       double &slq2,         // amtaun2
+//       double &sm,           // sm
+//       double &sh,           // sh
+//       double &ss,           // ss
+//       const int &ixmax,     // imax
+//       const double &delta,  // dand2on2
+//       const double &rat     /* rnd2on2 */ ) const {
+//     // printf ("interp1d_expabs\n");
   
-    int lx0(0), lx1(0);
+//     int lx0(0), lx1(0);
     
-    if (x > v_and2on2a1_(MT + ixmax)) {
-      x = v_and2on2a1_(MT + MT);
-    } else if (x < v_and2on2a1_(0)) {
-      x = v_and2on2a1_(0);
-    }
+//     if (x > v_and2on2a1_(MT + ixmax)) {
+//       x = v_and2on2a1_(MT + MT);
+//     } else if (x < v_and2on2a1_(0)) {
+//       x = v_and2on2a1_(0);
+//     }
   
-    if (fabs(x) < v_and2on2a1_(MT + MT0)) {
-#ifdef D_PRECISION
-      lx1 = static_cast<int>(x / delta) + round(sign_double(static_cast<double>(1.0), x)); 
-#else  // D_PRECISION
-      lx1 = static_cast<int>(x / delta) + round(sign_float(static_cast<float>(1.0), x)); 
-#endif // D_PRECISION
-    } else if (fabs(x) >= v_and2on2a1_(MT + MT)) {
-#ifdef D_PRECISION
-      lx0 = round(sign_double(static_cast<double>(MT), x));
-#else  // D_PRECISION
-      lx0 = round(sign_float(static_cast<float>(MT), x));
-#endif // D_PRECISION
-      lx1 = lx0;
-    } else {
-#ifdef D_PRECISION
-      const double tabindx = sign_double(static_cast<double>(MT0)
-         + ((log(fabs(x)) - log(v_and2on2a1_(MT + MT0))) / log(rat)), x);
-#else  // D_PRECISION
-      const float tabindx = sign_double(static_cast<float>(MT0)
-         + ((log(fabs(x)) - log(v_and2on2a1_(MT + MT0))) / log(rat)), x);
-#endif // D_PRECISION
+//     if (fabs(x) < v_and2on2a1_(MT + MT0)) {
+// #ifdef D_PRECISION
+//       lx1 = static_cast<int>(x / delta) + round(sign_double(static_cast<double>(1.0), x)); 
+// #else  // D_PRECISION
+//       lx1 = static_cast<int>(x / delta) + round(sign_float(static_cast<float>(1.0), x)); 
+// #endif // D_PRECISION
+//     } else if (fabs(x) >= v_and2on2a1_(MT + MT)) {
+// #ifdef D_PRECISION
+//       lx0 = round(sign_double(static_cast<double>(MT), x));
+// #else  // D_PRECISION
+//       lx0 = round(sign_float(static_cast<float>(MT), x));
+// #endif // D_PRECISION
+//       lx1 = lx0;
+//     } else {
+// #ifdef D_PRECISION
+//       const double tabindx = sign_double(static_cast<double>(MT0)
+//          + ((log(fabs(x)) - log(v_and2on2a1_(MT + MT0))) / log(rat)), x);
+// #else  // D_PRECISION
+//       const float tabindx = sign_double(static_cast<float>(MT0)
+//          + ((log(fabs(x)) - log(v_and2on2a1_(MT + MT0))) / log(rat)), x);
+// #endif // D_PRECISION
 
-#ifdef D_PRECISION
-      lx1 = static_cast<int>(tabindx) + round(sign_double(
-          static_cast<double>(1.0), x));
-#else  // D_PRECISION
-      lx1 = static_cast<int>(tabindx) + round(sign_float(
-          static_cast<float>(1.0), x));
-#endif // D_PRECISION
-    }
+// #ifdef D_PRECISION
+//       lx1 = static_cast<int>(tabindx) + round(sign_double(
+//           static_cast<double>(1.0), x));
+// #else  // D_PRECISION
+//       lx1 = static_cast<int>(tabindx) + round(sign_float(
+//           static_cast<float>(1.0), x));
+// #endif // D_PRECISION
+//     }
 
-    if (!(fabs(x) >= v_and2on2a1_(MT + MT))) {
-      if (fabs(v_and2on2a1_(MT + lx1)) < fabs(x)) {
-        lx1 += sign_int(1, lx1);
-      } else if (fabs(v_and2on2a1_(MT + lx1 - sign_int(1, lx1))) > fabs(x)) {
-        lx1 -= sign_int(1, lx1);
-      }
+//     if (!(fabs(x) >= v_and2on2a1_(MT + MT))) {
+//       if (fabs(v_and2on2a1_(MT + lx1)) < fabs(x)) {
+//         lx1 += sign_int(1, lx1);
+//       } else if (fabs(v_and2on2a1_(MT + lx1 - sign_int(1, lx1))) > fabs(x)) {
+//         lx1 -= sign_int(1, lx1);
+//       }
 
-#ifdef D_PRECISION
-      lx0 = lx1 - round(sign_double(
-          static_cast<double>(1.0), x));
-#else  // D_PRECISION
-      lx0 = lx1 - round(sign_float(
-          static_cast<float>(1.0), x));
-#endif // D_PRECISION
-      if (x == 0.0) {
-        lx1 = 1;
-      }
-    }
-    if ((x > 0.0 && (x < v_and2on2a1_(MT + lx0) || x > v_and2on2a1_(MT + lx1))) ||
-        (x < 0.0 && (x > v_and2on2a1_(MT + lx0) || x < v_and2on2a1_(MT + lx1)))) {
-      return;
-    }
+// #ifdef D_PRECISION
+//       lx0 = lx1 - round(sign_double(
+//           static_cast<double>(1.0), x));
+// #else  // D_PRECISION
+//       lx0 = lx1 - round(sign_float(
+//           static_cast<float>(1.0), x));
+// #endif // D_PRECISION
+//       if (x == 0.0) {
+//         lx1 = 1;
+//       }
+//     }
+//     if ((x > 0.0 && (x < v_and2on2a1_(MT + lx0) || x > v_and2on2a1_(MT + lx1))) ||
+//         (x < 0.0 && (x > v_and2on2a1_(MT + lx0) || x < v_and2on2a1_(MT + lx1)))) {
+//       return;
+//     }
 
-    const double deltaxta = 1.0 / (v_and2on2a1_(MT + lx1) - v_and2on2a1_(MT + lx0));
+//     const double deltaxta = 1.0 / (v_and2on2a1_(MT + lx1) - v_and2on2a1_(MT + lx0));
 
-    const double deltax = x - v_and2on2a1_(MT + lx0);
+//     const double deltax = x - v_and2on2a1_(MT + lx0);
 
-    double dslq2_x;
-    if (lx1 == lx0) {
-      dslq2_x = 0.0;
-    } else {
-      dslq2_x = (v_amtaun2a1_(MT + lx1) - v_amtaun2a1_(MT + lx0)) * deltaxta;
-    }
+//     double dslq2_x;
+//     if (lx1 == lx0) {
+//       dslq2_x = 0.0;
+//     } else {
+//       dslq2_x = (v_amtaun2a1_(MT + lx1) - v_amtaun2a1_(MT + lx0)) * deltaxta;
+//     }
 
-    slq2 = v_amtaun2a1_(MT + lx0) + dslq2_x * deltax;
+//     slq2 = v_amtaun2a1_(MT + lx0) + dslq2_x * deltax;
 
-    double dsm_x;
-    if (lx1 == lx0) {
-      dsm_x = 0.0;
-    } else {
-      dsm_x = (v_sma1_(MT + lx1) - v_sma1_(MT + lx0)) * deltaxta;
-    }
-    sm = v_sma1_(MT + lx0) + dsm_x * deltax;
+//     double dsm_x;
+//     if (lx1 == lx0) {
+//       dsm_x = 0.0;
+//     } else {
+//       dsm_x = (v_sma1_(MT + lx1) - v_sma1_(MT + lx0)) * deltaxta;
+//     }
+//     sm = v_sma1_(MT + lx0) + dsm_x * deltax;
 
-    double dsh_x;
-    if (lx1 == lx0) {
-      dsh_x = 0.0;
-    } else {
-      dsh_x = (v_sha1_(MT + lx1) - v_sha1_(MT + lx0)) * deltaxta;
-    }
-    sh = v_sha1_(MT + lx0) + dsh_x * deltax;
+//     double dsh_x;
+//     if (lx1 == lx0) {
+//       dsh_x = 0.0;
+//     } else {
+//       dsh_x = (v_sha1_(MT + lx1) - v_sha1_(MT + lx0)) * deltaxta;
+//     }
+//     sh = v_sha1_(MT + lx0) + dsh_x * deltax;
 
-    double dss_x;
-    if (lx1 == lx0) {
-      dss_x = 0.0;
-    } else {
-      dss_x = (v_ssa1_(MT + lx1) - v_ssa1_(MT + lx0)) * deltaxta;
-    }
-    ss = v_ssa1_(MT + lx0) + dss_x * deltax;
+//     double dss_x;
+//     if (lx1 == lx0) {
+//       dss_x = 0.0;
+//     } else {
+//       dss_x = (v_ssa1_(MT + lx1) - v_ssa1_(MT + lx0)) * deltaxta;
+//     }
+//     ss = v_ssa1_(MT + lx0) + dss_x * deltax;
   
-    return ;  
-  }
+//     return ;  
+//   }
 
-  KOKKOS_INLINE_FUNCTION void interp2d_expabs(double &ri, double &rid,
-      double &slq2, double &sm, double &sh, double &ss) const {
+//   KOKKOS_INLINE_FUNCTION void interp2d_expabs(double &ri, double &rid,
+//       double &slq2, double &sm, double &sh, double &ss) const {
 
-    const double tmp_ri  = 1.0 /ri;
-    const double tmp_rid = 1.0 /rid;
+//     const double tmp_ri  = 1.0 /ri;
+//     const double tmp_rid = 1.0 /rid;
 
-    if (ri > v_rib_(MT + MT)) {
-      if (fabs(rid) <= ri) {
-        // rid = v_rib_(MT + MT) * (rid / ri);
-        rid = v_rib_(MT + MT) * (rid * tmp_ri);
-        ri  = v_rib_(MT + MT);
-      } else if (rid > ri) {
-        // ri  = v_ridb_(MT + MT) * (ri / rid);
-        ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
-        rid = v_ridb_(MT + MT);
-      } else if (rid < -ri) {
-        // ri  = v_ridb_(0) * (ri / rid);
-        ri  = v_ridb_(0) * (ri * tmp_rid);
-        rid = v_ridb_(0);
-      }
-    } else if (ri < v_rib_(0)) {
-      if (fabs(rid) <= -ri) {
-        // rid = v_rib_(0) * (rid / ri);
-        rid = v_rib_(0) * (rid * tmp_ri);
-        ri  = v_rib_(0);
-      } else if (rid > -ri) {
-        // ri  = v_ridb_(MT + MT) * (ri / rid);
-        ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
-        rid = v_ridb_(MT + MT);
-      } else if (rid < ri) {
-        // ri  = v_ridb_(0) * (ri / rid);
-        ri  = v_ridb_(0) * (ri * tmp_rid);
-        rid = v_ridb_(0);
-      }
-    } else if (rid > v_ridb_(MT + MT)) {
-      // ri  = v_ridb_(MT + MT) * (ri / rid);
-      ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
-      rid = v_ridb_(MT + MT);
-    } else if (rid < v_ridb_(0)) {
-      // ri  = v_ridb_(0) * (ri / rid);
-      ri  = v_ridb_(0) * (ri * tmp_rid);
-      rid = v_ridb_(0);
-    }
+//     if (ri > v_rib_(MT + MT)) {
+//       if (fabs(rid) <= ri) {
+//         // rid = v_rib_(MT + MT) * (rid / ri);
+//         rid = v_rib_(MT + MT) * (rid * tmp_ri);
+//         ri  = v_rib_(MT + MT);
+//       } else if (rid > ri) {
+//         // ri  = v_ridb_(MT + MT) * (ri / rid);
+//         ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
+//         rid = v_ridb_(MT + MT);
+//       } else if (rid < -ri) {
+//         // ri  = v_ridb_(0) * (ri / rid);
+//         ri  = v_ridb_(0) * (ri * tmp_rid);
+//         rid = v_ridb_(0);
+//       }
+//     } else if (ri < v_rib_(0)) {
+//       if (fabs(rid) <= -ri) {
+//         // rid = v_rib_(0) * (rid / ri);
+//         rid = v_rib_(0) * (rid * tmp_ri);
+//         ri  = v_rib_(0);
+//       } else if (rid > -ri) {
+//         // ri  = v_ridb_(MT + MT) * (ri / rid);
+//         ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
+//         rid = v_ridb_(MT + MT);
+//       } else if (rid < ri) {
+//         // ri  = v_ridb_(0) * (ri / rid);
+//         ri  = v_ridb_(0) * (ri * tmp_rid);
+//         rid = v_ridb_(0);
+//       }
+//     } else if (rid > v_ridb_(MT + MT)) {
+//       // ri  = v_ridb_(MT + MT) * (ri / rid);
+//       ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
+//       rid = v_ridb_(MT + MT);
+//     } else if (rid < v_ridb_(0)) {
+//       // ri  = v_ridb_(0) * (ri / rid);
+//       ri  = v_ridb_(0) * (ri * tmp_rid);
+//       rid = v_ridb_(0);
+//     }
 
-    int lrid0(0), lrid1(0);
+//     int lrid0(0), lrid1(0);
 
-    if (fabs(rid) < v_ridb_(MT + MT0)) {
-#ifdef D_PRECISION
-      lrid1 = static_cast<int>(rid / dri_)
-          + round(sign_double(static_cast<double>(1.0), rid));
-#else // D_PRECISION
-      lrid1 = static_cast<int>(rid / dri_)
-          + round(sign_float(static_cast<float>(1.0), rid));
-#endif // D_PRECISION
-    } else if (fabs(rid) >= v_ridb_(MT + MT)) {
-#ifdef D_PRECISION
-      lrid0 = round(sign_double(static_cast<double>(MT), rid));
-#else // D_PRECISION
-      lrid0 = round(sign_float(static_cast<float>(MT), rid));
-#endif // D_PRECISION
-      lrid1 = lrid0;
-    } else {
-#ifdef D_PRECISION
-      const double tabindrid = sign_double(static_cast<double>(MT0)
-          + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-              / log(rri_)), rid);
-#else // D_PRECISION
-      const double tabindrid = sign_float(static_cast<float>(MT0)
-          + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-              / log(rri)), rid);
-#endif // D_PRECISION
+//     if (fabs(rid) < v_ridb_(MT + MT0)) {
+// #ifdef D_PRECISION
+//       lrid1 = static_cast<int>(rid / dri_)
+//           + round(sign_double(static_cast<double>(1.0), rid));
+// #else // D_PRECISION
+//       lrid1 = static_cast<int>(rid / dri_)
+//           + round(sign_float(static_cast<float>(1.0), rid));
+// #endif // D_PRECISION
+//     } else if (fabs(rid) >= v_ridb_(MT + MT)) {
+// #ifdef D_PRECISION
+//       lrid0 = round(sign_double(static_cast<double>(MT), rid));
+// #else // D_PRECISION
+//       lrid0 = round(sign_float(static_cast<float>(MT), rid));
+// #endif // D_PRECISION
+//       lrid1 = lrid0;
+//     } else {
+// #ifdef D_PRECISION
+//       const double tabindrid = sign_double(static_cast<double>(MT0)
+//           + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
+//               / log(rri_)), rid);
+// #else // D_PRECISION
+//       const double tabindrid = sign_float(static_cast<float>(MT0)
+//           + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
+//               / log(rri)), rid);
+// #endif // D_PRECISION
 
-#ifdef D_PRECISION
-      lrid1 = static_cast<int>(tabindrid)
-          + round(sign_double(static_cast<double>(1.0), rid));
-#else // D_PRECISION
-      lrid1 = static_cast<int>(tabindrid)
-          + round(sign_float(static_cast<float>(1.0), rid));
-#endif // D_PRECISION
+// #ifdef D_PRECISION
+//       lrid1 = static_cast<int>(tabindrid)
+//           + round(sign_double(static_cast<double>(1.0), rid));
+// #else // D_PRECISION
+//       lrid1 = static_cast<int>(tabindrid)
+//           + round(sign_float(static_cast<float>(1.0), rid));
+// #endif // D_PRECISION
 
-    }
+//     }
 
-    if (!(fabs(rid) >= v_ridb_(MT + MT))) {
+//     if (!(fabs(rid) >= v_ridb_(MT + MT))) {
 
-      if (fabs(v_ridb_(MT + lrid1)) < fabs(rid)) {
-        lrid1 += sign_int(1, lrid1);
-      } else if (fabs(v_ridb_(MT + lrid1 - sign_int(1, lrid1))) > 
-          fabs(rid)) {
-        lrid1 -= sign_int(1, lrid1);
-      }
+//       if (fabs(v_ridb_(MT + lrid1)) < fabs(rid)) {
+//         lrid1 += sign_int(1, lrid1);
+//       } else if (fabs(v_ridb_(MT + lrid1 - sign_int(1, lrid1))) > 
+//           fabs(rid)) {
+//         lrid1 -= sign_int(1, lrid1);
+//       }
 
-#ifdef D_PRECISION
-      lrid0 = lrid1 - round(sign_double(
-          static_cast<double>(1.0), rid));
-#else // D_PRECISION
-      lrid0 = lrid1 - round(sign_float(
-          static_cast<float>(1.0), rid));
-#endif // D_PRECISION
-      if (rid == 0.0) {
-        lrid1 = 1;
-      }
-    }
+// #ifdef D_PRECISION
+//       lrid0 = lrid1 - round(sign_double(
+//           static_cast<double>(1.0), rid));
+// #else // D_PRECISION
+//       lrid0 = lrid1 - round(sign_float(
+//           static_cast<float>(1.0), rid));
+// #endif // D_PRECISION
+//       if (rid == 0.0) {
+//         lrid1 = 1;
+//       }
+//     }
 
-    // 252
-    if ((rid > 0.0 && (rid < v_ridb_(MT + lrid0) || rid > v_ridb_(MT + lrid1))) ||
-        (rid < 0.0 && (rid > v_ridb_(MT + lrid0) || rid < v_ridb_(MT + lrid1)))) {
-      return ;
-    }
+//     // 252
+//     if ((rid > 0.0 && (rid < v_ridb_(MT + lrid0) || rid > v_ridb_(MT + lrid1))) ||
+//         (rid < 0.0 && (rid > v_ridb_(MT + lrid0) || rid < v_ridb_(MT + lrid1)))) {
+//       return ;
+//     }
  
-    if (ri > fmin(v_rib_(MT + v_irimax_(MT + lrid0)),
-                  v_rib_(MT + v_irimax_(MT + lrid1)))) {
-      slq2 = 0.0;
-      sm   = 0.0;
-      sh   = 0.0;
-      ss   = 0.0;
-      return ;
-    }
+//     if (ri > fmin(v_rib_(MT + v_irimax_(MT + lrid0)),
+//                   v_rib_(MT + v_irimax_(MT + lrid1)))) {
+//       slq2 = 0.0;
+//       sm   = 0.0;
+//       sh   = 0.0;
+//       ss   = 0.0;
+//       return ;
+//     }
 
-    int lri0(0), lri1(0);
+//     int lri0(0), lri1(0);
 
-    if (fabs(ri) < v_rib_(MT + MT0)) {
-#ifdef D_PRECISION
-      lri1 = static_cast<int>(ri / dri_)
-          + round(sign_double(static_cast<double>(1.0), ri));
-#else // D_PRECISION
-      lri1 = static_cast<int>(ri / dri_)
-          + round(sign_float(static_cast<float>(1.0), ri));
-#endif // D_PRECISION
-    } else if (fabs(ri) >= v_rib_(MT + MT)) {
-#ifdef D_PRECISION
-      lri0 = round(sign_double(static_cast<double>(MT), ri));
-#else // D_PRECISION
-      lri0 = round(sign_float(static_cast<float>(MT), ri));
-#endif // D_PRECISION
-      lri1 = lri0;
-    } else {
-#ifdef D_PRECISION
-      const double tabindri = sign_double(static_cast<double>(MT0)
-          + ((log(fabs(ri)) - log(v_rib_(MT + MT0)))
-              / log(rri_)), ri);
-#else // D_PRECISION
-      const double tabindri = sign_float(static_cast<float>(MT0)
-          + ((log(fabs(ri)) - log(v_rib_(MT + MT0)))
-              / log(rri)), ri);
-#endif // D_PRECISION
+//     if (fabs(ri) < v_rib_(MT + MT0)) {
+// #ifdef D_PRECISION
+//       lri1 = static_cast<int>(ri / dri_)
+//           + round(sign_double(static_cast<double>(1.0), ri));
+// #else // D_PRECISION
+//       lri1 = static_cast<int>(ri / dri_)
+//           + round(sign_float(static_cast<float>(1.0), ri));
+// #endif // D_PRECISION
+//     } else if (fabs(ri) >= v_rib_(MT + MT)) {
+// #ifdef D_PRECISION
+//       lri0 = round(sign_double(static_cast<double>(MT), ri));
+// #else // D_PRECISION
+//       lri0 = round(sign_float(static_cast<float>(MT), ri));
+// #endif // D_PRECISION
+//       lri1 = lri0;
+//     } else {
+// #ifdef D_PRECISION
+//       const double tabindri = sign_double(static_cast<double>(MT0)
+//           + ((log(fabs(ri)) - log(v_rib_(MT + MT0)))
+//               / log(rri_)), ri);
+// #else // D_PRECISION
+//       const double tabindri = sign_float(static_cast<float>(MT0)
+//           + ((log(fabs(ri)) - log(v_rib_(MT + MT0)))
+//               / log(rri)), ri);
+// #endif // D_PRECISION
 
-#ifdef D_PRECISION
-      lri1 = static_cast<int>(tabindri)
-          + round(sign_double(static_cast<double>(1.0), ri));
-#else // D_PRECISION
-      lri1 = static_cast<int>(tabindri)
-          + round(sign_float(static_cast<float>(1.0), ri));
-#endif // D_PRECISION
-    }
+// #ifdef D_PRECISION
+//       lri1 = static_cast<int>(tabindri)
+//           + round(sign_double(static_cast<double>(1.0), ri));
+// #else // D_PRECISION
+//       lri1 = static_cast<int>(tabindri)
+//           + round(sign_float(static_cast<float>(1.0), ri));
+// #endif // D_PRECISION
+//     }
  
-    if (!(fabs(ri) >= v_rib_(MT + MT))) {
-      if (fabs(v_rib_(MT + lri1)) < fabs(ri)) {
-        lri1 += sign_int(1, lri1);
-      } else if (fabs(v_rib_(MT + lri1 - sign_int(1, lri1))) >
-          fabs(ri)) {
-        lri1 -= sign_int(1, lri1);
-      }
+//     if (!(fabs(ri) >= v_rib_(MT + MT))) {
+//       if (fabs(v_rib_(MT + lri1)) < fabs(ri)) {
+//         lri1 += sign_int(1, lri1);
+//       } else if (fabs(v_rib_(MT + lri1 - sign_int(1, lri1))) >
+//           fabs(ri)) {
+//         lri1 -= sign_int(1, lri1);
+//       }
 
-#ifdef D_PRECISION
-      lri0 = lri1 - round(sign_double(
-          static_cast<double>(1.0), ri));
-#else // D_PRECISION
-      lri0 = lri1 - round(sign_float(
-          static_cast<float>(1.0), ri));
-#endif // D_PRECISION
+// #ifdef D_PRECISION
+//       lri0 = lri1 - round(sign_double(
+//           static_cast<double>(1.0), ri));
+// #else // D_PRECISION
+//       lri0 = lri1 - round(sign_float(
+//           static_cast<float>(1.0), ri));
+// #endif // D_PRECISION
 
-      if (ri == 0.0) {
-        lri1 = 1;
-      }
-    }
+//       if (ri == 0.0) {
+//         lri1 = 1;
+//       }
+//     }
 
-    if ((ri > 0.0 && (ri < v_rib_(MT + lri0) || ri > v_rib_(MT + lri1))) ||
-        (ri < 0.0 && (ri > v_rib_(MT + lri0) || ri < v_rib_(MT + lri1)))) {
-      return ;
-    }
+//     if ((ri > 0.0 && (ri < v_rib_(MT + lri0) || ri > v_rib_(MT + lri1))) ||
+//         (ri < 0.0 && (ri > v_rib_(MT + lri0) || ri < v_rib_(MT + lri1)))) {
+//       return ;
+//     }
 
-    const double deltaridta = 1.0 / (v_ridb_(MT + lrid1) - v_ridb_(MT + lrid0));
-    const double deltarita  = 1.0 / (v_rib_(MT + lri1) - v_rib_(MT + lri0));
-    const double deltarid = rid - v_ridb_(MT + lrid0);
-    const double deltari  = ri  - v_rib_(MT + lri0);
+//     const double deltaridta = 1.0 / (v_ridb_(MT + lrid1) - v_ridb_(MT + lrid0));
+//     const double deltarita  = 1.0 / (v_rib_(MT + lri1) - v_rib_(MT + lri0));
+//     const double deltarid = rid - v_ridb_(MT + lrid0);
+//     const double deltari  = ri  - v_rib_(MT + lri0);
 
-    double dslq2_rid;
+//     double dslq2_rid;
 
-    if (lrid1 == lrid0) {
-      dslq2_rid = 0.0;
-    } else {
-      dslq2_rid = (v_slq2b_(MT+lrid1, MT+lri0) - v_slq2b_(MT+lrid0, MT+lri0))
-          * deltaridta;
-    }
+//     if (lrid1 == lrid0) {
+//       dslq2_rid = 0.0;
+//     } else {
+//       dslq2_rid = (v_slq2b_(MT+lrid1, MT+lri0) - v_slq2b_(MT+lrid0, MT+lri0))
+//           * deltaridta;
+//     }
 
-    double dslq2_ri;
-    if (lri1 == lri0) {
-      dslq2_ri = 0.0;
-    } else {
-      dslq2_ri = (v_slq2b_(MT+lrid0, MT+lri1) - v_slq2b_(MT+lrid0, MT+lri0))
-          * deltarita;
-    }
+//     double dslq2_ri;
+//     if (lri1 == lri0) {
+//       dslq2_ri = 0.0;
+//     } else {
+//       dslq2_ri = (v_slq2b_(MT+lrid0, MT+lri1) - v_slq2b_(MT+lrid0, MT+lri0))
+//           * deltarita;
+//     }
 
-    slq2 = v_slq2b_(MT+lrid0, MT+lri0)
-        + dslq2_ri * deltari + dslq2_rid * deltarid;
+//     slq2 = v_slq2b_(MT+lrid0, MT+lri0)
+//         + dslq2_ri * deltari + dslq2_rid * deltarid;
 
-    double dsm_rid;
-    if (lrid1 == lrid0) {
-      dsm_rid = 0.0;
-    } else {
-      dsm_rid = (v_smb_(MT+lrid1, MT+lri0) - v_smb_(MT+lrid0, MT+lri0))
-          * deltaridta;
-    }
+//     double dsm_rid;
+//     if (lrid1 == lrid0) {
+//       dsm_rid = 0.0;
+//     } else {
+//       dsm_rid = (v_smb_(MT+lrid1, MT+lri0) - v_smb_(MT+lrid0, MT+lri0))
+//           * deltaridta;
+//     }
 
-    double dsm_ri;
+//     double dsm_ri;
 
-    if (lri1 == lri0) {
-      dsm_ri = 0.0;
-    } else {
-      dsm_ri = (v_smb_(MT+lrid0, MT+lri1) - v_smb_(MT+lrid0, MT+lri0))
-          * deltarita;
-    }
+//     if (lri1 == lri0) {
+//       dsm_ri = 0.0;
+//     } else {
+//       dsm_ri = (v_smb_(MT+lrid0, MT+lri1) - v_smb_(MT+lrid0, MT+lri0))
+//           * deltarita;
+//     }
 
-    sm = v_smb_(MT+lrid0, MT+lri0) 
-        + dsm_ri * deltari + dsm_rid * deltarid;
+//     sm = v_smb_(MT+lrid0, MT+lri0) 
+//         + dsm_ri * deltari + dsm_rid * deltarid;
 
-    double dsh_rid;
-    if (lrid1 == lrid0) {
-      dsh_rid = 0.0;
-    } else {
-      dsh_rid = (v_shb_(MT+lrid1, MT+lri0) - v_shb_(MT+lrid0, MT+lri0))
-          * deltaridta;
-    }
-    double dsh_ri;
-    if (lri1 == lri0) {
-      dsh_ri = 0.0;
-    } else {
-      dsh_ri = (v_shb_(MT+lrid0, MT+lri1) - v_shb_(MT+lrid0, MT+lri0))
-          * deltarita;
-    }
+//     double dsh_rid;
+//     if (lrid1 == lrid0) {
+//       dsh_rid = 0.0;
+//     } else {
+//       dsh_rid = (v_shb_(MT+lrid1, MT+lri0) - v_shb_(MT+lrid0, MT+lri0))
+//           * deltaridta;
+//     }
+//     double dsh_ri;
+//     if (lri1 == lri0) {
+//       dsh_ri = 0.0;
+//     } else {
+//       dsh_ri = (v_shb_(MT+lrid0, MT+lri1) - v_shb_(MT+lrid0, MT+lri0))
+//           * deltarita;
+//     }
 
-    sh = v_shb_(MT+lrid0, MT+lri0) 
-        + dsh_ri * deltari + dsh_rid * deltarid;
+//     sh = v_shb_(MT+lrid0, MT+lri0) 
+//         + dsh_ri * deltari + dsh_rid * deltarid;
     
-    double dss_rid;
-    if (lrid1 == lrid0) {
-      dss_rid = 0.0;
-    } else {
-      dss_rid = (v_ssb_(MT+lrid1, MT+lri0) - v_ssb_(MT+lrid0, MT+lri0))
-          * deltaridta;
-    }
-    double dss_ri;
-    if (lri1 == lri0) {
-      dss_ri = 0.0;
-    } else {
-      dss_ri = (v_ssb_(MT+lrid0, MT+lri1) - v_ssb_(MT+lrid0, MT+lri0))
-          * deltarita;
-    }
+//     double dss_rid;
+//     if (lrid1 == lrid0) {
+//       dss_rid = 0.0;
+//     } else {
+//       dss_rid = (v_ssb_(MT+lrid1, MT+lri0) - v_ssb_(MT+lrid0, MT+lri0))
+//           * deltaridta;
+//     }
+//     double dss_ri;
+//     if (lri1 == lri0) {
+//       dss_ri = 0.0;
+//     } else {
+//       dss_ri = (v_ssb_(MT+lrid0, MT+lri1) - v_ssb_(MT+lrid0, MT+lri0))
+//           * deltarita;
+//     }
 
-    ss = v_ssb_(MT+lrid0, MT+lri0) 
-        + dss_ri * deltari + dss_rid * deltarid;
+//     ss = v_ssb_(MT+lrid0, MT+lri0) 
+//         + dss_ri * deltari + dss_rid * deltarid;
 
-    return ;
-  }
+//     return ;
+//   }
 
-  KOKKOS_INLINE_FUNCTION double acosh1(const double &x) const {
-    return log(x + sqrt((x * x) - 1.0));
-  }
-  KOKKOS_INLINE_FUNCTION double wavelat(const double &xf, const double &yn) 
-      const {
-    return xf * acosh1(yn / xf);
-  }
+//   KOKKOS_INLINE_FUNCTION double acosh1(const double &x) const {
+//     return log(x + sqrt((x * x) - 1.0));
+//   }
+//   KOKKOS_INLINE_FUNCTION double wavelat(const double &xf, const double &yn) 
+//       const {
+//     return xf * acosh1(yn / xf);
+//   }
 
-  KOKKOS_INLINE_FUNCTION double eplatidepend_(const double &f, const double &an) 
-      const {
-    double f_30;
-    double anum, den;
-    double pi1, omega;
-    const double an0 = 5.24e-3;
+//   KOKKOS_INLINE_FUNCTION double eplatidepend_(const double &f, const double &an) 
+//       const {
+//     double f_30;
+//     double anum, den;
+//     double pi1, omega;
+//     const double an0 = 5.24e-3;
  
-    pi1   = 4.0 * atan(1.0);
-    omega = pi1 / 43082.0e0;
+//     pi1   = 4.0 * atan(1.0);
+//     omega = pi1 / 43082.0e0;
  
-    f_30  = omega;
+//     f_30  = omega;
  
-    den   = wavelat(f_30, an0);
+//     den   = wavelat(f_30, an0);
  
-    anum  = wavelat(f, an);
-    return anum / den;
-  }
+//     anum  = wavelat(f, an);
+//     return anum / den;
+//   }
 
-};
+// };
 #endif // CANUTO
 
 #endif // LICOM3_KOKKKOS_SRC_KOKKOS_IMPL_KOKKOS_READYC_HPP_

@@ -97,8 +97,8 @@ using ViewDouble5D = Kokkos::View<double*****, Layout, Kokkos::MemoryUnmanaged>;
 // static auto tile2D = koArr2D{4, 16};
 // static auto tile3D = koArr3D{1, 4, 16};
 // CUDA tile
-// static auto tile2D = koArr2D{2, 16};
-// static auto tile3D = koArr3D{2, 4, 32};
+static auto tile2D = koArr2D{2, 16};
+static auto tile3D = koArr3D{2, 4, 32};
 
 // static auto tile2D = koArr2D{2, 16};
 // static auto tile3D = koArr3D{2, 4, 16};
@@ -135,8 +135,8 @@ using ViewDouble5D = Kokkos::View<double*****, Layout, Kokkos::MemoryUnmanaged>;
 // static auto tile2D = koArr2D{2, 62};
 // static auto tile3D = koArr3D{1, 2, 62};
 
-static auto tile2D = koArr2D{4, 16};
-static auto tile3D = koArr3D{4, 4, 64};
+// static auto tile2D = koArr2D{4, 16};
+// static auto tile3D = koArr3D{4, 4, 64};
 
 
 #endif // LICOM_ENABLE_KOKKOS

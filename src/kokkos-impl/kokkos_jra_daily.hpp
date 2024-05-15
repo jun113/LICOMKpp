@@ -347,9 +347,14 @@ class FunctorJRADaily2 {
   void operator () (const int &j, const int &i) const {
     const double vit_times_one_minus_seaice = 
         v_vit_(0, 0, j, i) * (1.0 - v_seaice_(0, j, i));
+
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    const double model_sst_4 = std::pow(v_model_sst_(j, i), 4);
+#else
     const long double model_sst = static_cast<long double>(v_model_sst_(j, i));
     const double model_sst_4 = static_cast<double>(
         model_sst * model_sst * model_sst * model_sst);
+#endif
 
     v_sshf_(0, j, i) = v_core_sensible_(j, i) * vit_times_one_minus_seaice;
     v_lthf_(0, j, i) = (v_core_latent_(j, i) - v_snow3_(j, i) * 3.335e5) 
@@ -536,7 +541,7 @@ class FunctorNcarOceanFluxesJra {
 
   template<typename T>
   KOKKOS_INLINE_FUNCTION T sign (const T &x, const T &y) const {
-    return y >= static_cast<T>(0) ? std::abs(x) : -std::abs(x);
+    return y >= static_cast<T>(0) ? std::abs(x) : - std::abs(x);
   }
 };
 KOKKOS_REGISTER_FOR_2D(FunctorInterplationNearest, FunctorInterplationNearest)

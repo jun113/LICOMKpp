@@ -303,6 +303,17 @@ class FunctorReadyt5 {
 
     const int iblock = 0;
 
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    const double tmp1 = - v_pp(iblock, k, j, i) 
+        / od0_ / 10000.0 * v_mask(iblock, k, j, i);
+    const double tmp2 = tmp1 * tmp1;
+    const double tmp3 = tmp2 * tmp1;
+
+    const double tt1 = v_tt(iblock, k, j, i);
+    const double tt2 = tt1 * tt1;
+    const double tt3 = tt2 * tt1;
+    const double tt4 = tt3 * tt1;
+#else
     // To ensure consistency calculations between C/C++ and Fortran
     const long double tmp = static_cast<long double>(- v_pp(iblock, k, j, i) 
         / od0_ / 10000.0 * v_mask(iblock, k, j, i));
@@ -315,7 +326,7 @@ class FunctorReadyt5 {
     const double tt2 = tt1 * tt1;
     const double tt3 = static_cast<double>(tt * tt * tt);
     const double tt4 = std::pow(tt, 4);
-
+#endif
     const double ss1 = v_ss(iblock, k, j, i) * 1000.0;
     const double ss2 = ss1 * ss1;
     

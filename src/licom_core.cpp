@@ -269,7 +269,7 @@ extern "C" void licom_core_() {
 #endif // LICOM_ENABLE_TEST_TIME
       my_time.start_daily_d2h();
       // Copy back to do addps, nextstep
-      // daily_update_d2h();
+      daily_update_d2h();
 #ifdef LICOM_ENABLE_TEST_TIME
       my_time.testTime_stop("daily_d2h");
 #endif // LICOM_ENABLE_TEST_TIME

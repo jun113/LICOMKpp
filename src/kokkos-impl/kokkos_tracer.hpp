@@ -1737,7 +1737,7 @@ class FunctorTracer32 {
     double a8[KM], b8[KM], c8[KM], d8[KM];
     double e8[KM+1], f8[KM+1];
 
-    const double c2dtts_times_aidif = c2dtts * aidif;
+    // const double c2dtts_times_aidif = c2dtts * aidif;
 
     if (v_kmt_(iblock, j, i) > 0) {
       const int kz = v_kmt_(iblock, j, i) - 1;

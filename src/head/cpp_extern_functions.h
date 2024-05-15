@@ -75,7 +75,7 @@ extern void pop_haloupdate_bclinc_2(const int &, const int &);
 extern void pop_haloupdate_bclinc_3(const int &, const int &);
 extern void pop_haloupdate_bclinc_33(const int &, const int &);
 
-extern void pop_haloupdate_tracer_1(const int &, const int &);
+extern void pop_haloupdate_tracer_net(const int &, const int &);
 extern void pop_haloupdate_tracer_2(const int &);
 
 #if (defined LICOM_ENABLE_KOKKOS)

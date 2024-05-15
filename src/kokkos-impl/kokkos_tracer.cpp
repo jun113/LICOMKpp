@@ -453,14 +453,17 @@ void kokkos_tracer() {
       double err_norm1;
       double err_norm2 = 0.0;
 
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+      Kokkos::parallel_reduce ("tracer_26", MDRangePolicy<Kokkos::Rank<2>> (
+          koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracer26(), err_norm2);
+#else
       for (int j = 2; j < JMT-2; ++j) {
         for (int i = 2; i < IMT-2; ++i) {
           err_norm2 += (*p_v_tarea)(0, j, i) 
               * (*p_v_net)(0, 1, j, i) * (*p_v_vit)(0, 0, j, i);
         }
       }
-    //   Kokkos::parallel_reduce ("tracer_26", MDRangePolicy<Kokkos::Rank<2>> (
-    //       koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracer26(), err_norm2);
+#endif
 
 #ifdef SPMD
 
@@ -493,29 +496,21 @@ void kokkos_tracer() {
 #endif // LICOM_ENABLE_TEST_TRACER
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
     // CUDA HIP memcpy
-  gpu_get_halo_transpose_tracer (*p_v_net, CppPOPHaloMod::arrCommPriorK,
-      2, 3, KM, JMT, IMT);
-  pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
-      KM, JMT, IMT, 
-      CppDomain::POP_haloClinic_C, 
-      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
-      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
-  gpu_put_halo_transpose_tracer (CppPOPHaloMod::arrCommPriorK, *p_v_net,
-      0, 3, KM, JMT, IMT);
+  pop_haloupdate_tracer_net (NTRA, 3);
 #elif (defined KOKKOS_ENABLE_ATHREAD)
   athread_get_halo_transpose_double_host ((*p_v_net).data(), CppPOPHaloMod::arrCommPriorK,
-      2, 3, KM, JMT, IMT);
+      2, 3, NTRA, JMT, IMT);
 
   pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
-      KM, JMT, IMT, 
+      NTRA, JMT, IMT, 
       CppDomain::POP_haloClinic_C, 
       CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
       CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
 
   athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_net).data(), 
-      0, 3, KM, JMT, IMT);
+      0, 3, NTRA, JMT, IMT);
 #else
-    CppPOPHaloMod::pop_halo_update((*p_v_net).data(), KM, JMT, IMT,
+    CppPOPHaloMod::pop_halo_update((*p_v_net).data(), NTRA, JMT, IMT,
         CppDomain::POP_haloClinic_C, 
         CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
@@ -707,7 +702,7 @@ void kokkos_tracer() {
           exit(0);
         }
       }
-    }
+    } // false
     // =============
 
     if (flag_adv_tracer == 3) {

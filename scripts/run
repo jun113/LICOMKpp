@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-outName=/home/wjl/workspace/licom/kokkos/LICOMKpp/logfile/100km/20240427-101516-IAP_GPU
+outName=/home/wjl/workspace/licom/kokkos/LICOMKpp/logfile/100km/20240515-234457-IAP_GPU
 
 out_licom=${outName}.out
 
@@ -17,16 +17,16 @@ echo ${out_licom}
 
 cd ../run/
 
-sed -i -e "/nprocs_/s/[0-9]\+/48/" ocn.parm
+sed -i -e "/nprocs_/s/[0-9]\+/4/" ocn.parm
 
 rm -f ocn.log
 
-#mpirun -np 48 ./LICOMKpp
-mpirun -np 48 ./LICOMKpp | tee ${out_licom}
+#mpirun -np 4 ./LICOMKpp
+mpirun -np 4 ./LICOMKpp | tee ${out_licom}
 
-#mpirun -np 48 nvprof -f -o ${nvp} ./licom3-kokkos.exe > ${output}
-#mpirun -np 48 nvprof -f -o ${nvp} --log-file ${output} ./licom3-kokkos.exe > ${output}
-#mpirun -np 48 nvprof -f -o ${out_nvprof2} --log-file ${out_nvprof1} ./licom3-kokkos.exe > ${out_licom}
+#mpirun -np 4 nvprof -f -o ${nvp} ./licom3-kokkos.exe > ${output}
+#mpirun -np 4 nvprof -f -o ${nvp} --log-file ${output} ./licom3-kokkos.exe > ${output}
+#mpirun -np 4 nvprof -f -o ${out_nvprof2} --log-file ${out_nvprof1} ./licom3-kokkos.exe > ${out_licom}
 
 #====================================================
 # Nsight System
@@ -40,7 +40,7 @@ mpirun -np 48 ./LICOMKpp | tee ${out_licom}
 # 	--show-output=true \
 # 	--trace=cuda,nvtx \
 #     --trace-fork-before-exec=true \
-# 		/home/wjl/software/oneAPI/mpi/2021.7.1/bin/mpirun -np 48 ./LICOMKpp | tee ${out_licom}
+# 		/home/wjl/software/oneAPI/mpi/2021.7.1/bin/mpirun -np 4 ./LICOMKpp | tee ${out_licom}
 
     #--capture-range=nvtx \
 	#--export=json \
@@ -67,7 +67,7 @@ mpirun -np 48 ./LICOMKpp | tee ${out_licom}
 #    --print-units base \
 #    --page raw \
 #	--target-processes all \
-#		/home/wjl/software/oneAPI/mpi/2021.7.1/bin/mpirun -np 48 ./LICOMKpp | tee ${out_licom}
+#		/home/wjl/software/oneAPI/mpi/2021.7.1/bin/mpirun -np 4 ./LICOMKpp | tee ${out_licom}
 
     # --csv \
 	#-k regex:"parallel" \
@@ -89,7 +89,7 @@ mpirun -np 48 ./LICOMKpp | tee ${out_licom}
 #     --track-memory-allocations on \
 #     --export-profile ${outName}-%p.nvprof-rep \
 #     --log-file ${outName}-%p.nvprof-out \
-# /home/wjl/software/oneAPI/mpi/2021.7.1/bin/mpirun -np 48 ./LICOMKpp | tee ${out_licom}
+# /home/wjl/software/oneAPI/mpi/2021.7.1/bin/mpirun -np 4 ./LICOMKpp | tee ${out_licom}
 
 
     #--print-api-trace \

@@ -26,6 +26,7 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_SOURCE_DIR}/build/mod)
 if (${LICOM_ENABLE_FORTRAN_COMPILER} STREQUAL "LICOM_ENABLE_FORTRAN_COMPILER_INTEL")
 
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -W1 -O2 -r8 -i4 -mcmodel=medium -m64 -free -fp-model precise -convert big_endian -assume byterecl -ftz")
+    # set(CMAKE_Fortran_FLAGS "-W1 -O2 -r8 -i4 -mcmodel=medium -m64 -free -convert big_endian -assume byterecl -ftz -mieee-fp")
     # set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -W1 -O2 -r8 -i4 -mcmodel=medium -m64 -free -fp-model precise -convert big_endian -assume byterecl -ftz -C")
 
 elseif (${LICOM_ENABLE_FORTRAN_COMPILER} STREQUAL "LICOM_ENABLE_FORTRAN_COMPILER_GNU")
@@ -39,19 +40,20 @@ endif ()
 
 endif ()
 
-set(CMAKE_C_FLAGS			"-O2 -Wall")
+set(CMAKE_C_FLAGS			"-O2")
 
 set(CMAKE_CXX_STANDARD 17)
 
 if(${MACHINE} STREQUAL "419")
-    set(CMAKE_CXX_FLAGS			"-O3 --gpu-max-threads-per-block=1024")
+    set(CMAKE_CXX_FLAGS			"-O2 --gpu-max-threads-per-block=1024")
 elseif(${MACHINE} STREQUAL "OCEANLIGHT")
     set(CMAKE_C_FLAGS			"-O2 -mftz -mieee -faddress_align=64")
     set(CMAKE_CXX_FLAGS			"-O2 -mftz -mieee -faddress_align=64 -std=gnu++1z")
     #set(CMAKE_C_FLAGS			"-Ofast -mftz -mieee -funroll-loops  -floop-nest-optimize -finline -faddress_align=64")
     #set(CMAKE_CXX_FLAGS			"-Ofast -mftz -mieee -funroll-loops  -floop-nest-optimize -finline -faddress_align=64 -std=gnu++1z")
 else ()
-    set(CMAKE_CXX_FLAGS			"-O3")
+    set(CMAKE_CXX_FLAGS			"-O2")
+    # set(CMAKE_CXX_FLAGS			"-O2 -Wall -ftz -fp-model precise -m64")
 endif ()
 
 # set(CMAKE_EXE_LINKER_FLAGS	"${CMAKE_EXE_LINKER_FLAGS} -rdynamic -finstrument-functions")
@@ -128,8 +130,6 @@ elseif(${MACHINE} STREQUAL "OCEANLIGHT")
     include_directories(/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/include)
     link_directories(/usr/sw/swgcc/swgcc710-tools-SEA-1307/usr/sw_64sw6a-sunway-linux-gnu/lib)
     
-    
-
     # NetCDF
     include_directories(/usr/sw/yyzlib/local-saca/include)
     link_directories(/usr/sw/yyzlib/local-saca/lib)
