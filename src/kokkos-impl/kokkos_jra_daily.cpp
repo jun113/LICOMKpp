@@ -140,7 +140,11 @@ void kokkos_init_jra_daily_high() {
   }
   exit(EXIT_FAILURE);
   }
-  const int irec = CppPconstMod::number_day;
+  int mon_day = 0;
+  for (int i = 0; i < CppPconstMod::mon0 - 1; ++i) {
+    mon_day += CppPconstMod::nmonth[i];
+  }
+  int irec = mon_day + CppPconstMod::iday;
   if (CppParamMod::mytid == 0) {
   printf("jra daily start irec = %d\n", irec);
   }
@@ -395,7 +399,11 @@ void kokkos_jra_daily_low (const int &iday) {
   using KokkosForcMod::p_v_buffer;
   using KokkosPconstMod::p_v_vit;
 
-  int irec = iday;
+  int mon_day = 0;
+  for (int i = 0; i < CppPconstMod::mon0 - 1; ++i) {
+    mon_day += CppPconstMod::nmonth[i];
+  }
+  int irec = mon_day + iday;
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
   static ViewDouble1D::HostMirror h_v_buffer = create_mirror_view(*p_v_buffer);
 
@@ -845,7 +853,11 @@ void kokkos_jra_daily_high(const int &iday) {
   using KokkosPconstMod::p_v_vit;
   using CppPOPHaloMod::pop_halo_update_2dr8;
 
-  int irec = iday;
+  int mon_day = 0;
+  for (int i = 0; i < CppPconstMod::mon0 - 1; ++i) {
+    mon_day += CppPconstMod::nmonth[i];
+  }
+  int irec = mon_day + CppPconstMod::iday;
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
   static ViewDouble1D::HostMirror h_v_buffer = create_mirror_view(*p_v_buffer);
 

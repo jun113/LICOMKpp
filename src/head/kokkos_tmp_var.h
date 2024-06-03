@@ -19,13 +19,24 @@ extern ViewDouble4D *p_v_beta;
 extern ViewDouble4D *p_v_wp12;
 extern ViewDouble4D *p_v_wp13;
 
-extern ViewDouble4D *p_v_riv1;
-extern ViewDouble4D *p_v_riv2;
-
 extern ViewDouble3D *p_v_wk1;
 extern ViewDouble3D *p_v_wk2;
 extern ViewDouble3D *p_v_wk3;
+extern ViewDouble3D *p_v_wk4;
+extern ViewDouble3D *p_v_wp1;
+extern ViewDouble3D *p_v_wp2;
 extern ViewDouble3D *p_v_wp3;
+extern ViewDouble3D *p_v_wp4;
+extern ViewDouble3D *p_v_wp5;
+extern ViewDouble3D *p_v_wp6;
+extern ViewDouble3D *p_v_wp7;
+extern ViewDouble3D *p_v_wp8;
+extern ViewDouble3D *p_v_zlev;
+extern ViewDouble3D * p_v_ak_tide_mixing;
+// extern ViewInt2D *p_v_mld_lev;
+extern ViewDouble3D *p_v_Ri;
+extern ViewDouble3D *p_v_Rrho;
+extern ViewDouble3D *p_v_Gm;
 
 #ifdef BCKMEX
 ViewDouble3D *p_v_diff_back    = nullptr;

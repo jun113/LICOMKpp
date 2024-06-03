@@ -213,7 +213,7 @@ void cpp_readyc() {
               (riv1[iblock][k][j][i] * riv1[iblock][k][j][i] + 
                riv2[iblock][k][j][i] * riv2[iblock][k][j][i]) * 
                odzt[k+1] * odzt[k+1];
-#ifdef CANUTO
+#if (defined CANUTO) || (defined CANUTO2010)
           rit[iblock][k][j][i] = vit[iblock][k+1][j][i] * rict[iblock][k][j][i] / 
               (s2t[iblock][k][j][i] + epsln);
 #else

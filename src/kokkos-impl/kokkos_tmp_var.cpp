@@ -19,13 +19,26 @@ ViewDouble4D *p_v_beta  = nullptr;
 ViewDouble4D *p_v_wp12 = nullptr;
 ViewDouble4D *p_v_wp13 = nullptr;
 
-ViewDouble4D *p_v_riv1 = nullptr;
-ViewDouble4D *p_v_riv2 = nullptr;
+// ViewInt2D    *p_v_mld_lev = nullptr;
+ 
+ViewDouble3D *p_v_wk1  = nullptr;
+ViewDouble3D *p_v_wk2  = nullptr;
+ViewDouble3D *p_v_wk3  = nullptr;
+ViewDouble3D *p_v_wk4  = nullptr;
+ViewDouble3D *p_v_wp1  = nullptr;
+ViewDouble3D *p_v_wp2  = nullptr;
+ViewDouble3D *p_v_wp3  = nullptr;
+ViewDouble3D *p_v_wp4  = nullptr;
+ViewDouble3D *p_v_wp5  = nullptr;
+ViewDouble3D *p_v_wp6  = nullptr;
+ViewDouble3D *p_v_wp7  = nullptr;
+ViewDouble3D *p_v_wp8  = nullptr;
+ViewDouble3D *p_v_zlev = nullptr;
+ViewDouble3D *p_v_ak_tide_mixing = nullptr ;
 
-ViewDouble3D *p_v_wk1 = nullptr;
-ViewDouble3D *p_v_wk2 = nullptr;
-ViewDouble3D *p_v_wk3 = nullptr;
-ViewDouble3D *p_v_wp3 = nullptr;
+ViewDouble3D *p_v_Ri   = nullptr;
+ViewDouble3D *p_v_Rrho = nullptr;
+ViewDouble3D *p_v_Gm   = nullptr;
 
 #ifdef BCKMEX
 ViewDouble3D *p_v_diff_back = nullptr;

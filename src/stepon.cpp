@@ -85,6 +85,7 @@ void stepon(const int &mm) {
   hip_readyt();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
+  // readyt_();
   kokkos_readyt();
 #endif // LICOM_ENABLE_KOKKOS
 
@@ -184,6 +185,7 @@ void stepon(const int &mm) {
     hip_barotr();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
+    // barotr_();
     kokkos_barotr();
 #endif // LICOM_ENABLE_KOKKOS
 
@@ -233,6 +235,7 @@ void stepon(const int &mm) {
     hip_bclinc();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
+    // bclinc_();
     kokkos_bclinc();
 #endif // LICOM_ENABLE_KOKKOS
 
@@ -254,6 +257,8 @@ void stepon(const int &mm) {
 // if (CppParamMod::mytid == 0) {
 //   printf("wjl bclinc ok\n");
 // }
+  // daily_update_d2h();
+  // energy_();
   // -----------------------
 } // End for (jj = 1; jj <= ncc; ++jj)
 
@@ -284,6 +289,7 @@ void stepon(const int &mm) {
   hip_tracer();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
+  // tracer_();
   kokkos_tracer();
 #endif // LICOM_ENABLE_KOKKOS
 
@@ -333,6 +339,7 @@ void stepon(const int &mm) {
   hip_icesnow();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
+  // icesnow_();
   kokkos_icesnow();
 #endif // LICOM_ENABLE_KOKKOS
 
@@ -382,6 +389,7 @@ void stepon(const int &mm) {
     hip_convadj();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
+    // convadj_();
     kokkos_convadj();
 #endif // LICOM_ENABLE_KOKKOS
 

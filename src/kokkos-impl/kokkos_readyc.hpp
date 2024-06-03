@@ -109,6 +109,7 @@ using KokkosForcMod::   p_v_buoysol;
 using KokkosForcMod::   p_v_buoytur;
 using KokkosForcMod::   p_v_su;
 using KokkosForcMod::   p_v_sv;
+using KokkosForcMod::   p_v_ustar;
 using KokkosForcMod::   p_v_wave_dis;
 using KokkosGrid::      p_v_at0;
 using KokkosGrid::      p_v_atn;
@@ -123,6 +124,7 @@ using KokkosGrid::      p_v_htw;
 using KokkosGrid::      p_v_hts;
 using KokkosGrid::      p_v_kmt;
 using KokkosGrid::      p_v_kmu;
+using KokkosGrid::      p_v_ulat;
 using KokkosGrid::      p_v_fcort;
 using KokkosGrid::      p_v_uarea;
 using KokkosGrid::      p_v_tarea_r;
@@ -130,7 +132,6 @@ using KokkosGrid::      p_v_uarea_r;
 using KokkosPconstMod:: p_v_akmu;
 using KokkosPconstMod:: p_v_akt;
 using KokkosPconstMod:: p_v_akmt;
-using KokkosPconstMod:: p_v_ak_tide;
 using KokkosPconstMod:: p_v_dzp;
 using KokkosPconstMod:: p_v_fztidal;
 using KokkosPconstMod:: p_v_fz_tide;
@@ -149,6 +150,7 @@ using KokkosPconstMod:: p_v_wp3_tidal;
 using KokkosPconstMod:: p_v_zkp;
 using KokkosPmixMod::   p_v_rit;
 using KokkosPmixMod::   p_v_rict;
+using KokkosPmixMod::   p_v_ricdt;
 using KokkosPmixMod::   p_v_ricdttms;
 using KokkosPmixMod::   p_v_s2t;
 using KokkosTracerMod:: p_v_amld;
@@ -185,9 +187,9 @@ using KokkosTmpVar::p_v_d2uk;
 using KokkosTmpVar::p_v_d2vk;
 using KokkosTmpVar::p_v_uv_ws_face;
 
-using KokkosTmpVar::p_v_wk1;
-using KokkosTmpVar::p_v_wk2;
-using KokkosTmpVar::p_v_wk3;
+using KokkosTmpVar::p_v_ak_tide_mixing;
+// using KokkosTmpVar::p_v_mld_lev;
+using KokkosTmpVar::p_v_zlev;
 using KokkosTmpVar::p_v_wp3;
 
 class FunctorReadyc1 {
@@ -250,6 +252,8 @@ class FunctorReadyc3 {
   KOKKOS_INLINE_FUNCTION 
   void operator () (const int &k, const int &j, const int &i) const {
     const int iblock = 0;
+    v_akmt_(iblock, k, j, i) = C0;
+    v_akmu_(iblock, k, j, i) = C0;
     ugrid_to_tgrid (iblock, k, j, i, v_wp12_, v_up_);
     ugrid_to_tgrid (iblock, k, j, i, v_wp13_, v_vp_);
     return ;
@@ -288,6 +292,8 @@ class FunctorReadyc3 {
   const ViewDouble4D v_wka_  = *p_v_wka;
   const ViewDouble4D v_wp12_ = *p_v_wp12;
   const ViewDouble4D v_wp13_ = *p_v_wp13;
+  const ViewDouble4D v_akmt_ = *p_v_akmt;
+  const ViewDouble4D v_akmu_ = *p_v_akmu;
 };
 
 class FunctorReadyc4 {
@@ -308,7 +314,7 @@ class FunctorReadyc4 {
           v_wp13_(iblock, k+1, j, i) * v_vit_(iblock, k+1, j, i);
       v_s2t_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) *
           (riv1 * riv1 + riv2 * riv2) * v_odzt_(k+1) * v_odzt_(k+1);
-#ifdef CANUTO
+#if (defined CANUTO) || (defined CANUTO2010)
       v_rit_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) 
           * v_rict_(iblock, k, j, i) 
               / (v_s2t_(iblock, k, j, i) + epsln);
@@ -330,1157 +336,700 @@ class FunctorReadyc4 {
   const ViewDouble4D v_wp13_ = *p_v_wp13;
 } ;
 
-#ifdef CANUTO
-class FunctorReadyc51 {
+#if (defined CANUTO) || (defined CANUTO2010)
+class FunctorReadyc5 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     if (v_vit_(0, 0, j, i) > 0.5) {
       const int iblock = 0;
-      v_wp3_(k, j, i) = 0.0;
-      const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
-      if (k < kmt_m1 && v_vit_(iblock, k+1, j, i) > 0.0) {
-        v_wp3_(k, j, i) = (v_pdensity_(iblock, k, j, i) + (v_pdensity_(iblock, k+1, j, i) 
-            -  v_pdensity_(iblock, k, j, i)) * v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1))) * 1.e-3;
-      }
-    }
-    return ;
-  };
- private:
-  const ViewInt3D    v_kmt_      = *p_v_kmt;
-  const ViewDouble1D v_dzp_      = *p_v_dzp;
-  const ViewDouble3D v_wp3_      = *p_v_wp3;
-  const ViewDouble4D v_vit_      = *p_v_vit;
-  const ViewDouble4D v_pdensity_ = *p_v_pdensity;
-};
 
-class FunctorReadyc52 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    if (v_vit_(0, 0, j, i) > 0.5) {
-      const int iblock = 0;
-      const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
-      double wp1[KM], wp4[KM];
-      double wp5[KM], wp6[KM], wp7[KM], wp8[KM];
       for (int k = 0; k < KM; ++k) {
-        wp1[k] = 0.0;
-        wp4[k] = 0.0;
-        wp5[k] = 0.0;
-        wp6[k] = 0.0;
-        wp7[k] = 0.0;
-        wp8[k] = 0.0;
+        v_wk1_(j, i, k) = 0.0;
+        v_wk2_(j, i, k) = 0.0;
+        v_wk3_(j, i, k) = 0.0;
+        v_wk4_(j, i, k) = 0.0;
+        v_wp1_(j, i, k) = 0.0;
+        v_wp2_(j, i, k) = 0.0;
+        v_wp3_(j, i, k) = 0.0;
+        v_wp4_(j, i, k) = 0.0;
+        v_wp5_(j, i, k) = 0.0;
+        v_wp6_(j, i, k) = 0.0;
+        v_wp7_(j, i, k) = 0.0;
+        v_wp8_(j, i, k) = 0.0;
       }
-      for (int k = 0; k < kmt_m1; ++k) {
-        wp8[k] = - v_vit_(iblock, k+1, j, i) * v_zkp_(k+1) * 1.0e+2;
+      const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
+      for (int k = 0; k < KM - 1; ++k) {
+        v_wp8_(j, i, k) = - v_vit_(iblock, k+1, j, i) * v_zkp_(k+1);
       }
+
       for (int k = 0; k < kmt_m1; ++k) {
         if (v_vit_(iblock, k+1, j, i) > 0.0) {
-          wp1[k] = v_at_(iblock, 0, k, j, i) - (v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) 
-              * v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
-          wp4[k] = v_rit_(iblock, k, j, i);
-          wp5[k] = v_ricdttms_(iblock, k, j, i);
-          wp6[k] = v_s2t_(iblock, k, j, i);
-          wp7[k] = v_rict_(iblock, k, j, i);
+          v_wp1_(j, i, k) = v_at_(iblock, 0, k, j, i) - (
+              v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) 
+                  * v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
+          v_wp2_(j, i, k) = (v_at_(iblock, 1, k, j, i) - (
+              v_at_(iblock, 1, k, j, i) - v_at_(iblock, 1, k+1, j, i)) 
+                  * v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1))) * 1000.0 + 35.0;
+          v_wp4_(j, i, k) = v_rit_(iblock, k, j, i);
+          v_wp5_(j, i, k) = v_ricdt_(iblock, k, j, i);
+          v_wp6_(j, i, k) = v_s2t_(iblock, k, j, i);
+          v_wp7_(j, i, k) = v_rict_(iblock, k, j, i);
+        }
+
+      }
+      for (int k = 0; k < v_kmt_(iblock, j, i); ++k) {
+        const double tq = v_at_(iblock, 0, k, j, i) - v_to_(0);
+        const double sq = v_at_(iblock, 1, k, j, i) - v_so_(0);
+        v_wp3_(j, i, k) = dens(tq, sq, 0) + 1000.0;
+      }
+      for (int k = 0; k < KM; ++k) {
+        if (v_wp7_(j, i, k) < 0.0) {
+          v_wp7_(j, i, k) = 0.0;
         }
       }
 
-      double wp10 = v_vit_(iblock, 0, j, i) * v_buoytur_(iblock, j, i) * 1.0e+4;
-      double wp11 = v_vit_(iblock, 0, j, i) * v_buoysol_(iblock, j, i) * 1.0e+4;
-
+#ifdef CANUTOMIXOUT
+      // To do something
+#endif // CANUTOMIXOUT
 #ifdef CANUTO2010
-      // Fortran
-      call canuto_2010_interface(wk1, wk2, wk3, wk4, 
-          amld(i,j,iblock) ,tau_mag, wp1, wp2, wp3, wp4, wp5, 
-          wp7, wp6, ulat(i,j,iblock)/degtorad , wp8, 
-          kmt(i,j,iblock), iblock, j, i, isc)
+      canuto_2010_interface (j, i,
+          v_wk1_, v_wk2_, v_wk3_, v_wk4_, v_amld_(iblock, j, i),
+          v_wp1_, v_wp2_, v_wp3_, v_wp4_, v_wp5_,
+          v_wp7_, v_wp6_, v_ulat_(iblock, j, i) / DegToRad_, 
+          v_wp8_, v_kmt_(iblock, j, i));
 #endif // CANUTO2010
-      double mldtmp;
-
-      double akm_back[KM-1];
-      double akt_back[KM-1];
-      double aks_back[KM-1];
-
-      turb_2(wp8, wp1, v_wp3_, wp4, wp5, wp6, 
-          dfricmx_ * 1.0e+4, dwndmix_ * 1.0e+4, 
-              akm_back, akt_back, aks_back,
-                  wp7, wp10, wp11, v_fcort_(iblock, j, i), 
-                      mldtmp, v_wk1_, v_wk2_, v_wk3_, 
-                          kmt_m1, KM-1, 1, 0, j, i);
-
-      v_amld_(iblock, j, i) = mldtmp * 1.0e-2;
-    }
-    return ;
-  };
- private:
-  const double dfricmx_ = CppPconstMod::dfricmx;
-  const double dwndmix_ = CppPconstMod::dwndmix;
-
-  const double b1_         = CppCanutoMod::b1;
-  const double dri_        = CppCanutoMod::dri;
-  const double rri_        = CppCanutoMod::rri;
-  const double rnd2on2_    = CppCanutoMod::rnd2on2;
-  const double dand2on2_   = CppCanutoMod::dand2on2;
-  const double deltheta_r_ = CppCanutoMod::deltheta_r;
-  const double theta_rcrp_ = CppCanutoMod::theta_rcrp;
-  const double theta_rcrn_ = CppCanutoMod::theta_rcrn;
-
-  const ViewDouble1D v_zkp_       = *p_v_zkp;
-  const ViewDouble1D v_dzp_       = *p_v_dzp;
-  const ViewDouble3D v_wk1_       = *p_v_wk1;
-  const ViewDouble3D v_wk2_       = *p_v_wk2;
-  const ViewDouble3D v_wk3_       = *p_v_wk3;
-  const ViewDouble3D v_wp3_       = *p_v_wp3;
-
-  const ViewInt1D    v_irimax_    = *p_v_irimax;
-  const ViewInt3D    v_kmt_       = *p_v_kmt;
-  const ViewDouble1D v_rib_       = *p_v_rib;
-  const ViewDouble1D v_ridb_      = *p_v_ridb;
-  const ViewDouble1D v_sma1_      = *p_v_sma1;
-  const ViewDouble1D v_sha1_      = *p_v_sha1;
-  const ViewDouble1D v_ssa1_      = *p_v_ssa1;
-  const ViewDouble1D v_and2on2a1_ = *p_v_and2on2a1;
-  const ViewDouble1D v_amtaun2a1_ = *p_v_amtaun2a1;
-  const ViewDouble1D v_back_ra_r_ = *p_v_back_ra_r;
-  const ViewDouble1D v_sm_r1_     = *p_v_sm_r1;
-  const ViewDouble1D v_sh_r1_     = *p_v_sh_r1;
-  const ViewDouble1D v_ss_r1_     = *p_v_ss_r1;
-  const ViewDouble1D v_slq2_r1_   = *p_v_slq2_r1;
-  const ViewDouble2D v_smb_       = *p_v_smb;
-  const ViewDouble2D v_shb_       = *p_v_shb;
-  const ViewDouble2D v_ssb_       = *p_v_ssb;
-  const ViewDouble2D v_slq2b_     = *p_v_slq2b;
-  const ViewDouble3D v_amld_      = *p_v_amld;
-  const ViewDouble3D v_fcort_     = *p_v_fcort;
-  const ViewDouble3D v_buoytur_   = *p_v_buoytur;
-  const ViewDouble3D v_buoysol_   = *p_v_buoysol;
-  const ViewDouble4D v_s2t_       = *p_v_s2t;
-  const ViewDouble4D v_rit_       = *p_v_rit;
-  const ViewDouble4D v_rict_      = *p_v_rict;
-  const ViewDouble4D v_ricdttms_  = *p_v_ricdttms;
-  const ViewDouble4D v_vit_       = *p_v_vit;
-  const ViewDouble5D v_at_        = *p_v_at;
-
-  KOKKOS_INLINE_FUNCTION void turb_2(
-      const double (&z)[KM],        // wp8
-      const double (&t)[KM],        // wp1
-      const ViewDouble3D &v_rh,     // wp3
-            double (&ri)[KM],       // wp4
-      const double (&rid)[KM],      // wp5
-            double (&s2)[KM],       // wp6
-      const double &fricmx,         // DFRICMX * 1.0e+4
-      const double &wndmix,         // DWNDMIX * 1.0e+4
-            double (&v_back)[KM-1], // akm_back
-            double (&t_back)[KM-1], // akt_back
-            double (&s_back)[KM-1], // aks_back
-      const double (&an2)[KM],      // wp7
-      const double &buoytur,        // wp10
-      const double &buoysol,        // wp11
-      const double &coriol,         // fcort[iblock][j][i]
-            double &amld,           // mldtmp
-      const ViewDouble3D &v_akm,    // wk1
-      const ViewDouble3D &v_akh,    // wk2
-      const ViewDouble3D &v_aks,    // wk3
-      const int    &n,              // iwk
-      const int    &nmax,           // km - 1
-      const int    &isurfuse,       // 1
-      const int    &ifextermld,     // 0
-      const int &j, const int &i    ) const {
-
-    double an = 0.0;
-    double sh_back = 0.0;
-    double sm_back = 0.0;
-    double ss_back = 0.0;
-    double slq2_back = 0.0;
- 
-    double ri1  = 0.0;
-    double rid1 = 0.0;
- 
-    int ifbelow;
-    int ifpureshear = 0;
- 
-    int ifnofsmall = 0;
- 
-    int nb = std::max(0, n);
-    double visc_cbu_limit1 = fricmx;
-    double diff_cbt_limit1 = fricmx;
-    double buoytot = buoytur + buoysol;
- 
-    // if (ifextermld == 0) {
-      if (n > 0) {
-          // if idefmld == 0
-          // idefmld = 0 in canuto_mod_2002
-          formld(z, t, amld, n);
-      } else if (n == 0) {
-        amld = z[0];
-      } else {
-        amld = 0.0;
-      }
-    // }
- 
-    double al0 = 0.17 * amld;
- 
-    ifbelow = 0;
- 
-    // int icall(0);
-    // int ipoint(0);
-    // int iproblem(0)
-    // int inegproblem(0);
- 
-    double sm, sh, ss;
-    double slq2, epson2;
-
-    for (int k = 0; k < n; ++k) {
-  
-      double amtaun2(0.0);
-  
-      ifnofsmall = 0;
-      if (an2[k] >= 0.0) {
-        an = sqrt(an2[k]);
-      }
-      if ((an / fabs(coriol)) < 1.0) {
-        ifnofsmall = 1;
-      }
-  
-      ri1 = ri[k];
-  
-      rid1 = rid[k];
-      const double and2 = rid[k] / (ri[k] + 1.0e-25) * an2[k];
-      double and2on2 = and2 / (an2[k] + 1.0e-25);
-  
-      if (an2[k] < v_rib_(0) * s2[k]) {
-        ifpureshear = 1;
-      } else {
-        ifpureshear = 0;
-      }
-
-      if (ifpureshear == 1) {
-        const int imax = MT;
-  
-        interp1d_expabs(and2on2, amtaun2, 
-            sm, sh, ss, imax, dand2on2_, rnd2on2_);
-  
-        slq2 = (-amtaun2) / ((b1_ * b1_) * ri[k] + 1.0e-25);
-      }
-
-      if (ifpureshear != 1) {
-        interp2d_expabs(ri1, rid1, slq2, sm, sh, ss);
-      }
-  
-      if (ifpureshear != 1) {
-        if (slq2 < 0.0) {
-          return ;
-        }
-        if (slq2 == 0) {
-          ifbelow = 1;
-        }
-      }
-  
-      // bool lifupper = (((IFEPSON2  < 2) || (ifbelow == 0) || 
-      //     ((IFDEEPLAT > 0) && (ifnofsmall == 1)) || 
-      //     ((ri1 < 0.0) && (k <= 2))) && (slq2 > 0.0));
-      bool lifupper = (((ifbelow == 0) || (ifnofsmall == 1) || 
-          ((ri1 < 0.0) && (k <= 2))) && (slq2 > 0.0));
-  
-      // ++ipoint;
-      // if (k == 0) {
-      //   ++icall;
-      // }
-      double epsy = 0.0;
-      bool lifepsy = false;
-  
-      // if ((isurfuse == 1) && n > 0) {
-      if (n > 0) {
-        if (slq2 == 0.0) {
-          epsy = 0.0;
-        } else {
-          epsy = - buoytot
-              / ((1.0 / ((b1_ * b1_) * slq2)) - 0.5 * sm);
-        }
-        lifepsy = ((epsy >= 0.0) && lifupper);
-        // if ((epsy[k] < 0.0) && lifupper) {
-        //   // ++iproblem;
-        //   // if (ri1 < 0.0) {
-        //   //   ++inegproblem;
-        //   // }
-        // }
-      }
-  
-      double akz = 0.4 * z[k];
-      double al = akz * al0 / (al0 + akz);
-  
-      double al2 = al * al;
-  
-      // if (!(((IFEPSON2 == 2) && (ifbelow == 1)) || lifepsy[k])) {
-      if (!(ifbelow == 1 || lifepsy)) {
-        if (ri1 > 0.0) {
-          const double anlq2 = slq2 * ri1;
-          if (anlq2 > 0.281) {
-            al2 = 0.281 / anlq2 * al2;
-            slq2 = 0.281 / (ri1 + 1.0e-20);
-          }
-        }
-      }
-  
-      double epson2_;
-      if (an2[k] < 0.0) {
-        epson2_ = EPSON2__;
-      } else {
-        double eplatidepend;
-        if (ifnofsmall == 1) {
-          eplatidepend = 0.0;
-        } else {
-	 	      eplatidepend = eplatidepend_(fabs(coriol), an);
-        }
-  
-        eplatidepend = fmax(eplatidepend, EPLATIDEPENDMIN);
-  
-        epson2_ = EPSON2__ * eplatidepend;
-      }
-  
-      epson2 = epson2_;
-  
-      int ifrafglt = 0;
-  
-      double rit(0.0), ric(0.0);
-      double back_ra_r1;
-      double back_ri1,  back_ric1;
-      double back_rid1, back_rit1;
-      double theta_r(0.0);
-      double deltheta_r1;
-      int itheta_r0(0), itheta_r1(0);
-      int jtheta_r0(0);
-      double ra_r;
-  
-      if (ri[k] <= 0.0) {
-        back_ra_r1 = 0.0;
-        back_rit1  = 0.0;
-        back_ric1  = 0.0;
-        back_ri1   = 0.0;
-        back_rid1  = 0.0;
-      } else {
-        // rit = (ri[k] + rid[k]) / 2.0;
-        // ric = (ri[k] - rid[k]) / 2.0;
-        rit = (ri[k] + rid[k]) * 0.5;
-        ric = (ri[k] - rid[k]) * 0.5;
-        ra_r = sqrt((rit * rit) + (ric * ric));
-  
-        if (rit == 0.0) {
-          if (ric == 0.0) {
-            theta_r = std::atan(1.0);
-          } else {
-            // theta_r = PI / 2.0;
-            theta_r = PI * 0.5;
-          }
-        } else {
-          theta_r = atan(ric / rit);
-        }
-        // if (fabs(theta_r) > (PI / 2.0)) {
-        if (fabs(theta_r) > (PI * 0.5)) {
-          return ;
-        }
-        // if (theta_r < (-PI) / 4.0) {
-        if (theta_r < (-PI) * 0.25) {
-          theta_r += PI;
-        }
-  
-        jtheta_r0 = static_cast<int>(
-            (theta_r + (PI / 4.0)) / deltheta_r_);
-  
-        itheta_r0 = jtheta_r0 - N_THETA_R_OCT;
-        itheta_r1 = itheta_r0 + 1;
-  
-        double theta_r0 = itheta_r0 * deltheta_r_;
-        double theta_r1 = itheta_r1 * deltheta_r_;
-  
-        if ((theta_r0 <= theta_rcrp_) &&
-             (theta_r > theta_rcrp_)) {
-          theta_r    = theta_r1;
-          theta_r0   = theta_r1;
-          itheta_r0  = itheta_r1;
-          itheta_r1 += 1;
-          theta_r1  += deltheta_r_;
-        } else if ((theta_r1 >= theta_rcrn_) &&
-                   (theta_r  < theta_rcrn_)) {
-          theta_r    = theta_r0;
-          theta_r1   = theta_r0;
-          itheta_r1  = itheta_r0;
-          itheta_r0 -= 1;
-          theta_r0  -= deltheta_r_;
-        }
-  
-        if ((itheta_r1 > 3 * N_THETA_R_OCT) ||
-            (itheta_r0 < - N_THETA_R_OCT)) {
-          return ;
-        }
-  
-        deltheta_r1 = theta_r - theta_r0;
-  
-        const double delback_ra_r = 
-            v_back_ra_r_(N_THETA_R_OCT + itheta_r1) 
-                - v_back_ra_r_(N_THETA_R_OCT + itheta_r0);
-  
-        const double dback_ra_r_o_dtheta = 
-            delback_ra_r / deltheta_r_;
-  
-        back_ra_r1 = v_back_ra_r_(N_THETA_R_OCT + itheta_r0) 
-            + deltheta_r1 * dback_ra_r_o_dtheta;
-  
-        ifrafglt = 0;
-  
-        if ((theta_r <= theta_rcrp_) ||
-            (theta_r >= theta_rcrn_)) {
-          if (back_ra_r1 > ra_r) {
-            ifrafglt = 1;
-            back_ra_r1 = ra_r;
-          }
-        }
-  
-        if (back_ra_r1 < 0.0) {
-          return ;
-        }
-        back_rit1 = cos(theta_r) * back_ra_r1;
-        back_ric1 = sin(theta_r) * back_ra_r1;
-        back_ri1  = back_rit1 + back_ric1;
-        back_rid1 = back_rit1 - back_ric1;
-      }
-  
-      if ((IFSALBACK != 4) && (ri[k] > 0.0)) {
-  
-        // if ((IFBG_THETA_INTERP == 0) ||
-        //     (ifrafglt == 1)) {
-        if (ifrafglt == 1) {
-          interp2d_expabs(back_ri1, back_rid1,
-              slq2_back, sm_back, sh_back, ss_back);
-        // } else if (IFBG_THETA_INTERP == 1) {
-        } else if (true) {
-          deltheta_r1 = theta_r - itheta_r0 * deltheta_r_;
-  
-          const double delsm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r1)
-              - v_sm_r1_(N_THETA_R_OCT + itheta_r0);
-  
-          const double dsm_back_o_dtheta = delsm_back / deltheta_r_;
-  
-          sm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r0)
-              + deltheta_r1 * dsm_back_o_dtheta;
-  
-          const double delsh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r1)
-              - v_sh_r1_(N_THETA_R_OCT + itheta_r0);
-  
-          const double dsh_back_o_dtheta = delsh_back / deltheta_r_;
-  
-          sh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r0)
-              + deltheta_r1 * dsh_back_o_dtheta;
-  
-          const double delss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r1)
-              - v_ss_r1_(N_THETA_R_OCT + itheta_r0);
-  
-          const double dss_back_o_dtheta = delss_back / deltheta_r_;
-  
-          ss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r0)
-              + deltheta_r1 * dss_back_o_dtheta;
-  
-          const double delslq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r1)
-              - v_slq2_r1_(N_THETA_R_OCT + itheta_r0);
-  
-          const double dslq2_back_o_dtheta = delslq2_back / deltheta_r_;
-  
-          slq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r0)
-              + deltheta_r1 * dslq2_back_o_dtheta;
-        } else {
-          return ;
-        }
-        if (slq2_back < 0.0) {
-          return ;
-        }
-      } // not go to 19
-
-      // 19 continue
-      if (ri1 < 0.0) {
-        sm_back = 0.0;
-        sh_back = 0.0;
-        ss_back = 0.0;
-      }
-  
-      if ((sm_back < 0.0) || (sh_back < 0.0) ||
-          (ss_back < 0.0)) {
-        return ;
-      }
-      
-      //double tmp_back;
-  
-      const double tmp_back = 0.5 * b1_ * b1_
-          * back_ri1 * slq2_back * epson2;
-  
-      v_back[k] = tmp_back * sm_back;
-      t_back[k] = tmp_back * sh_back;
-      s_back[k] = tmp_back * ss_back;
-  
-      if ((v_back[k] < 0.0) || (t_back[k] < 0.0)
-          || (s_back[k] < 0.0)) {
-        return ;
-      }
-      if((ri[k] > 0.0) && ((v_back[k] == 0.0)
-          || (t_back[k] == 0.0) || (s_back[k] == 0.0))) {
-        return ;
-      }
-  
-      double tmp(0.0);
-  
-      // if ((IFEPSON2 == 2) && (ifbelow == 1)) {
-      //   if ((ri1 >= 0.0) || ((IFDEEPLAT == 2) && (ifnofsmall == 1))) {
-      if (ifbelow == 1) {
-        if (ri1 >= 0.0) {
-          tmp = 0.5 * b1_ * b1_ * ri1 * slq2 * epson2;
-        } else if (k > 1) {
-          double delz, delrh, del2rh;
-          if (k == n - 1) {
-            delz = z[k] - z[k-1];
-            delrh = v_rh(k, j, i) - v_rh(k-1, j, i);
-            del2rh = v_rh(k, j, i) - 2.0 * v_rh(k-1, j, i) + v_rh(k-2, j, i);
-          } else {
-            delz = z[k+1] - z[k-1];
-            delrh = v_rh(k+1, j, i) - v_rh(k-1, j, i);
-            del2rh = v_rh(k+1, j, i) - 2.0 * v_rh(k, j, i) + v_rh(k-1, j, i);
-          }
-  
-          const double dzrh = delrh / delz;
-          const double d2zrh = 4.0 * del2rh / (delz * delz);
-          const double rdzlndzrh = dzrh / d2zrh;
-          const double al0deep = 0.17 * fabs(rdzlndzrh);
-          akz = 0.4 * z[k];
-          const double aldeep = akz * al0deep / (al0deep + akz);
-          al2 = aldeep * aldeep;
-  
-          if (ifpureshear == 1) {
-            // GO TO 21
-            tmp = 0.5 * (b1_ * b1_) * al2 * std::sqrt(-an2[k] / amtaun2);
-       
-            v_akm(k, j, i) = fmin(tmp * sm + v_back[k],
-                visc_cbu_limit1);
-            v_akh(k, j, i) = fmin(tmp * sh + t_back[k],
-                diff_cbt_limit1);
-            v_aks(k, j, i) = fmin(tmp * ss + s_back[k],
-                diff_cbt_limit1);
-            continue ;
-          } else if (IFSHEARMIN) {
-            s2[k] = fmax(s2[k], S2MIN);
-          }
-          tmp = 0.5 * b1_ * al2 * std::sqrt(s2[k] / (slq2 + 1.0e-40));
-        } else {
-          if (ifpureshear == 1) {
-            // GO TO 21
-            tmp = 0.5 * (b1_ * b1_) * al2 * std::sqrt(-an2[k] / amtaun2);
-       
-            v_akm(k, j, i) = fmin(tmp * sm + v_back[k],
-                visc_cbu_limit1);
-            v_akh(k, j, i) = fmin(tmp * sh + t_back[k],
-                diff_cbt_limit1);
-            v_aks(k, j, i) = fmin(tmp * ss + s_back[k],
-                diff_cbt_limit1);
-            continue ;
-          } else if (IFSHEARMIN) {
-            s2[k] = fmax(s2[k], S2MIN);
-          }
-          if (lifepsy) {
-            tmp = 0.5 * epsy / (s2[k] + 1.0e-40);
-          } else {
-            tmp = 0.5 * b1_ * al2 * std::sqrt(s2[k] / (slq2 + 1.0e-40));
-          }
-        }
-      } else {
-        if (ifpureshear == 1) {
-            tmp = 0.5 * (b1_ * b1_) * al2 * std::sqrt(-an2[k] / amtaun2);
-            v_akm(k, j, i) = fmin(tmp * sm + v_back[k],
-                visc_cbu_limit1);
-            v_akh(k, j, i) = fmin(tmp * sh + t_back[k],
-                diff_cbt_limit1);
-            v_aks(k, j, i) = fmin(tmp * ss + s_back[k],
-                diff_cbt_limit1);
-            continue ;
-        } else if (IFSHEARMIN) {
-          s2[k] = fmax(s2[k], S2MIN);
-        }
-        if (lifepsy) {
-          tmp = 0.5 * epsy / (s2[k] + 1.0e-40);
-        } else {
-          tmp = 0.5 * b1_ * al2 * std::sqrt(s2[k] / (slq2 + 1.0e-40));
-        }
-      }
-  
-      // 21
-      if (ifpureshear == 1) {
-        tmp = 0.5 * (b1_ * b1_) * al2 * std::sqrt(-an2[k] / amtaun2);
-      }
-  
-      v_akm(k, j, i) = fmin(tmp * sm + v_back[k],
-          visc_cbu_limit1);
-      v_akh(k, j, i) = fmin(tmp * sh + t_back[k],
-          diff_cbt_limit1);
-      v_aks(k, j, i) = fmin(tmp * ss + s_back[k],
-          diff_cbt_limit1);
-    } // End for k in 0:n
-
-    for (int k = nb+1; k < nmax; ++k) {
-      v_akm(k, j, i) = 0.0;
-      v_akh(k, j, i) = 0.0;
-      v_aks(k, j, i) = 0.0;
-    }
- 
-    if (n > 0) {
-      if (v_akm(0, j, i) < wndmix) {
-        v_akm(0, j, i) = wndmix;
-      }
-      if (v_akh(0, j, i) < wndmix) {
-        v_akh(0, j, i) = wndmix;
-      }
-      if (v_aks(0, j, i) < wndmix) {
-        v_aks(0, j, i) = wndmix;
-      }
-    }
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void formld(
-      const double (&z)[KM], const double (&t)[KM],
-          double &amld, const int &n) const {
-    for (int k = 0; k < n; ++k) {
-      if (fabs(t[k] - t[0]) > 0.1) {
-#ifdef D_PRECISION
-        const double tm = t[0] - sign_double(0.1, t[0] - t[k]);
-#else
-        const double tm = t[0] - sign_float(0.1,  t[0] - t[k]);
-#endif // D_PRECISION
-        amld = z[k] + (z[k-1] - z[k]) *
-            (tm - t[k]) / (t[k-1] - t[k] + 1.e-20);
-        return ;
-      }
-    }
-    amld = z[n-1];
-    return ;
-  }
-
-  KOKKOS_INLINE_FUNCTION int sign_int(const double &x, const double &y) const {
-    return y >= 0 ? std::abs(static_cast<int>(x)) 
-        : - std::abs(static_cast<int>(x));
-  }
-
-  KOKKOS_INLINE_FUNCTION int sign_float(const double &x, const double &y) const {
-    return y >= 0.0 ? std::abs(static_cast<float>(x)) 
-       : - std::abs(static_cast<float>(x));
-  }
-
-  KOKKOS_INLINE_FUNCTION double sign_double(const double &x, const double &y) const {
-    return y >= 0.0 ? fabs(x) : - fabs(x);
-  }
-
-  KOKKOS_INLINE_FUNCTION void interp1d_expabs(
-      double &x,            // and2on2
-      double &slq2,         // amtaun2
-      double &sm,           // sm
-      double &sh,           // sh
-      double &ss,           // ss
-      const int &ixmax,     // imax
-      const double &delta,  // dand2on2
-      const double &rat     /* rnd2on2 */ ) const {
-  
-    int lx0(0), lx1(0);
-    
-    if (x > v_and2on2a1_(MT + ixmax)) {
-      x = v_and2on2a1_(MT + MT);
-    } else if (x < v_and2on2a1_(0)) {
-      x = v_and2on2a1_(0);
-    }
-  
-    if (fabs(x) < v_and2on2a1_(MT + MT0)) {
-#ifdef D_PRECISION
-      lx1 = static_cast<int>(x / delta) + round(sign_double(static_cast<double>(1.0), x)); 
-#else  // D_PRECISION
-      lx1 = static_cast<int>(x / delta) + round(sign_float(static_cast<float>(1.0), x)); 
-#endif // D_PRECISION
-    } else if (fabs(x) >= v_and2on2a1_(MT + MT)) {
-#ifdef D_PRECISION
-      lx0 = round(sign_double(static_cast<double>(MT), x));
-#else  // D_PRECISION
-      lx0 = round(sign_float(static_cast<float>(MT), x));
-#endif // D_PRECISION
-      lx1 = lx0;
-    } else {
-#ifdef D_PRECISION
-      const double tabindx = sign_double(static_cast<double>(MT0)
-         + ((log(fabs(x)) - log(v_and2on2a1_(MT + MT0))) / log(rat)), x);
-#else  // D_PRECISION
-      const float tabindx = sign_double(static_cast<float>(MT0)
-         + ((log(fabs(x)) - log(v_and2on2a1_(MT + MT0))) / log(rat)), x);
-#endif // D_PRECISION
-
-#ifdef D_PRECISION
-      lx1 = static_cast<int>(tabindx) + round(sign_double(
-          static_cast<double>(1.0), x));
-#else  // D_PRECISION
-      lx1 = static_cast<int>(tabindx) + round(sign_float(
-          static_cast<float>(1.0), x));
-#endif // D_PRECISION
-    }
-
-    if (!(fabs(x) >= v_and2on2a1_(MT + MT))) {
-      if (fabs(v_and2on2a1_(MT + lx1)) < fabs(x)) {
-        lx1 += sign_int(1, lx1);
-      } else if (fabs(v_and2on2a1_(MT + lx1 - sign_int(1, lx1))) > fabs(x)) {
-        lx1 -= sign_int(1, lx1);
-      }
-
-#ifdef D_PRECISION
-      lx0 = lx1 - round(sign_double(
-          static_cast<double>(1.0), x));
-#else  // D_PRECISION
-      lx0 = lx1 - round(sign_float(
-          static_cast<float>(1.0), x));
-#endif // D_PRECISION
-      if (x == 0.0) {
-        lx1 = 1;
-      }
-    }
-    // 252
-    if ((x > 0.0 && (x < v_and2on2a1_(MT + lx0) || x > v_and2on2a1_(MT + lx1))) ||
-        (x < 0.0 && (x > v_and2on2a1_(MT + lx0) || x < v_and2on2a1_(MT + lx1)))) {
-      return;
-    }
-
-    const double deltaxta = v_and2on2a1_(MT + lx1) - v_and2on2a1_(MT + lx0);
-
-    const double deltax = x - v_and2on2a1_(MT + lx0);
-
-    double dslq2_x;
-    if (lx1 == lx0) {
-      dslq2_x = 0.0;
-    } else {
-      dslq2_x = (v_amtaun2a1_(MT + lx1) - v_amtaun2a1_(MT + lx0)) / deltaxta;
-    }
-
-    slq2 = v_amtaun2a1_(MT + lx0) + dslq2_x * deltax;
-
-    double dsm_x;
-    if (lx1 == lx0) {
-      dsm_x = 0.0;
-    } else {
-      dsm_x = (v_sma1_(MT + lx1) - v_sma1_(MT + lx0)) / deltaxta;
-    }
-    sm = v_sma1_(MT + lx0) + dsm_x * deltax;
-
-    double dsh_x;
-    if (lx1 == lx0) {
-      dsh_x = 0.0;
-    } else {
-      dsh_x = (v_sha1_(MT + lx1) - v_sha1_(MT + lx0)) / deltaxta;
-    }
-    sh = v_sha1_(MT + lx0) + dsh_x * deltax;
-
-    double dss_x;
-    if (lx1 == lx0) {
-      dss_x = 0.0;
-    } else {
-      dss_x = (v_ssa1_(MT + lx1) - v_ssa1_(MT + lx0)) / deltaxta;
-    }
-    ss = v_ssa1_(MT + lx0) + dss_x * deltax;
-  
-    return ;  
-  }
-
-  KOKKOS_INLINE_FUNCTION void interp2d_expabs(double &ri, double &rid,
-      double &slq2, double &sm, double &sh, double &ss) const {
-
-    if (ri > v_rib_(MT + MT)) {
-      if (fabs(rid) <= ri) {
-        rid = v_rib_(MT + MT) * (rid / ri);
-        ri  = v_rib_(MT + MT);
-      } else if (rid > ri) {
-        ri  = v_ridb_(MT + MT) * (ri / rid);
-        rid = v_ridb_(MT + MT);
-      } else if (rid < -ri) {
-        ri  = v_ridb_(0) * (ri / rid);
-        rid = v_ridb_(0);
-      }
-    } else if (ri < v_rib_(0)) {
-      if (fabs(rid) <= -ri) {
-        rid = v_rib_(0) * (rid / ri);
-        ri  = v_rib_(0);
-      } else if (rid > -ri) {
-        ri  = v_ridb_(MT + MT) * (ri / rid);
-        rid = v_ridb_(MT + MT);
-      } else if (rid < ri) {
-        ri  = v_ridb_(0) * (ri / rid);
-        rid = v_ridb_(0);
-      }
-    } else if (rid > v_ridb_(MT + MT)) {
-      ri  = v_ridb_(MT + MT) * (ri / rid);
-      rid = v_ridb_(MT + MT);
-    } else if (rid < v_ridb_(0)) {
-      ri  = v_ridb_(0) * (ri / rid);
-      rid = v_ridb_(0);
-    }
-
-    int lrid0(0), lrid1(0);
-
-    if (fabs(rid) < v_ridb_(MT + MT0)) {
-#ifdef D_PRECISION
-      lrid1 = static_cast<int>(rid / dri_)
-          + round(sign_double(static_cast<double>(1.0), rid));
-#else // D_PRECISION
-      lrid1 = static_cast<int>(rid / dri_)
-          + round(sign_float(static_cast<float>(1.0), rid));
-#endif // D_PRECISION
-    } else if (fabs(rid) >= v_ridb_(MT + MT)) {
-#ifdef D_PRECISION
-      lrid0 = round(sign_double(static_cast<double>(MT), rid));
-#else // D_PRECISION
-      lrid0 = round(sign_float(static_cast<float>(MT), rid));
-#endif // D_PRECISION
-      lrid1 = lrid0;
-    } else {
-#ifdef D_PRECISION
-      const double tabindrid = sign_double(static_cast<double>(MT0)
-          + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-              / log(rri_)), rid);
-#else // D_PRECISION
-      const double tabindrid = sign_float(static_cast<float>(MT0)
-          + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-              / log(rri)), rid);
-#endif // D_PRECISION
-
-#ifdef D_PRECISION
-      lrid1 = static_cast<int>(tabindrid)
-          + round(sign_double(static_cast<double>(1.0), rid));
-#else // D_PRECISION
-      lrid1 = static_cast<int>(tabindrid)
-          + round(sign_float(static_cast<float>(1.0), rid));
-#endif // D_PRECISION
-
-    }
-
-    if (!(fabs(rid) >= v_ridb_(MT + MT))) {
-
-      if (fabs(v_ridb_(MT + lrid1)) < fabs(rid)) {
-        lrid1 += sign_int(1, lrid1);
-      } else if (fabs(v_ridb_(MT + lrid1 - sign_int(1, lrid1))) > 
-          fabs(rid)) {
-        lrid1 -= sign_int(1, lrid1);
-      }
-
-#ifdef D_PRECISION
-      lrid0 = lrid1 - round(sign_double(
-          static_cast<double>(1.0), rid));
-#else // D_PRECISION
-      lrid0 = lrid1 - round(sign_float(
-          static_cast<float>(1.0), rid));
-#endif // D_PRECISION
-      if (rid == 0.0) {
-        lrid1 = 1;
-      }
-    }
-
-    // 252
-    if ((rid > 0.0 && (rid < v_ridb_(MT + lrid0) || rid > v_ridb_(MT + lrid1))) ||
-        (rid < 0.0 && (rid > v_ridb_(MT + lrid0) || rid < v_ridb_(MT + lrid1)))) {
-      return ;
-    }
- 
-    if (ri > fmin(v_rib_(MT + v_irimax_(MT + lrid0)),
-                  v_rib_(MT + v_irimax_(MT + lrid1)))) {
-      slq2 = 0.0;
-      sm   = 0.0;
-      sh   = 0.0;
-      ss   = 0.0;
-      return ;
-    }
-
-    int lri0(0), lri1(0);
-
-    if (fabs(ri) < v_rib_(MT + MT0)) {
-#ifdef D_PRECISION
-      lri1 = static_cast<int>(ri / dri_)
-          + round(sign_double(static_cast<double>(1.0), ri));
-#else // D_PRECISION
-      lri1 = static_cast<int>(ri / dri_)
-          + round(sign_float(static_cast<float>(1.0), ri));
-#endif // D_PRECISION
-    } else if (fabs(ri) >= v_rib_(MT + MT)) {
-#ifdef D_PRECISION
-      lri0 = round(sign_double(static_cast<double>(MT), ri));
-#else // D_PRECISION
-      lri0 = round(sign_float(static_cast<float>(MT), ri));
-#endif // D_PRECISION
-      lri1 = lri0;
-    } else {
-#ifdef D_PRECISION
-      const double tabindri = sign_double(static_cast<double>(MT0)
-          + ((log(fabs(ri)) - log(v_rib_(MT + MT0)))
-              / log(rri_)), ri);
-#else // D_PRECISION
-      const double tabindri = sign_float(static_cast<float>(MT0)
-          + ((log(fabs(ri)) - log(v_rib_(MT + MT0)))
-              / log(rri)), ri);
-#endif // D_PRECISION
-
-#ifdef D_PRECISION
-      lri1 = static_cast<int>(tabindri)
-          + round(sign_double(static_cast<double>(1.0), ri));
-#else // D_PRECISION
-      lri1 = static_cast<int>(tabindri)
-          + round(sign_float(static_cast<float>(1.0), ri));
-#endif // D_PRECISION
-    }
- 
-    if (!(fabs(ri) >= v_rib_(MT + MT))) {
-      if (fabs(v_rib_(MT + lri1)) < fabs(ri)) {
-        lri1 += sign_int(1, lri1);
-      } else if (fabs(v_rib_(MT + lri1 - sign_int(1, lri1))) >
-          fabs(ri)) {
-        lri1 -= sign_int(1, lri1);
-      }
-
-#ifdef D_PRECISION
-      lri0 = lri1 - round(sign_double(
-          static_cast<double>(1.0), ri));
-#else // D_PRECISION
-      lri0 = lri1 - round(sign_float(
-          static_cast<float>(1.0), ri));
-#endif // D_PRECISION
-
-      if (ri == 0.0) {
-        lri1 = 1;
-      }
-    }
-
-    if ((ri > 0.0 && (ri < v_rib_(MT + lri0) || ri > v_rib_(MT + lri1))) ||
-        (ri < 0.0 && (ri > v_rib_(MT + lri0) || ri < v_rib_(MT + lri1)))) {
-      return ;
-    }
-
-    const double deltaridta = v_ridb_(MT + lrid1) - v_ridb_(MT + lrid0);
-    const double deltarita  = v_rib_(MT + lri1) - v_rib_(MT + lri0);
-    const double deltarid = rid - v_ridb_(MT + lrid0);
-    const double deltari  = ri  - v_rib_(MT + lri0);
-
-    double dslq2_rid;
-
-    if (lrid1 == lrid0) {
-      dslq2_rid = 0.0;
-    } else {
-      dslq2_rid = (v_slq2b_(MT+lrid1, MT+lri0) - v_slq2b_(MT+lrid0, MT+lri0))
-          / deltaridta;
-    }
-
-    double dslq2_ri;
-    if (lri1 == lri0) {
-      dslq2_ri = 0.0;
-    } else {
-      dslq2_ri = (v_slq2b_(MT+lrid0, MT+lri1) - v_slq2b_(MT+lrid0, MT+lri0))
-          / deltarita;
-    }
-
-    slq2 = v_slq2b_(MT+lrid0, MT+lri0)
-        + dslq2_ri * deltari + dslq2_rid * deltarid;
-
-    double dsm_rid;
-    if (lrid1 == lrid0) {
-      dsm_rid = 0.0;
-    } else {
-      dsm_rid = (v_smb_(MT+lrid1, MT+lri0) - v_smb_(MT+lrid0, MT+lri0))
-          / deltaridta;
-    }
-
-    double dsm_ri;
-
-    if (lri1 == lri0) {
-      dsm_ri = 0.0;
-    } else {
-      dsm_ri = (v_smb_(MT+lrid0, MT+lri1) - v_smb_(MT+lrid0, MT+lri0))
-          / deltarita;
-    }
-
-    sm = v_smb_(MT+lrid0, MT+lri0) 
-        + dsm_ri * deltari + dsm_rid * deltarid;
-
-    double dsh_rid;
-    if (lrid1 == lrid0) {
-      dsh_rid = 0.0;
-    } else {
-      dsh_rid = (v_shb_(MT+lrid1, MT+lri0) - v_shb_(MT+lrid0, MT+lri0))
-          / deltaridta;
-    }
-    double dsh_ri;
-    if (lri1 == lri0) {
-      dsh_ri = 0.0;
-    } else {
-      dsh_ri = (v_shb_(MT+lrid0, MT+lri1) - v_shb_(MT+lrid0, MT+lri0))
-          / deltarita;
-    }
-
-    sh = v_shb_(MT+lrid0, MT+lri0) 
-        + dsh_ri * deltari + dsh_rid * deltarid;
-    
-    double dss_rid;
-    if (lrid1 == lrid0) {
-      dss_rid = 0.0;
-    } else {
-      dss_rid = (v_ssb_(MT+lrid1, MT+lri0) - v_ssb_(MT+lrid0, MT+lri0))
-          / deltaridta;
-    }
-    double dss_ri;
-    if (lri1 == lri0) {
-      dss_ri = 0.0;
-    } else {
-      dss_ri = (v_ssb_(MT+lrid0, MT+lri1) - v_ssb_(MT+lrid0, MT+lri0))
-          / deltarita;
-    }
-
-    ss = v_ssb_(MT+lrid0, MT+lri0) 
-        + dss_ri * deltari + dss_rid * deltarid;
-
-    return ;
-  }
-
-  KOKKOS_INLINE_FUNCTION double acosh1(const double &x) const {
-    return std::log(x + std::sqrt((x * x) - 1.0));
-  }
-  KOKKOS_INLINE_FUNCTION double wavelat(const double &xf, const double &yn) 
-      const {
-    return xf * acosh1(yn / xf);
-  }
-
-  KOKKOS_INLINE_FUNCTION double eplatidepend_(const double &f, const double &an) 
-      const {
-    double f_30;
-    double anum, den;
-    double pi1, omega;
-    const double an0 = 5.24e-3;
-    pi1   = 4.0 * std::atan(1.0);
-    omega = pi1 / 43082.0e0;
-    f_30  = omega;
-    den   = wavelat(f_30, an0);
-    anum  = wavelat(f, an);
-    return anum / den;
-  }
-};
-class FunctorReadyc53 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    if (v_vit_(0, 0, j, i) > 0.5) {
-      const int iblock = 0;
-      const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
 
 #ifdef TIDEMIX
-      v_ak_tide_(iblock, k, j, i) = 0.0;
-      if (k < kmt_m1) {
-        v_ak_tide_(iblock, k, j, i) = BACK_TIDALMIXING + MIXING_EF * 
+      //double ak_tide_mixing[KM];
+      for (int k = 0; k < KM; ++k) {
+        v_ak_tide_mixing_(j, i, k) = 0.0;
+      }
+      for (int k = 0; k < kmt_m1; ++k) {
+        v_ak_tide_mixing_(j, i, k) = BACK_TIDALMIXING + MIXING_EF * 
             LOCAL_MIXING_FRACTION * v_wave_dis_(iblock, j, i) * 
             v_fz_tide_(iblock, k, j, i) /
-            (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * v_wp3_(k, j, i) * 1000.0);
+            (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * v_wp3_(j, i, k));
 
-        v_ak_tide_(iblock, k, j, i) = fmin(v_ak_tide_(iblock, k, j, i),
+        v_ak_tide_mixing_(j, i, k) = fmin(v_ak_tide_mixing_(j, i, k),
             MAX_TIDALMIXING);
 
         v_richardson_(iblock, k, j, i) = v_rict_(iblock, k, j, i);
-        v_fztidal_   (iblock, k, j, i) = v_fz_tide_(iblock, k, j, i);
-        v_wp3_tidal_ (iblock, k, j, i) = v_wp3_(k, j, i);
+        v_fztidal_(iblock, k, j, i)    = v_fz_tide_(iblock, k, j, i);
+        v_wp3_tidal_(iblock, k, j, i)  = v_wp3_(j, i, k);
       }
-#endif // TIDEMIX
-    }
-    return ;
-  };
- private:
-  const ViewInt3D    v_kmt_        = *p_v_kmt;
-  const ViewDouble3D v_wp3_        = *p_v_wp3;
-  const ViewDouble3D v_wave_dis_   = *p_v_wave_dis;
-  const ViewDouble4D v_vit_        = *p_v_vit;
-  const ViewDouble4D v_rict_       = *p_v_rict;
-  const ViewDouble4D v_fztidal_    = *p_v_fztidal;
-  const ViewDouble4D v_ak_tide_    = *p_v_ak_tide;
-  const ViewDouble4D v_fz_tide_    = *p_v_fz_tide;
-  const ViewDouble4D v_wp3_tidal_  = *p_v_wp3_tidal;
-  const ViewDouble4D v_richardson_ = *p_v_richardson;
-};
-
-class FunctorReadyc54 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-    if (v_vit_(0, 0, j, i) > 0.5) {
-#ifdef TIDEMIX
 #ifdef CANUTOMIXOUT
 #endif // CANUTOMIXOUT
-      const int iblock = 0;
-      const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
-      double pre_ak_tide = v_ak_tide_(iblock, kmt_m1-1, j, i);
       for (int k = kmt_m1 - 2; k >= 0; --k) {
-        v_ak_tide_(iblock, k, j, i) = fmin(
-            v_ak_tide_(iblock, k, j, i), pre_ak_tide);
-        pre_ak_tide = v_ak_tide_(iblock, k, j, i);
+        v_ak_tide_mixing_(j, i, k) = fmin(
+            v_ak_tide_mixing_(j, i, k), v_ak_tide_mixing_(j, i, k+1));
       }
 #endif // TIDEMIX
-    }
-    return ;
-  };
- private:
-  const ViewInt3D    v_kmt_     = *p_v_kmt;
-  const ViewDouble4D v_vit_     = *p_v_vit;
-  const ViewDouble4D v_ak_tide_ = *p_v_ak_tide;
-};
-
-class FunctorReadyc55 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
-    if (v_vit_(0, 0, j, i) > 0.5) {
-      const int iblock = 0;
-      const float tmp_ncc = 1.0 / static_cast<float>(ncc_);
-
+      for (int k = 0; k < KM; ++k) {
+        v_akmt_(iblock, k, j, i)    = v_wk1_(j, i, k);
+        v_akt_(iblock, 0, k, j, i) += v_wk2_(j, i, k);
+        v_akt_(iblock, 1, k, j, i) += v_wk3_(j, i, k);
+#ifdef BCKMEX
+        v_akmt_(iblock, k, j, i) += diff_back[iblock][j][i] * 
+            10.0 * 1.0e-4;
+        v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] /
+                static_cast<float>(ncc) * 1.0e-4;
+        v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] /
+                static_cast<float>(ncc) * 1.0e-4;
+#endif // BCKMEX
 #ifdef TIDEMIX
-      v_akmt_(iblock, k, j, i)    =  v_wk1_(k, j, i) * 1.0e-4 +
-          v_ak_tide_(iblock, k, j, i) * 5.0;
-      v_akt_(iblock, 0, k, j, i) += (v_wk2_(k, j, i) * 1.0e-4 + 
-          v_ak_tide_(iblock, k, j, i)) * tmp_ncc;
-      v_akt_(iblock, 1, k, j, i) += (v_wk3_(k, j, i) * 1.0e-4 + 
-          v_ak_tide_(iblock, k, j, i)) * tmp_ncc;
-#ifdef BCKMEX
-      v_akmt_(iblock, k, j, i)   += diff_back[iblock][j][i] * 
-          10.0 * 1.0e-4;
-      v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] /
-          static_cast<float>(ncc) * 1.0e-4;
-      v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] /
-          static_cast<float>(ncc) * 1.0e-4;
-#endif // BCKMEX
-#else // TIDEMIX
-      v_akmt_(iblock, k, j, i)    = v_wk1_(k, j, i) * 1.0e-4;
-      v_akt_(iblock, 0, k, j, i) += v_wk2_(k, j, i) * 1.0e-4 / 
-          static_cast<float>(ncc_);
-      v_akt_(iblock, 1, k, j, i) += v_wk3_(k, j, i) * 1.0e-4 / 
-          static_cast<float>(ncc_);
-#ifdef BCKMEX
-      v_akmt_(iblock, k, j, i)   += diff_back[iblock][j][i] * 
-          10.0 * 1.0e-4;
-      v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] / 
-          static_cast<float>(ncc_) * 1.0e-4;
-      v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] / 
-          static_cast<float>(ncc_) * 1.0e-4;
-#endif // BCKMEX
+        v_akmt_(iblock, k, j, i)   += (v_ak_tide_mixing_(j, i, k) * 5.0);
+        v_akt_(iblock, 0, k, j, i) += v_ak_tide_mixing_(j, i, k);
+        v_akt_(iblock, 1, k, j, i) += v_ak_tide_mixing_(j, i, k);
 #endif // TIDEMIX
+        const double tmp_dzp = 0.008 * v_dzp_(k) * v_dzp_(k);
+        v_akmt_(iblock, k, j, i)   = std::min(v_akmt_(iblock, k, j, i),
+            tmp_dzp);
+        v_akt_(iblock, 0, k, j, i) = std::min(v_akt_(iblock, 0, k, j, i), tmp_dzp);
+        v_akt_(iblock, 1, k, j, i) = std::min(v_akt_(iblock, 1, k, j, i), tmp_dzp);
+      }
     }
     return ;
   };
  private:
-  const int ncc_ = CppPconstMod::ncc;
-  const ViewDouble3D v_wk1_     = *p_v_wk1;
-  const ViewDouble3D v_wk2_     = *p_v_wk2;
-  const ViewDouble3D v_wk3_     = *p_v_wk3;
-  const ViewDouble4D v_akmt_    = *p_v_akmt;
-  const ViewDouble4D v_ak_tide_ = *p_v_ak_tide;
-  const ViewDouble4D v_vit_     = *p_v_vit;
-  const ViewDouble5D v_akt_     = *p_v_akt;
-};
+  const double OMEGA_      = CppConstantMod::OMEGA;
+  const double DegToRad_   = CppConstantMod::DEGTORAD;
+  const double KARMAN_     = CppConstantMod::KARMAN;
+  const double VERY_SMALL_ = CppConstantMod::VERY_SMALL;
+  const ViewInt3D    v_kmt_            = *p_v_kmt;
+  const ViewDouble3D v_wk1_            = *KokkosTmpVar::p_v_wk1;
+  const ViewDouble3D v_wk2_            = *KokkosTmpVar::p_v_wk2;
+  const ViewDouble3D v_wk3_            = *KokkosTmpVar::p_v_wk3;
+  const ViewDouble3D v_wk4_            = *KokkosTmpVar::p_v_wk4;
+  const ViewDouble3D v_wp1_            = *KokkosTmpVar::p_v_wp1;
+  const ViewDouble3D v_wp2_            = *KokkosTmpVar::p_v_wp2;
+  const ViewDouble3D v_wp3_            = *KokkosTmpVar::p_v_wp3;
+  const ViewDouble3D v_wp4_            = *KokkosTmpVar::p_v_wp4;
+  const ViewDouble3D v_wp5_            = *KokkosTmpVar::p_v_wp5;
+  const ViewDouble3D v_wp6_            = *KokkosTmpVar::p_v_wp6;
+  const ViewDouble3D v_wp7_            = *KokkosTmpVar::p_v_wp7;
+  const ViewDouble3D v_wp8_            = *KokkosTmpVar::p_v_wp8;
+  const ViewDouble3D v_zlev_           = *KokkosTmpVar::p_v_zlev;
+  const ViewDouble3D v_ak_tide_mixing_ = *KokkosTmpVar::p_v_ak_tide_mixing;
+  const ViewDouble3D v_Ri_             = *KokkosTmpVar::p_v_Ri;
+  const ViewDouble3D v_Rrho_           = *KokkosTmpVar::p_v_Rrho;
+  const ViewDouble3D v_Gm_             = *KokkosTmpVar::p_v_Gm;
+  const ViewDouble1D v_to_             = *p_v_to;
+  const ViewDouble1D v_so_             = *p_v_so;
+  const ViewDouble1D v_dzp_            = *p_v_dzp;
+  const ViewDouble1D v_zkp_            = *p_v_zkp;
+  const ViewDouble2D v_c_              = *KokkosPconstMod::p_v_c;
+  const ViewDouble3D v_ulat_           = *p_v_ulat;
+  const ViewDouble3D v_amld_           = *p_v_amld;
+  const ViewDouble3D v_ustar_          = *p_v_ustar;
+  const ViewDouble3D v_fcort_          = *p_v_fcort;
+  const ViewDouble3D v_buoytur_        = *p_v_buoytur;
+  const ViewDouble3D v_wave_dis_       = *p_v_wave_dis;
+  const ViewDouble4D v_rit_            = *p_v_rit;
+  const ViewDouble4D v_rict_           = *p_v_rict;
+  const ViewDouble4D v_ricdt_          = *p_v_ricdt;
+  const ViewDouble4D v_akmt_           = *p_v_akmt;
+  const ViewDouble4D v_fztidal_        = *p_v_fztidal;
+  const ViewDouble4D v_wp3_tidal_      = *p_v_wp3_tidal;
+  const ViewDouble4D v_richardson_     = *p_v_richardson;
+  const ViewDouble4D v_fz_tide_        = *p_v_fz_tide;
+  const ViewDouble4D v_s2t_            = *p_v_s2t;
+  const ViewDouble4D v_vit_            = *p_v_vit;
+  const ViewDouble5D v_at_             = *p_v_at;
+  const ViewDouble5D v_akt_            = *p_v_akt;
 
-#endif // CANUTO
+  KOKKOS_INLINE_FUNCTION double dens (
+      const double &tq, const double &sq, const int &kk) const {
+    double dens;
+    dens = (v_c_(0, kk) + (v_c_(3, kk) + v_c_(6, kk) * sq) * sq +
+           (v_c_(2, kk) +  v_c_(7, kk) * sq + v_c_(5, kk) * tq) * tq) * tq +
+           (v_c_(1, kk) + (v_c_(4, kk) + v_c_(8, kk) * sq) * sq) * sq;
+    return dens;
+  }
+
+  /*
+  template<typename T> KOKKOS_INLINE_FUNCTION 
+  T sign (const T &x, const T &y) const {
+    return y >= static_cast<T>(0) ? std::abs(x) : -std::abs(x);
+  }
+  */
+  KOKKOS_INLINE_FUNCTION 
+  double sign (const double &x, const double &y) const {
+    return y >= 0.0 ? fabs(x) : - fabs(x);
+  }
+
+  KOKKOS_INLINE_FUNCTION 
+  void Rf_calc (double &Rf_out, const double &Ri_in, const double &Rrho_in, 
+      const double &struct_h, const double &struct_m, const double &r_in) const {
+    Rf_out = Ri_in * struct_h / struct_m * (1.0 - Rrho_in / r_in);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void mixed_layer_TKE_calc (double &TKE_out, const double &mld_in, 
+      const double &Gm_in, const double &s2_in, const double &lev_in, 
+          const double &Rf_in, const double &Rf_inf_in) const {
+    const double l0 = 0.17 * mld_in;
+    const double lB = KARMAN_ * std::abs(lev_in * l0) / (l0 + KARMAN_ * std::abs(lev_in));
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    const double tmp = std::pow(std::pow(1.0 - Rf_in / Rf_inf_in, 4.0), 1.0 / 3.0); 
+    const double l = lB * tmp;
+    const double B1 = 21.6;
+    TKE_out = B1 * B1 * std::pow(Gm_in, - 3.0 / 2.0)
+        * l * l * std::pow(s2_in, 3.0/2.0);
+#else
+    const double tmp = static_cast<double>(
+        std::pow(
+        std::pow(static_cast<long double>(1.0 - Rf_in / Rf_inf_in), 4.0), 
+            1.0 / 3.0)); 
+    const double l = lB * tmp;
+    const double B1 = 21.6;
+    TKE_out = B1 * B1 * 
+        static_cast<double>(std::pow(static_cast<long double>(Gm_in), - 3.0 / 2.0))
+            * l * l * static_cast<double>(
+                std::pow(static_cast<long double>(s2_in), 3.0/2.0));
+#endif
+
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void thermocline_mixing_coeff_calc (double &Km_out, 
+             double &Kh_out,          double &Ks_out,          double &Kd_out,
+       const double &mix_eff_m, const double &mix_eff_h, const double &mix_eff_s, 
+       const double &mix_eff_d, const double &n2_in,     const double &lat_in) 
+          const {
+    const double N0     = 5.24e-3;
+    const double F30    = 2.0 * OMEGA_ * std::sin(30.0 * DegToRad_);
+    const double Tke_n2 = 0.288e-4;
+ 
+    const double f_lat = std::abs (2.0 * OMEGA_ * std::sin(lat_in * DegToRad_) + VERY_SMALL_);
+ 
+    const double cond1 = std::max(std::sqrt(n2_in) / f_lat, 1.0);
+ 
+    // double L_lat = (f_lat * std::acosh(cond1)) / (F30 * std::acosh(N0 / F30));
+    // const double L_lat = (f_lat * std::acosh(cond1)) / (F30 * std::acosh(N0 / F30));
+ 
+    // Km_out = L_lat * Tke_n2 * mix_eff_m;
+    // Kh_out = L_lat * Tke_n2 * mix_eff_h;
+    // Ks_out = L_lat * Tke_n2 * mix_eff_s;
+    // Kd_out = L_lat * Tke_n2 * mix_eff_d;
+    const double L_lat = (f_lat * acosh(cond1)) / (F30 * acosh(N0 / F30)) * Tke_n2;
+ 
+    Km_out = L_lat * mix_eff_m;
+    Kh_out = L_lat * mix_eff_h;
+    Ks_out = L_lat * mix_eff_s;
+    Kd_out = L_lat * mix_eff_d;
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void shengjin_calc (const double* array, const int &nmax, 
+      double& real_x) const {
+    const double epsln1 = 1.0e-6;
+ 
+    const double sa = array[0];
+    const double sb = array[1];
+    const double sc = array[2];
+    const double sd = array[3];
+ 
+    real_x = 1.0;
+ 
+    if (std::abs(sa) <= epsln1 && std::abs(sb) <= epsln1) {
+      if ((-sd / sc) < 0.0) {
+        // printf ("No real positive root at position 1\n");
+        return;
+      } else {
+        // printf ("Only one real positive root exists 1!\n");
+        real_x = -sd / sc;
+        return;
+      }
+    }
+ 
+    double delta;
+    double x[3];
+    if (std::abs(sa) <= epsln1 && std::abs(sb) >= epsln1) {
+      delta = sc * sc - 4.0 * sb * sd;
+      if (delta < 0.0) {
+        // printf ("No real roots in this secondary order equation 2!\n");
+        return;
+      } else if (delta >= 0.0) {
+        const double tmp = std::sqrt(delta);
+        x[0] = (-sc + tmp) / (2.0 * sb);
+        x[1] = (-sc - tmp) / (2.0 * sb);
+        if (x[0] < 0.0 && x[1] < 0.0) {
+          // std::cout << "No real positive root at position 2" << std::endl;
+          return;
+        } else {
+          // std::cout << "Two real with one positive at least 2!" << std::endl;
+          if (x[0] > 0.0 && x[1] > 0.0) {
+            real_x = std::min(x[0], x[1]);
+          } else if (x[0] >  0.0 && x[1] <= 0.0) {
+            real_x = x[0];
+          } else if (x[0] <= 0.0 && x[1]  > 0.0) {
+            real_x = x[1];
+          }
+          return;
+        }
+      }
+    }
+ 
+    const double A = sb * sb - 3.0 * sa * sc;
+    const double B = sb * sc - 9.0 * sa * sd;
+    const double C = sc * sc - 3.0 * sb * sd;
+ 
+    if (std::abs(A) <= epsln1 && std::abs(B) <= epsln1) {
+      if ((-sc / sb) < 0.0) {
+        // std::cout << "No real positive root at position 3" << std::endl;
+        return;
+      } else {
+        // std::cout << "Only one real positive root exists 3!" << std::endl;
+        real_x = -sc / sb;
+        return;
+      }
+    }
+ 
+    delta = B * B - 4.0 * A * C;
+ 
+    double y[2];
+    if (delta > 0.0) {
+      double tmp = std::sqrt(delta);
+      y[0] = A * sb + 3.0 * sa * (-B + tmp) / 2.0;
+      y[1] = A * sb + 3.0 * sa * (-B - tmp) / 2.0;
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+      real_x = (-sb - sign(std::pow(std::abs(y[0]), 1.0 / 3.0), y[0]) 
+                    - sign(std::pow(std::abs(y[1]), 1.0 / 3.0), y[1])) / (3.0 * sa);
+#else
+      real_x = (-sb - 
+          sign(static_cast<double>(
+              std::pow(static_cast<long double>(std::abs(y[0])), 1.0 / 3.0)), y[0]) 
+        - sign(static_cast<double>(
+              std::pow(static_cast<long double>(std::abs(y[1])), 1.0 / 3.0)), y[1])) 
+                  / (3.0 * sa);
+#endif
+      if (real_x < 0.0) {
+        real_x = 1.0;
+        return;
+      } else {
+        // std::cout << "Only one real positive root exists 4!" << std::endl;
+        // real_x = real_x;
+        return;
+      }
+    }
+ 
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    const double T = (2.0 * A * sb - 3.0 * sa * B) / (2.0 * std::pow(A, 1.5));
+#else
+    const double T = (2.0 * A * sb - 3.0 * sa * B) / (2.0 
+        * static_cast<double>(std::pow(static_cast<long double>(A), 1.5)));
+#endif
+    const double the  = std::acos(T);
+    const double tmp1 = std::sqrt(A);
+    const double tmp2 = std::cos(the / 3.0);
+    const double tmp3 = std::sqrt(3.0) * std::sin(the / 3.0);
+    x[0] = (-sb - 2.0  *  tmp1 *  tmp2        ) / 3.0 / sa;
+    x[1] = (-sb +         tmp1 * (tmp2 + tmp3)) / 3.0 / sa;
+    x[2] = (-sb +         tmp1 * (tmp2 - tmp3)) / 3.0 / sa;
+ 
+    real_x = 500.0;
+    for (int k = 0; k < 3; ++k) {
+      if (x[k] >= 0.0 && x[k] <= 1000.0) {
+        if (x[k] < real_x) {
+          real_x = x[k];
+        }
+      }
+    }
+ 
+    real_x = std::numeric_limits<double>::max();
+    for (int i = 0; i < 3; ++i) {
+      if (x[i] > 0.0) {
+        real_x = std::min (real_x, x[i]);
+      }
+    }
+ 
+    real_x = std::min (real_x, 2.0e3);
+    real_x = std::max (real_x, 1.0);
+ 
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void dyn_time_scale_calc (const double &Ri, const double &Rrho, 
+      const double* pi_n, double &Gm, double* const cubic_coef) const {
+ 
+    double A1, A2, A3, A4, A5, A6;
+    double temp1, temp2, temp3, temp4, temp5;
+    double temp6, temp7, temp8, temp9, temp10;
+    double temp11;
+ 
+    temp1 = pi_n[0] * pi_n[3] * (pi_n[3] - pi_n[0] * Rrho);
+    temp2 = pi_n[1] * (15.0 * pi_n[2] + 7.0) * (Rrho * Rrho + 1.0);
+    temp3 = (14.0 * (pi_n[1] - pi_n[2]) - 15.0 * pi_n[2] * pi_n[2]) * Rrho;
+    // hwy_need_check
+    const double one_minus_Rrho = 1.0 - Rrho;
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    temp4 = 150.0 * one_minus_Rrho * one_minus_Rrho * one_minus_Rrho; 
+#else
+    long double tmp = static_cast<long double>(one_minus_Rrho);
+    temp4 = 150.0 * static_cast<double>(tmp * tmp * tmp); 
+#endif
+ 
+    A1 = temp1 * (temp2 + temp3) / temp4;
+ 
+    temp1 = pi_n[0] * pi_n[3];
+    temp2 = pi_n[1] * (210.0 * pi_n[0] - 150.0 * pi_n[2] + 7.0) 
+        * (Rrho * Rrho + 1.0);
+    temp3 = 14.0 * (pi_n[1] - pi_n[2]) * (1.0 + 15.0 * pi_n[0] + 15.0 * pi_n[3]);
+    temp4 = 150.0 * pi_n[2] * pi_n[2];
+    temp5 = (temp3 + temp4) * Rrho;
+    temp6 = 210.0 * pi_n[1] * (pi_n[3] - pi_n[0]);
+ 
+    // hwy_need_check
+    temp7 = 9000.0 * (one_minus_Rrho * one_minus_Rrho); 
+ 
+    A2 = temp1 * (temp2 + temp5 + temp6) / temp7;
+ 
+    temp1 = pi_n[0];
+    temp2 = 5.0 * pi_n[1] * pi_n[3] * (30.0 * pi_n[2] + 17.0);
+    temp3 = pi_n[0] * (15.0 * pi_n[2] + 7.0);
+    temp4 = Rrho * Rrho + 1.0;
+    temp5 = temp1 * (temp2 + temp3) * temp4;
+    temp6 = -(15.0 * pi_n[2] + 7.0) * (pi_n[0] * pi_n[0] - pi_n[3] * pi_n[3]);
+    temp7 = 10.0 * pi_n[0] * pi_n[2] * pi_n[3] * (15.0 * pi_n[2] + 17.0);
+    temp8 = 15.0 * pi_n[1]          * (pi_n[0] * pi_n[0] + pi_n[3] * pi_n[3]);
+    temp9 = 14.0 * pi_n[0] * pi_n[3] * (1.0 - 10.0 * pi_n[1]);
+    temp10 = -(temp7 + temp8 + temp9) * Rrho;
+    temp11 = 150.0 * (one_minus_Rrho * one_minus_Rrho);  // hwy_need_check
+ 
+    A3 = (temp5 + temp6 + temp10) / temp11;
+ 
+    temp1 = 150.0 * (pi_n[0] * pi_n[2] + pi_n[1] * pi_n[3]);
+    temp2 = -7.0 * pi_n[0] * (1.0 + 30.0 * pi_n[0]);
+    temp3 = (temp1 + temp2) * Rrho;
+    temp4 = -150.0 * (pi_n[0] * pi_n[1] + pi_n[2] * pi_n[3]);
+    temp5 = 7.0 * pi_n[3] * (1.0 + 30.0 * pi_n[3]);
+    temp6 = 9000.0 * one_minus_Rrho;  // hwy_need_check
+ 
+    A4 = (temp3 + temp4 + temp5) / temp6;
+ 
+    temp1 = -30.0 * (pi_n[0] * pi_n[2] + pi_n[1] * pi_n[3]);
+    temp2 = -17.0 * pi_n[0];
+    temp3 = (temp1 + temp2) * Rrho;
+    temp4 = 30.0 * (pi_n[0] * pi_n[1] + pi_n[2] * pi_n[3]);
+    temp5 = 17.0 * pi_n[3];
+    temp6 = 30.0 * one_minus_Rrho;  // hwy_need_check
+ 
+    A5 = (temp3 + temp4 + temp5) / temp6;
+ 
+    A6 = - 1.0 / 60.0;
+ 
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    cubic_coef[0] = A1 * (Ri * Ri * Ri) + A2 * (Ri * Ri);
+#else
+    tmp = static_cast<long double>(Ri);
+    cubic_coef[0] = A1 * static_cast<double>(tmp * tmp * tmp) + A2 * (Ri * Ri);
+#endif
+    cubic_coef[1] = A3 * (Ri * Ri) + A4 * Ri;
+    cubic_coef[2] = A5 * Ri + A6;
+    cubic_coef[3] = 1.0;
+    shengjin_calc(cubic_coef, 4, Gm);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void prepare_pi (const double &Ri, const double &Rrho, 
+      double* const out_pi) const {
+    const double a     = 10.0;
+    const double Ko    = 1.66;
+    const double sig_t = 0.72;
+    const double zero  = 1.0e-10;
+ 
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    const double pi0_1 = 1.0 / (std::sqrt(27.0 / 5.0 * std::pow(Ko, 3)) 
+        * (1.0 + 1.0 / sig_t));
+#else
+    const double pi0_1 = 1.0 / (std::sqrt(27.0 / 5.0 * 
+        static_cast<double>(std::pow(static_cast<long double>(Ko), 3))) 
+            * (1.0 + 1.0 / sig_t));
+#endif
+    const double pi0_2 = 1.0 / 3.0;
+    const double pi0_3 = sig_t;
+    const double pi0_4 = pi0_1;
+    const double pi0_5 = sig_t;
+ 
+    if (Ri > zero && Rrho > zero) {
+      out_pi[0] = pi0_1 / (1.0 + Ri * Rrho / (a + Rrho));
+      out_pi[1] = pi0_2 / (1.0 + Ri) * (1.0 + 2.0 * Ri * Rrho 
+          / (1.0 + Rrho * Rrho));
+      out_pi[2] = pi0_3;
+      out_pi[3] = pi0_4 / (1.0 + Ri / (1.0 + a * Rrho));
+      out_pi[4] = pi0_5;
+    }
+ 
+    if (Ri > zero && Rrho <= zero) {
+      out_pi[0] = pi0_1 / (1.0 + Ri);
+      out_pi[1] = pi0_2;
+      out_pi[2] = pi0_3;
+      out_pi[3] = pi0_4 / (1.0 + Ri);
+      out_pi[4] = pi0_5;
+    }
+ 
+    if (Ri <= zero) {
+      out_pi[0] = pi0_1;
+      out_pi[1] = pi0_2;
+      out_pi[2] = pi0_3;
+      out_pi[3] = pi0_4;
+      out_pi[4] = pi0_5;
+    }
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void struct_function (const double &Ri, const double &Rrho, const double *pi_n, 
+      const double &Gm, double &struct_m, double &struct_h, double &struct_s, 
+          double &struct_rho, double &r_out, double &r_out_new) const {
+ 
+    // hwy_need_check
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    const double x = Ri * Gm * std::pow(1.0 - Rrho, -1);
+#else
+    const double x = Ri * Gm * 
+        static_cast<double>(std::pow(static_cast<long double>(1.0 - Rrho), -1));
+#endif
+    const double p = pi_n[3] * pi_n[4] - pi_n[3] * pi_n[1] * (1.0 + Rrho);
+    const double q = pi_n[0] * pi_n[1] * (1.0 + Rrho) - pi_n[0] * pi_n[2] * Rrho;
+ 
+    // hwy_need_check
+    const double r     = (pi_n[3] / pi_n[0]) / Rrho * (1.0 + q * x) / (1.0 + p * x);  
+    // hwy_need_check
+    const double r_new = (pi_n[3] / pi_n[0])        * (1.0 + q * x) / (1.0 + p * x);
+    r_out     = r;
+    r_out_new = r_new;
+ 
+    const double Ah = pi_n[3] / (1.0 + p * x + pi_n[3] * pi_n[1] * x * (1.0 - 1.0 / r));
+    const double As = Ah / r_new;
+ 
+    const double Am1 = 4.0 / 5.0 - (pi_n[3] - pi_n[0] + (pi_n[0] - 1.0 / 150.0) 
+        * (1.0 - 1.0 / r)) * x * Ah;
+    const double Am2 = 10.0 + (pi_n[3] - pi_n[0] * Rrho) * x + 1.0 / 50.0 * Gm;
+    const double Am = Am1 / Am2;
+ 
+    const double LX = (1.0 - 1.0 / r) * x * Ah;
+ 
+    const double ratio = 2.0 / 3.0 / (1.0 + 2.0 / 15.0 * LX + 1.0 / 10.0 * Am * Gm);
+ 
+    struct_m = ratio * Am1 / Am2;
+    struct_h = ratio * Ah;
+    struct_s = ratio * As;
+    struct_rho = (struct_h - struct_s * Rrho) / (1.0 - Rrho);
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void find_mix_layer_depth (const int& j, const int &i,
+      double &mld_out, int &mld_lev_out, const ViewDouble3D &v_den, 
+          const double &delta, const ViewDouble3D &v_zlev_in, const int &n) const {
+    int k;
+    for (k = 0; k < n; ++k) {
+      v_zlev_(j, i, k) = std::abs(v_zlev_in(j, i, k));
+    }
+    for (k = 1; k < n; ++k) {
+      if (std::abs(v_den(j, i, k) - v_den(j, i, 0)) > delta) {
+        const double den_m = v_den(j, i, 0) - sign(delta, v_den(j, i, 0) - v_den(j, i, k));
+        mld_out = v_zlev_(j, i, k) + (v_zlev_(j, i, k-1) - v_zlev_(j, i, k)) * (den_m - v_den(j, i, k)) 
+            / (v_den(j, i, k-1) - v_den(j, i, k) + VERY_SMALL_);
+        mld_lev_out = k + 1;
+        break;
+      }
+    }
+    if (k == n) {
+      mld_out     = v_zlev_(j, i, n - 1);
+      mld_lev_out = n;
+    }
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void mixing_efficiency (double &mix_eff_var, const double &struct_var, 
+      const double &Ri, const double &Gm) const {
+    mix_eff_var = 0.5 * Ri * Gm * struct_var;
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void canuto_2010_interface (const int &j, const int &i,
+    const ViewDouble3D &v_Km_out,  // wk1
+    const ViewDouble3D &v_Kh_out,  // wk2
+    const ViewDouble3D &v_Ks_out,  // wk3
+    const ViewDouble3D &v_Kd_out,  // wk4
+          double       &mld_out,   // amld
+    const ViewDouble3D &v_ts_in,   // wp1
+    const ViewDouble3D &v_ss_in,   // wp2
+    const ViewDouble3D &v_rho_in,  // wp3
+    const ViewDouble3D &v_ri_in,   // wp4
+    const ViewDouble3D &v_rrho_in, // wp5
+    const ViewDouble3D &v_n2_in,   // wp7
+    const ViewDouble3D &v_s2_in,   // wp6
+    const double       &lat_in,    // ulat[iblock][j][i] / DegToRad
+    const ViewDouble3D &v_lev_in,  // wp8
+    const int          &num_lev)   /* kmt[iblock][j][i] */ const {
+
+    int mld_lev = 0;
+    find_mix_layer_depth (j, i, mld_out, mld_lev, 
+        v_rho_in, 0.03, v_lev_in, num_lev);
+ 
+    for (int k = 0; k < KM-1; ++k) {
+      v_Ri_(j, i, k)   = v_ri_in(j, i, k);
+      v_Rrho_(j, i, k) = v_rrho_in(j, i, k);
+    }
+ 
+    const double Ri_low  = - 1.0e+10;
+    const double Ri_high =   1.0e+10;
+ 
+    for (int k = 0; k < KM - 1; ++k) {
+      if (v_Ri_(j, i, k) > Ri_high) {
+        v_Ri_(j, i, k) = Ri_high;
+      } else if (v_Ri_(j, i, k) < Ri_low) {
+        v_Ri_(j, i, k) = Ri_low;
+      }
+    }
+ 
+    const double Rrho_bound = 1.0e-3;
+    for (int k = 0; k < num_lev - 1; ++k) {
+      if (std::abs(v_Rrho_(j, i, k) - 1.0) < Rrho_bound) {
+        if (v_Rrho_(j, i, k) >= 1.0) {
+          v_Rrho_(j, i, k) = 1.001;
+        } else if (v_Rrho_(j, i, k) <= 1.0) {
+          v_Rrho_(j, i, k) = 0.999;
+        }
+      }
+    }
+    double out_pi[5];
+    double cube[4];
+    double struct_m_inf(0.0), struct_h_inf(0.0), struct_s_inf(0.0), struct_rho_inf(0.0);
+    double R_inf(0.0), Rnew_inf(0.0);
+    double Rf_inf(0.0);
+    double struct_m(0.0), struct_h(0.0), struct_s(0.0), struct_rho(0.0);
+    double R(0.0), Rnew(0.0);
+    double mix_eff_m(0.0), mix_eff_h(0.0), mix_eff_s(0.0), mix_eff_rho(0.0);
+    double Rf(0.0);
+    double TKE_mld(0.0);
+    for (int k = 0; k < num_lev - 1; ++k) {
+      prepare_pi (1.0e10, v_Rrho_(j, i, k), out_pi);
+ 
+      dyn_time_scale_calc (1.0e10, v_Rrho_(j, i, k), out_pi, v_Gm_(j, i, k), cube);
+ 
+      struct_function(1.0e10, v_Rrho_(j, i, k), out_pi, v_Gm_(j, i, k), 
+          struct_m_inf, struct_h_inf, struct_s_inf, struct_rho_inf, R_inf, Rnew_inf);
+ 
+      Rf_calc(Rf_inf, 1.0e10, v_Rrho_(j, i, k), struct_h_inf, struct_m_inf, Rnew_inf);
+ 
+      prepare_pi(v_Ri_(j, i, k), v_Rrho_(j, i, k), out_pi);
+ 
+      dyn_time_scale_calc(v_Ri_(j, i, k), v_Rrho_(j, i, k), out_pi, v_Gm_(j, i, k), cube);
+ 
+      struct_function(v_Ri_(j, i, k), v_Rrho_(j, i, k), out_pi, v_Gm_(j, i, k), 
+          struct_m, struct_h, struct_s, struct_rho, R, Rnew);
+    
+      mixing_efficiency(mix_eff_m,   struct_m,   v_Ri_(j, i, k), v_Gm_(j, i, k));
+      mixing_efficiency(mix_eff_h,   struct_h,   v_Ri_(j, i, k), v_Gm_(j, i, k));
+      mixing_efficiency(mix_eff_s,   struct_s,   v_Ri_(j, i, k), v_Gm_(j, i, k));
+      mixing_efficiency(mix_eff_rho, struct_rho, v_Ri_(j, i, k), v_Gm_(j, i, k));
+ 
+      Rf_calc(Rf, v_Ri_(j, i, k), v_Rrho_(j, i, k), struct_h, struct_m, Rnew);
+ 
+      if (k <= (mld_lev - 1)) {
+        mixed_layer_TKE_calc (TKE_mld, mld_out, v_Gm_(j, i, k), 
+            v_s2_in(j, i, k), v_lev_in(j, i, k), Rf, Rf_inf);
+      
+        v_Km_out(j, i, k) = mix_eff_m   * TKE_mld / (v_n2_in(j, i, k) + VERY_SMALL_);
+        v_Kh_out(j, i, k) = mix_eff_h   * TKE_mld / (v_n2_in(j, i, k) + VERY_SMALL_);
+        v_Ks_out(j, i, k) = mix_eff_s   * TKE_mld / (v_n2_in(j, i, k) + VERY_SMALL_);
+        v_Kd_out(j, i, k) = mix_eff_rho * TKE_mld / (v_n2_in(j, i, k) + VERY_SMALL_);
+      }
+ 
+      if (k > (mld_lev - 1)) {
+        thermocline_mixing_coeff_calc(
+            v_Km_out(j, i, k), v_Kh_out(j, i, k), v_Ks_out(j, i, k), v_Kd_out(j, i, k), 
+            mix_eff_m, mix_eff_h, mix_eff_s, mix_eff_rho, v_n2_in(j, i, k), lat_in);
+      }
+ 
+      if (k < 3) {
+          v_Km_out(j, i, k) = std::max(1.0e-3, v_Km_out(j, i, k));
+          v_Kh_out(j, i, k) = std::max(1.0e-3, v_Kh_out(j, i, k));
+          v_Ks_out(j, i, k) = std::max(1.0e-3, v_Ks_out(j, i, k));
+      } else {
+          v_Km_out(j, i, k) = std::max(1.0e-4, v_Km_out(j, i, k));
+          v_Kh_out(j, i, k) = std::max(1.0e-5, v_Kh_out(j, i, k));
+          v_Ks_out(j, i, k) = std::max(1.0e-5, v_Ks_out(j, i, k));
+      }
+ 
+      v_Km_out(j, i, k) = std::min(1.2e-1, v_Km_out(j, i, k));
+      v_Kh_out(j, i, k) = std::min(1.2e-1, v_Kh_out(j, i, k));
+      v_Ks_out(j, i, k) = std::min(1.2e-1, v_Ks_out(j, i, k));
+ 
+      if (v_n2_in(j, i, k) < VERY_SMALL_) {
+        const double tmp = 8.0e-3 * v_dzp_(k) * v_dzp_(k);
+        v_Kh_out(j, i, k) = std::min(tmp, 8.0);
+        v_Ks_out(j, i, k) = std::min(tmp, 8.0);
+        v_Km_out(j, i, k) = std::min(tmp, 8.0);
+      }
+    }
+    return;
+  }
+};
+#endif // (defined CANUTO) || (defined CANUTO2010)
 
 // calculate the vertical mixing on U-grid
 class FunctorReadyc6 {
@@ -1593,12 +1142,15 @@ class FunctorReadyc8 {
       const int &k, const int &j, const int &i,
           const ViewDouble4D &v_uwk, const ViewDouble4D &v_vwk)
               const {
-    // if (i >= 1 && j < (JMT-1)) {
-    v_uk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
-        * v_ohbu_(iblock, j, i)) * v_uwk(iblock, k, j, i);
-    v_vk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
-        * v_ohbu_(iblock, j, i)) * v_vwk(iblock, k, j, i);
-    // }
+    if (i >= 1 && j < (JMT-1)) {
+      v_uk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
+          * v_ohbu_(iblock, j, i)) * v_uwk(iblock, k, j, i);
+      v_vk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
+          * v_ohbu_(iblock, j, i)) * v_vwk(iblock, k, j, i);
+    } else {
+      v_uk_(iblock, k, j, i) = 0.0;
+      v_vk_(iblock, k, j, i) = 0.0;
+    }
     return ;
   }
  private:
@@ -2236,11 +1788,12 @@ class FunctorReadyc18 {
       const ViewDouble4D &v_wk3, const ViewDouble3D &v_wk2) 
           const {
     const int iblock = 0;
-    v_wk2(iblock, j, i) = C0;
+    double wk2 = C0;
     for (int k = 0; k < KM; ++k) {
-      v_wk2(iblock, j, i) += v_dzp_(k) * v_ohbu_(iblock, j, i) 
+      wk2 += v_dzp_(k) * v_ohbu_(iblock, j, i) 
           * v_wk3(iblock, k, j, i) *v_viv_(iblock, k, j, i);
     }
+    v_wk2(iblock, j, i) = wk2;
     return ;
   }
  private:
@@ -2313,15 +1866,16 @@ class FunctorReadyc20 {
 
 class FunctorReadyc21 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &k, const int &j, const int &i) const {
     const int iblock = 0;
     // d0 = 1026.0D0, od0 = 1 / d0
     const double od0 = 1.0 / 1026.0;
     // const double aidif = 0.5;
     // aidifm1 = 1.0 - aidif
     const double aidifm1 = 0.5;
-    double diff_u1, diff_u2;
+    double diff_u1 = 0.0;
+    double diff_u2 = 0.0;
     if (k == 0) {
       diff_u1 = v_su_(iblock, j, i) * od0 * aidifm1;
     } else {
@@ -2363,14 +1917,15 @@ class FunctorReadyc21 {
 };
 class FunctorReadyc22 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &k, const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &k, const int &j, const int &i) const {
     const int iblock = 0;
     const double od0 = 1.0 / 1026.0;
     // const double aidif = 0.5;
     // aidifm1 = 1.0 - aidif
     const double aidifm1 = 0.5;
-    double diff_v1, diff_v2;
+    double diff_v1 = 0.0;
+    double diff_v2 = 0.0;
     if (k == 0) {
       diff_v1 = v_sv_(iblock, j, i) * od0 * aidifm1;
     } else {
@@ -2416,12 +1971,12 @@ KOKKOS_REGISTER_FOR_2D(FunctorReadyc1,  FunctorReadyc1)
 // KOKKOS_REGISTER_FOR_3D(FunctorReadyc2,  FunctorReadyc2)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc3,  FunctorReadyc3)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc4,  FunctorReadyc4)
-// KOKKOS_REGISTER_FOR_2D(FunctorReadyc5,  FunctorReadyc5)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc51,  FunctorReadyc51)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc52,  FunctorReadyc52)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc53,  FunctorReadyc53)
-KOKKOS_REGISTER_FOR_2D(FunctorReadyc54,  FunctorReadyc54)
-KOKKOS_REGISTER_FOR_3D(FunctorReadyc55,  FunctorReadyc55)
+KOKKOS_REGISTER_FOR_2D(FunctorReadyc5,  FunctorReadyc5)
+// KOKKOS_REGISTER_FOR_3D(FunctorReadyc51,  FunctorReadyc51)
+// KOKKOS_REGISTER_FOR_2D(FunctorReadyc52,  FunctorReadyc52)
+// KOKKOS_REGISTER_FOR_3D(FunctorReadyc53,  FunctorReadyc53)
+// KOKKOS_REGISTER_FOR_2D(FunctorReadyc54,  FunctorReadyc54)
+// KOKKOS_REGISTER_FOR_3D(FunctorReadyc55,  FunctorReadyc55)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc6,  FunctorReadyc6)
 KOKKOS_REGISTER_FOR_2D(FunctorReadyc7,  FunctorReadyc7)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc8,  FunctorReadyc8)
@@ -2441,1219 +1996,5 @@ KOKKOS_REGISTER_FOR_3D(FunctorReadyc19, FunctorReadyc19)
 KOKKOS_REGISTER_FOR_2D(FunctorReadyc20, FunctorReadyc20)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc21, FunctorReadyc21)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc22, FunctorReadyc22)
-
-#ifdef CANUTO
-// class FunctorReadyc5 {
-//  public:
-//   KOKKOS_INLINE_FUNCTION void operator () (
-//       const int &j, const int &i) const {
-//     if (v_vit_(0, 0, j, i) > 0.5) {
-//       const int iblock = 0;
-// // #ifdef __sw_slave__
-// //       double* wk1 = (double*) ldm_malloc (sizeof(double) * (KM-1));
-// //       double* wk2 = (double*) ldm_malloc (sizeof(double) * (KM-1));
-// //       double* wk3 = (double*) ldm_malloc (sizeof(double) * (KM-1));
-
-// //       double* wp1 = (double*) ldm_malloc (sizeof(double) * KM);
-// //       double* wp2 = (double*) ldm_malloc (sizeof(double) * KM);
-// //       double* wp3 = (double*) ldm_malloc (sizeof(double) * KM);
-// //       double* wp4 = (double*) ldm_malloc (sizeof(double) * KM);
-// //       double* wp5 = (double*) ldm_malloc (sizeof(double) * KM);
-// //       double* wp6 = (double*) ldm_malloc (sizeof(double) * KM);
-// //       double* wp7 = (double*) ldm_malloc (sizeof(double) * KM);
-// //       double* wp8 = (double*) ldm_malloc (sizeof(double) * KM);
-
-// //       double* akm_back = (double*) ldm_malloc (sizeof(double) * (KM-1));
-// //       double* akt_back = (double*) ldm_malloc (sizeof(double) * (KM-1));
-// //       double* aks_back = (double*) ldm_malloc (sizeof(double) * (KM-1));
-// // #else
-//       double wk1[KM-1], wk2[KM-1], wk3[KM-1];
-//       double wp1[KM], wp3[KM], wp4[KM];
-//       double wp5[KM], wp6[KM], wp7[KM], wp8[KM];
-// // #endif // __sw_slave__
-
-//       for (int k = 0; k < KM; ++k) {
-//         wp1[k] = 0.0;
-//         wp3[k] = 0.0;
-//         wp4[k] = 0.0;
-//         wp5[k] = 0.0;
-//         wp6[k] = 0.0;
-//         wp7[k] = 0.0;
-//         wp8[k] = 0.0;
-//       }
-//       const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
-//       for (int k = 0; k < kmt_m1; ++k) {
-//         wp8[k] = - v_vit_(iblock, k+1, j, i) * v_zkp_(k+1) * 1.0e+2;
-//       }
-
-//       for (int k = 0; k < kmt_m1; ++k) {
-//         if (v_vit_(iblock, k+1, j, i) > 0.0) {
-//           const double tmp = v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
-//           wp1[k] = v_at_(iblock, 0, k, j, i) - (v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) * tmp;
-//           wp4[k] = v_rit_(iblock, k, j, i);
-//           wp5[k] = v_ricdttms_(iblock, k, j, i);
-//           wp6[k] = v_s2t_(iblock, k, j, i);
-//           wp7[k] = v_rict_(iblock, k, j, i);
-
-//           wp3[k] = (v_pdensity_(iblock, k, j, i) + (v_pdensity_(iblock, k+1, j, i) -  v_pdensity_(iblock, k, j, i)) * tmp) * 1.e-3;
-//         }
-
-//         // wp1[k] = v_vit_(iblock, k+1, j, i) * 
-//         //     (v_at_(iblock, 0, k, j, i) - (v_at_(iblock, 0, k, j, i) - v_at_(i, j, k+1, 0, iblock)) * 
-//         //         v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1)));
-//         // wp4[k] =  v_vit_(iblock, k+1, j, i) * v_rit_(iblock, k, j, i);
-//         // wp5[k] =  v_vit_(iblock, k+1, j, i) * v_ricdttms_(iblock, k, j, i);
-//         // wp6[k] =  v_vit_(iblock, k+1, j, i) * v_s2t_(iblock, k, j, i);
-//         // wp7[k] =  v_vit_(iblock, k+1, j, i) * v_rict_(iblock, k, j, i);
-
-//         // wp3[k] =  v_vit_(iblock, k+1, j, i) * (v_pdensity_(iblock, k, j, i) + 
-//         //     (v_pdensity_(iblock, k+1, j, i) -  v_pdensity_(iblock, k, j, i)) * 
-//         //         v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1))) * 1.e-3;
-//       }
-//       // TODO vit can reduce
-//       double wp10 = v_vit_(iblock, 0, j, i) * v_buoytur_(iblock, j, i) * 1.0e+4;
-//       double wp11 = v_vit_(iblock, 0, j, i) * v_buoysol_(iblock, j, i) * 1.0e+4;
-
-// #ifdef CANUTOMIXOUT
-//       // To do something
-// #endif // CANUTOMIXOUT
-// #ifdef CANUTO2010
-//       // Fortran
-//       call canuto_2010_interface(wk1, wk2, wk3, wk4, 
-//           amld(i,j,iblock) ,tau_mag, wp1, wp2, wp3, wp4, wp5, 
-//           wp7, wp6, ulat(i,j,iblock)/degtorad , wp8, 
-//           kmt(i,j,iblock), iblock, j, i, isc)
-// #endif // CANUTO2010
-//       double mldtmp;
-// // #ifdef __sw_slave__
-// // #else
-//       double akm_back[KM-1];
-//       double akt_back[KM-1];
-//       double aks_back[KM-1];
-// // #endif
-
-//       turb_2(wp8, wp1, wp3, wp4, wp5, wp6, 
-//           dfricmx_ * 1.0e+4, dwndmix_ * 1.0e+4, 
-//               akm_back, akt_back, aks_back,
-//                   wp7, wp10, wp11, v_fcort_(iblock, j, i), 
-//                       mldtmp, wk1, wk2, wk3, kmt_m1, KM-1, 1, 0);
-
-//       v_amld_(iblock, j, i) = mldtmp * 1.0e-2;
-
-// #ifdef TIDEMIX
-//       for (int k = 0; k < KM; ++k) {
-//         v_ak_tide_(iblock, k, j, i) = 0.0;
-//       }
-//       for (int k = 0; k < kmt_m1; ++k) {
-//         v_ak_tide_(iblock, k, j, i) = BACK_TIDALMIXING + MIXING_EF * 
-//             LOCAL_MIXING_FRACTION * v_wave_dis_(iblock, j, i) * 
-//             v_fz_tide_(iblock, k, j, i) /
-//             (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * wp3[k] * 1000.0);
-
-//         v_ak_tide_(iblock, k, j, i) = fmin(v_ak_tide_(iblock, k, j, i),
-//             MAX_TIDALMIXING);
-
-//         v_richardson_(iblock, k, j, i) = v_rict_(iblock, k, j, i);
-//         v_fztidal_(iblock, k, j, i)    = v_fz_tide_(iblock, k, j, i);
-//         v_wp3_tidal_(iblock, k, j, i)  = wp3[k];
-//       }
-// #ifdef CANUTOMIXOUT
-// #endif // CANUTOMIXOUT
-//       for (int k = kmt_m1 - 2; k >= 0; --k) {
-//         v_ak_tide_(iblock, k, j, i) = fmin(v_ak_tide_(iblock, k, j, i),
-//             v_ak_tide_(iblock, k+1, j, i));
-//       }
-// #endif // TIDEMIX
-//       const float tmp_ncc = 1.0 / static_cast<float>(ncc_);
-
-//       for (int k = 0; k < KM - 1; ++k) {
-// #ifdef TIDEMIX
-//         v_akmt_(iblock, k, j, i) = wk1[k] * 1.0e-4 +
-//             v_ak_tide_(iblock, k, j, i) * 5.0;
-//         // v_akt_(iblock, 0, k, j, i) += (wk2[k] * 1.0e-4 + 
-//         //     v_ak_tide_(iblock, k, j, i)) / 
-//         //         static_cast<float>(ncc_);
-//         // v_akt_(iblock, 1, k, j, i) += (wk3[k] * 1.0e-4 + 
-//         //     v_ak_tide_(iblock, k, j, i)) / 
-//         //         static_cast<float>(ncc_);
-//         v_akt_(iblock, 0, k, j, i) += (wk2[k] * 1.0e-4 + 
-//             v_ak_tide_(iblock, k, j, i)) * tmp_ncc;
-//         v_akt_(iblock, 1, k, j, i) += (wk3[k] * 1.0e-4 + 
-//             v_ak_tide_(iblock, k, j, i)) * tmp_ncc;
-// #ifdef BCKMEX
-//         v_akmt_(iblock, k, j, i) += diff_back[iblock][j][i] * 
-//             10.0 * 1.0e-4;
-//         v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] /
-//                 static_cast<float>(ncc) * 1.0e-4;
-//         v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] /
-//                 static_cast<float>(ncc) * 1.0e-4;
-// #endif // BCKMEX
-// #else // TIDEMIX
-//         v_akmt_(iblock, k, j, i) = wk1[k] * 1.0e-4;
-//         v_akt_(iblock, 0, k, j, i) += wk2[k] * 1.0e-4 / 
-//             static_cast<float>(ncc_);
-//         v_akt_(iblock, 1, k, j, i) += wk3[k] * 1.0e-4 / 
-//             static_cast<float>(ncc_);
-// #ifdef BCKMEX
-//         v_akmt_(iblock, k, j, i)   += diff_back[iblock][j][i] * 
-//             10.0 * 1.0e-4;
-//         v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] / 
-//             static_cast<float>(ncc_) * 1.0e-4;
-//         v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] / 
-//             static_cast<float>(ncc_) * 1.0e-4;
-// #endif // BCKMEX
-// #endif // TIDEMIX
-//       }
-// // #ifdef __sw_slave__
-// //       ldm_free (wk1, sizeof(double) * (KM-1));
-// //       ldm_free (wk2, sizeof(double) * (KM-1));
-// //       ldm_free (wk3, sizeof(double) * (KM-1));
-
-// //       ldm_free (wp1, sizeof(double) * KM);
-// //       ldm_free (wp2, sizeof(double) * KM);
-// //       ldm_free (wp3, sizeof(double) * KM);
-// //       ldm_free (wp4, sizeof(double) * KM);
-// //       ldm_free (wp5, sizeof(double) * KM);
-// //       ldm_free (wp6, sizeof(double) * KM);
-// //       ldm_free (wp7, sizeof(double) * KM);
-// //       ldm_free (wp8, sizeof(double) * KM);
-
-// //       ldm_free (akm_back, sizeof(double) * (KM-1));
-// //       ldm_free (akt_back, sizeof(double) * (KM-1));
-// //       ldm_free (aks_back, sizeof(double) * (KM-1));
-// // #endif // __sw_slave__
-//     }
-//     return ;
-//   };
-//  private:
-//   const int ncc_     = CppPconstMod::ncc;
-//   const double dfricmx_ = CppPconstMod::dfricmx;
-//   const double dwndmix_ = CppPconstMod::dwndmix;
-
-//   const double b1_         = CppCanutoMod::b1;
-//   const double dri_        = CppCanutoMod::dri;
-//   const double rri_        = CppCanutoMod::rri;
-//   const double rnd2on2_    = CppCanutoMod::rnd2on2;
-//   const double dand2on2_   = CppCanutoMod::dand2on2;
-//   const double deltheta_r_ = CppCanutoMod::deltheta_r;
-//   const double theta_rcrp_ = CppCanutoMod::theta_rcrp;
-//   const double theta_rcrn_ = CppCanutoMod::theta_rcrn;
-
-//   const ViewInt1D    v_irimax_     = *p_v_irimax;
-//   const ViewInt3D    v_kmt_        = *p_v_kmt;
-//   const ViewDouble1D v_dzp_        = *p_v_dzp;
-//   const ViewDouble1D v_zkp_        = *p_v_zkp;
-//   const ViewDouble1D v_rib_        = *p_v_rib;
-//   const ViewDouble1D v_ridb_       = *p_v_ridb;
-//   const ViewDouble1D v_sma1_       = *p_v_sma1;
-//   const ViewDouble1D v_sha1_       = *p_v_sha1;
-//   const ViewDouble1D v_ssa1_       = *p_v_ssa1;
-//   const ViewDouble1D v_and2on2a1_  = *p_v_and2on2a1;
-//   const ViewDouble1D v_amtaun2a1_  = *p_v_amtaun2a1;
-//   const ViewDouble1D v_back_ra_r_  = *p_v_back_ra_r;
-//   const ViewDouble1D v_sm_r1_      = *p_v_sm_r1;
-//   const ViewDouble1D v_sh_r1_      = *p_v_sh_r1;
-//   const ViewDouble1D v_ss_r1_      = *p_v_ss_r1;
-//   const ViewDouble1D v_slq2_r1_    = *p_v_slq2_r1;
-//   const ViewDouble2D v_smb_        = *p_v_smb;
-//   const ViewDouble2D v_shb_        = *p_v_shb;
-//   const ViewDouble2D v_ssb_        = *p_v_ssb;
-//   const ViewDouble2D v_slq2b_      = *p_v_slq2b;
-//   const ViewDouble3D v_amld_       = *p_v_amld;
-//   const ViewDouble3D v_fcort_      = *p_v_fcort;
-//   const ViewDouble3D v_buoytur_    = *p_v_buoytur;
-//   const ViewDouble3D v_buoysol_    = *p_v_buoysol;
-//   const ViewDouble3D v_wave_dis_   = *p_v_wave_dis;
-//   const ViewDouble4D v_rit_        = *p_v_rit;
-//   const ViewDouble4D v_rict_       = *p_v_rict;
-//   const ViewDouble4D v_akmt_       = *p_v_akmt;
-//   const ViewDouble4D v_fztidal_    = *p_v_fztidal;
-//   const ViewDouble4D v_wp3_tidal_  = *p_v_wp3_tidal;
-//   const ViewDouble4D v_pdensity_   = *p_v_pdensity;
-//   const ViewDouble4D v_ricdttms_   = *p_v_ricdttms;
-//   const ViewDouble4D v_richardson_ = *p_v_richardson;
-//   const ViewDouble4D v_ak_tide_    = *p_v_ak_tide;
-//   const ViewDouble4D v_fz_tide_    = *p_v_fz_tide;
-//   const ViewDouble4D v_s2t_        = *p_v_s2t;
-//   const ViewDouble4D v_vit_        = *p_v_vit;
-//   const ViewDouble5D v_at_         = *p_v_at;
-//   const ViewDouble5D v_akt_        = *p_v_akt;
-
-//   KOKKOS_INLINE_FUNCTION void turb_2(
-//       const double (&z)[KM],        // wp8
-//       const double (&t)[KM],        // wp1
-//       const double (&rh)[KM],       // wp3
-//             double (&ri)[KM],       // wp4
-//       const double (&rid)[KM],      // wp5
-//             double (&s2)[KM],       // wp6
-//       const double &fricmx,         // DFRICMX * 1.0e+4
-//       const double &wndmix,         // DWNDMIX * 1.0e+4
-//             double (&v_back)[KM-1], // akm_back
-//             double (&t_back)[KM-1], // akt_back
-//             double (&s_back)[KM-1], // aks_back
-//       const double (&an2)[KM],      // wp7
-//       const double &buoytur,        // wp10
-//       const double &buoysol,        // wp11
-//       const double &coriol,         // fcort[iblock][j][i]
-//             double &amld,           // mldtmp
-//             double (&akm)[KM-1],    // wk1
-//             double (&akh)[KM-1],    // wk2
-//             double (&aks)[KM-1],    // wk3
-//       const int    &n,              // iwk
-//       const int    &nmax,           // km - 1
-//       const int    &isurfuse,       // 1
-//       const int    &ifextermld      // 0
-//   ) const {
-
-//     double an = 0.0;
-//     double sh_back = 0.0;
-//     double sm_back = 0.0;
-//     double ss_back = 0.0;
-//     double slq2_back = 0.0;
- 
-//     double ri1  = 0.0;
-//     double rid1 = 0.0;
- 
-//     int ifbelow;
-//     int ifpureshear = 0;
- 
-//     int ifnofsmall = 0;
- 
-//     int nb = std::max(0, n);
-//     double visc_cbu_limit1 = fricmx;
-//     double diff_cbt_limit1 = fricmx;
-//     double buoytot = buoytur + buoysol;
- 
-//     // if (ifextermld == 0) {
-//     //   if (n > 0) {
-//     //       formld(z, t, amld, n);
-//     //   } else if (n == 0) {
-//     //     amld = z[0];
-//     //   } else {
-//     //     amld = 0.0;
-//     //   }
-//     // }
-//     // if (ifextermld == 0) {
-//       if (n > 0) {
-//           formld(z, t, amld, n);
-//       } else if (n == 0) {
-//         amld = z[0];
-//       } else {
-//         amld = 0.0;
-//       }
-//     // }
- 
-//     double al0 = 0.17 * amld;
- 
-//     ifbelow = 0;
- 
-//     // int icall(0);
-//     // int ipoint(0);
-//     // int iproblem(0)
-//     // int inegproblem(0);
- 
-//     double sm, sh, ss;
-//     double slq2, epson2;
-
-//     double epsy[KM];
-//     bool lifepsy[KM];
-
-//     // !020219D REFERENCE NOTE: START OF PRIMARY LOOP OVER DEPTH LEVELS.
-//     for (int k = 0; k < n; ++k) {
-  
-//       double amtaun2(0.0);
-  
-//       ifnofsmall = 0;
-//       if (an2[k] >= 0.0) {
-//         an = sqrt(an2[k]);
-//       }
-//       if ((an / fabs(coriol)) < 1.0) {
-//         ifnofsmall = 1;
-//       }
-  
-//       ri1 = ri[k];
-  
-//       // if (ifsali == 1), ifsali = 1 in canuto_mod_2002
-//       // 981104 Use Ri_d = Ri_C - Ri_T in salinity-temperature turbulence model.
-//       rid1 = rid[k];
-//       const double and2 = rid[k] / (ri[k] + 1.0e-25) * an2[k];
-//       double and2on2 = and2 / (an2[k] + 1.0e-25);
-  
-//       if (an2[k] < v_rib_(0) * s2[k]) {
-//         ifpureshear = 1;
-//       } else {
-//         ifpureshear = 0;
-//       }
-
-//       // ifastexpabs = 1 in canuto_mod_2002
-//       if (ifpureshear == 1) {
-//         const int imax = MT;
-  
-//         interp1d_expabs(and2on2, amtaun2, 
-//             sm, sh, ss, imax, dand2on2_, rnd2on2_);
-  
-//         slq2 = (-amtaun2) / ((b1_ * b1_) * ri[k] + 1.0e-25);
-//       }
-
-//       if (ifpureshear != 1) {
-//         interp2d_expabs(ri1, rid1, slq2, sm, sh, ss);
-//       }
-  
-//       if (ifpureshear != 1) {
-//         if (slq2 < 0.0) {
-//           return ;
-//         }
-//         if (slq2 == 0) {
-//           ifbelow = 1;
-//         }
-//       }
-  
-//       // bool lifupper = (((IFEPSON2  < 2) || (ifbelow == 0) || 
-//       //     ((IFDEEPLAT > 0) && (ifnofsmall == 1)) || 
-//       //     ((ri1 < 0.0) && (k <= 2))) && (slq2 > 0.0));
-//       bool lifupper = (((ifbelow == 0) || (ifnofsmall == 1) || 
-//           ((ri1 < 0.0) && (k <= 2))) && (slq2 > 0.0));
-  
-//       // ++ipoint;
-//       // if (k == 0) {
-//       //   ++icall;
-//       // }
-//       epsy[k] = 0.0;
-//       lifepsy[k] = false;
-  
-//       // if ((isurfuse == 1) && n > 0) {
-//       if (n > 0) {
-//         if (slq2 == 0.0) {
-//           epsy[k] = 0.0;
-//         } else {
-//           epsy[k] = - buoytot
-//               / ((1.0 / ((b1_ * b1_) * slq2)) - 0.5 * sm);
-//         }
-//         lifepsy[k] = ((epsy[k] >= 0.0) && lifupper);
-//         // if ((epsy[k] < 0.0) && lifupper) {
-//         //   ++iproblem;
-//         //   if (ri1 < 0.0) {
-//         //     ++inegproblem;
-//         //   }
-//         // }
-//       }
-
-//       // if ilomega == 1, ilomega = 0 in canuto_mod_2002
-  
-//       double akz = 0.4 * z[k];
-//       double al = akz * al0 / (al0 + akz);
-  
-//       double al2 = al * al;
-  
-//       // if (!(((IFEPSON2 == 2) && (ifbelow == 1)) || lifepsy[k])) {
-//       if (!(ifbelow == 1 || lifepsy[k])) {
-//         if (ri1 > 0.0) {
-//           const double anlq2 = slq2 * ri1;
-//           if (anlq2 > 0.281) {
-//             al2  = 0.281 / anlq2 * al2;
-//             // if icondear == 0, icondear = 0 in canuto_mod_2002
-//             slq2 = 0.281 / (ri1 + 1.0e-20);
-//           }
-//         }
-//       }
-  
-//       double epson2_;
-//       if (an2[k] < 0.0) {
-//         // Just to "hold the place". Value irrelevent here.
-//         epson2_ = EPSON2__;
-//       } else {
-//         double eplatidepend;
-//         // if ifdeeplat, ifdeeplat = 1 in canuto_mod_2002
-//         if (ifnofsmall == 1) {
-//           eplatidepend = 0.0;
-//         } else {
-// 	 	      eplatidepend = eplatidepend_(fabs(coriol), an);
-//         }
-  
-//         eplatidepend = fmax(eplatidepend, EPLATIDEPENDMIN);
-  
-//         epson2_ = EPSON2__ * eplatidepend;
-//       }
-  
-//       // if ifepson2 >= 1, ifepson2 = 2 in canuto_mod_2002
-//       // if ifbotenhance == 0, ifbotenhance = 0 in canuto_mod_2002
-//       epson2 = epson2_;
-  
-//       // if ifback >= 4 and ifsali == 0, ifback = 5 and ifsali = 1 in canuto_mod_2002
-//       // if ifsali > 0, ifsali = 1 in canuto_mod_2002
-//       // if ifsalback == 1, 2, 3, ifsaliback = 5 in canuto_mod_2002
-//       // if ifsalback >= 4, ifsaliback = 5 in canuto_mod_2002
-//       // if ifsalback == 4, ifsaliback = 5 in canuto_mod_2002
-//       // else
-
-//       int ifrafglt = 0;
-  
-//       double rit(0.0), ric(0.0);
-//       double back_ra_r1;
-//       double back_ri1,  back_ric1;
-//       double back_rid1, back_rit1;
-//       double theta_r(0.0);
-//       double deltheta_r1;
-//       int itheta_r0(0), itheta_r1(0);
-//       int jtheta_r0(0);
-//       double ra_r;
-  
-//       const double tmp_deltheta_r = 1.0 / deltheta_r_;
-//       if (ri[k] <= 0.0) {
-//         back_ra_r1 = 0.0;
-//         back_rit1  = 0.0;
-//         back_ric1  = 0.0;
-//         back_ri1   = 0.0;
-//         back_rid1  = 0.0;
-//       } else {
-//         // rit = (ri[k] + rid[k]) / 2.0;
-//         // ric = (ri[k] - rid[k]) / 2.0;
-//         rit = (ri[k] + rid[k]) * 0.5;
-//         ric = (ri[k] - rid[k]) * 0.5;
-//         ra_r = sqrt((rit * rit) + (ric * ric));
-  
-//         if (rit == 0.0) {
-//           if (ric == 0.0) {
-//             theta_r = atan(1.0);
-//           } else {
-//             // theta_r = PI / 2.0;
-//             theta_r = PI * 0.5;
-//           }
-//         } else {
-//           theta_r = atan(ric / rit);
-//         }
-//         // if (fabs(theta_r) > (PI / 2.0)) {
-//         if (fabs(theta_r) > (PI * 0.5)) {
-//           return ;
-//         }
-//         // if (theta_r < (-PI) / 4.0) {
-//         if (theta_r < (-PI) * 0.25) {
-//           theta_r += PI;
-//         }
-  
-//         jtheta_r0 = static_cast<int>(
-//             // (theta_r + (PI / 4.0)) / deltheta_r_);
-//             (theta_r + (PI * 0.25)) * tmp_deltheta_r);
-  
-//         itheta_r0 = jtheta_r0 - N_THETA_R_OCT;
-//         itheta_r1 = itheta_r0 + 1;
-  
-//         double theta_r0 = itheta_r0 * deltheta_r_;
-//         double theta_r1 = itheta_r1 * deltheta_r_;
-  
-//         if ((theta_r0 <= theta_rcrp_) &&
-//              (theta_r > theta_rcrp_)) {
-//           theta_r    = theta_r1;
-//           theta_r0   = theta_r1;
-//           itheta_r0  = itheta_r1;
-//           itheta_r1 += 1;
-//           theta_r1  += deltheta_r_;
-//         } else if ((theta_r1 >= theta_rcrn_) &&
-//                    (theta_r  < theta_rcrn_)) {
-//           theta_r    = theta_r0;
-//           theta_r1   = theta_r0;
-//           itheta_r1  = itheta_r0;
-//           itheta_r0 -= 1;
-//           theta_r0  -= deltheta_r_;
-//         }
-  
-//         if ((itheta_r1 > 3 * N_THETA_R_OCT) ||
-//             (itheta_r0 < - N_THETA_R_OCT)) {
-//           return ;
-//         }
-  
-//         deltheta_r1 = theta_r - theta_r0;
-  
-//         const double delback_ra_r = 
-//             v_back_ra_r_(N_THETA_R_OCT + itheta_r1) 
-//                 - v_back_ra_r_(N_THETA_R_OCT + itheta_r0);
-  
-//         const double dback_ra_r_o_dtheta = 
-//             // delback_ra_r / deltheta_r_;
-//             delback_ra_r * tmp_deltheta_r;
-  
-//         back_ra_r1 = v_back_ra_r_(N_THETA_R_OCT + itheta_r0) 
-//             + deltheta_r1 * dback_ra_r_o_dtheta;
-  
-//         ifrafglt = 0;
-
-//         // if ifrafgmax == 1, ifrafgmax = 1 in canuto_mod_2002
-  
-//         if ((theta_r <= theta_rcrp_) ||
-//             (theta_r >= theta_rcrn_)) {
-//           if (back_ra_r1 > ra_r) {
-//             ifrafglt = 1;
-//             back_ra_r1 = ra_r;
-//           }
-//         }
-  
-//         if (back_ra_r1 < 0.0) {
-//           return ;
-//         }
-//         back_rit1 = cos(theta_r) * back_ra_r1;
-//         back_ric1 = sin(theta_r) * back_ra_r1;
-//         back_ri1  = back_rit1 + back_ric1;
-//         back_rid1 = back_rit1 - back_ric1;
-//       }
-//       // End if ifsalback > 4
-  
-//       if (ri[k] > 0.0) {
-  
-//         // ifbg_theta_interp = 1 in canuto_mod_2002
-//         // if ((IFBG_THETA_INTERP == 0) ||
-//         //     (ifrafglt == 1)) {
-//         if (ifrafglt == 1) {
-//           // if ifastexpabs == 1, ifastexpabs = 1 in canuto_mod_2002
-//           interp2d_expabs(back_ri1, back_rid1,
-//               slq2_back, sm_back, sh_back, ss_back);
-
-//         // ifbg_theta_interp = 1 in canuto_mod_2002
-//         // } else if(IFBG_THETA_INTERP == 1) {
-//         } else if(true) {
-//           // !000315 Interpolate 1D table of background vs. theta_r instead.
-//           deltheta_r1 = theta_r - itheta_r0 * deltheta_r_;
-  
-//           const double delsm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r1)
-//               - v_sm_r1_(N_THETA_R_OCT + itheta_r0);
-  
-//           // const double dsm_back_o_dtheta = delsm_back / deltheta_r_;
-//           const double dsm_back_o_dtheta = delsm_back * tmp_deltheta_r;
-  
-//           sm_back = v_sm_r1_(N_THETA_R_OCT + itheta_r0)
-//               + deltheta_r1 * dsm_back_o_dtheta;
-  
-//           const double delsh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r1)
-//               - v_sh_r1_(N_THETA_R_OCT + itheta_r0);
-  
-//           // const double dsh_back_o_dtheta = delsh_back / deltheta_r_;
-//           const double dsh_back_o_dtheta = delsh_back * tmp_deltheta_r;
-  
-//           sh_back = v_sh_r1_(N_THETA_R_OCT + itheta_r0)
-//               + deltheta_r1 * dsh_back_o_dtheta;
-  
-//           const double delss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r1)
-//               - v_ss_r1_(N_THETA_R_OCT + itheta_r0);
-  
-//           // const double dss_back_o_dtheta = delss_back / deltheta_r_;
-//           const double dss_back_o_dtheta = delss_back * tmp_deltheta_r;
-  
-//           ss_back = v_ss_r1_(N_THETA_R_OCT + itheta_r0)
-//               + deltheta_r1 * dss_back_o_dtheta;
-  
-//           const double delslq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r1)
-//               - v_slq2_r1_(N_THETA_R_OCT + itheta_r0);
-  
-//           // const double dslq2_back_o_dtheta = delslq2_back / deltheta_r_;
-//           const double dslq2_back_o_dtheta = delslq2_back * tmp_deltheta_r;
-  
-//           slq2_back = v_slq2_r1_(N_THETA_R_OCT + itheta_r0)
-//               + deltheta_r1 * dslq2_back_o_dtheta;
-//         } else {
-//           return ;
-//         }
-//         if (slq2_back < 0.0) {
-//           return ;
-//         }
-//       } // not go to 19
-
-//       // 19 continue
-//       if (ri1 < 0.0) {
-//         sm_back = 0.0;
-//         sh_back = 0.0;
-//         ss_back = 0.0;
-//       }
-  
-//       if ((sm_back < 0.0) || (sh_back < 0.0) ||
-//           (ss_back < 0.0)) {
-//         return ;
-//       }
-      
-//       //double tmp_back;
-
-//       // if ifepson2 == 0, ifepson2 = 2 in canuto_mod_2002
-//       // if ifepson2 >  0, ifepson2 = 2 in canuto_mod_2002
-//       const double tmp_back = 0.5 * b1_ * b1_
-//           * back_ri1 * slq2_back * epson2;
-  
-//       v_back[k] = tmp_back * sm_back;
-//       t_back[k] = tmp_back * sh_back;
-//       s_back[k] = tmp_back * ss_back;
-  
-//       if ((v_back[k] < 0.0) || (t_back[k] < 0.0)
-//           || (s_back[k] < 0.0)) {
-//         return ;
-//       }
-//       if((ri[k] > 0.0) && ((v_back[k] == 0.0)
-//           || (t_back[k] == 0.0) || (s_back[k] == 0.0))) {
-//         return ;
-//       }
-  
-//       double aldeep[NBIG];
-  
-//       aldeep[k] = 0.0;
-  
-//       double tmp(0.0);
-  
-//       // if ifepson2 == 2, ifepson2 = 2 in canuto_mod_2002
-//       // if ((IFEPSON2 == 2) && (ifbelow == 1)) {
-//       //   if ((ri1 >= 0.0) || ((IFDEEPLAT == 2) && (ifnofsmall == 1))) {
-//       if (ifbelow == 1) {
-//         if (ri1 >= 0.0) {
-//           tmp = 0.5 * b1_ * b1_ * ri1 * slq2 * epson2;
-//         } else if (k > 1) {
-//           double delz, delrh, del2rh;
-//           if (k == n - 1) {
-//             delz   = z [k] - z [k-1];
-//             delrh  = rh[k] - rh[k-1];
-//             del2rh = rh[k] - 2.0 * rh[k-1] + rh[k-2];
-//           } else {
-//             delz   = z [k+1] - z [k-1];
-//             delrh  = rh[k+1] - rh[k-1];
-//             del2rh = rh[k+1] - 2.0 * rh[k] + rh[k-1];
-//           }
-  
-//           const double dzrh = delrh / delz;
-//           const double d2zrh = 4.0 * del2rh / (delz * delz);
-//           const double rdzlndzrh = dzrh / d2zrh;
-//           const double al0deep = 0.17 * fabs(rdzlndzrh);
-//           akz = 0.4 * z[k];
-//           aldeep[k] = akz * al0deep / (al0deep + akz);
-//           al2 = aldeep[k] * aldeep[k];
-  
-//           if (ifpureshear == 1) {
-//             // GO TO 21
-//             tmp = 0.5 * (b1_ * b1_) * al2
-//                 * sqrt(-an2[k] / amtaun2);
-       
-//             akm[k] = fmin(tmp * sm + v_back[k],
-//                 visc_cbu_limit1);
-//             akh[k] = fmin(tmp * sh + t_back[k],
-//                 diff_cbt_limit1);
-//             aks[k] = fmin(tmp * ss + s_back[k],
-//                 diff_cbt_limit1);
-//             continue ;
-//           } else if (IFSHEARMIN) {
-//             s2[k] = fmax(s2[k], S2MIN);
-//           }
-//           tmp = 0.5 * b1_ * al2
-//               * sqrt(s2[k] / (slq2 + 1.0e-40));
-//         } else {
-//           if (ifpureshear == 1) {
-//             // GO TO 21
-//             tmp = 0.5 * (b1_ * b1_) * al2
-//                 * sqrt(-an2[k] / amtaun2);
-       
-//             akm[k] = fmin(tmp * sm + v_back[k],
-//                 visc_cbu_limit1);
-//             akh[k] = fmin(tmp * sh + t_back[k],
-//                 diff_cbt_limit1);
-//             aks[k] = fmin(tmp * ss + s_back[k],
-//                 diff_cbt_limit1);
-//             continue ;
-//           } else if (IFSHEARMIN) {
-//             s2[k] = fmax(s2[k], S2MIN);
-//           }
-//           if (lifepsy[k]) {
-//             tmp = 0.5 * epsy[k] / (s2[k] + 1.0e-40);
-//           } else {
-//             tmp = 0.5 * b1_ * al2
-//                 * sqrt(s2[k] / (slq2 + 1.0e-40));
-//           }
-//         }
-//       } else {
-//         if (ifpureshear == 1) {
-//             // GO TO 21
-//             tmp = 0.5 * (b1_ * b1_) * al2
-//                 * sqrt(-an2[k] / amtaun2);
-//             akm[k] = fmin(tmp * sm + v_back[k],
-//                 visc_cbu_limit1);
-//             akh[k] = fmin(tmp * sh + t_back[k],
-//                 diff_cbt_limit1);
-//             aks[k] = fmin(tmp * ss + s_back[k],
-//                 diff_cbt_limit1);
-//             continue ;
-//         } else if (IFSHEARMIN) {
-//           s2[k] = fmax(s2[k], S2MIN);
-//         }
-//         if (lifepsy[k]) {
-//           tmp = 0.5 * epsy[k] / (s2[k] + 1.0e-40);
-//         } else {
-//           tmp = 0.5 * b1_ * al2
-//               * sqrt(s2[k] / (slq2 + 1.0e-40));
-//         }
-//       }
-//       // 21
-//       if (ifpureshear == 1) {
-//         tmp = 0.5 * (b1_ * b1_) * al2
-//             * sqrt(-an2[k] / amtaun2);
-//       }
-  
-//       akm[k] = fmin(tmp * sm + v_back[k],
-//           visc_cbu_limit1);
-//       akh[k] = fmin(tmp * sh + t_back[k],
-//           diff_cbt_limit1);
-//       aks[k] = fmin(tmp * ss + s_back[k],
-//           diff_cbt_limit1);
-//     } // End for k in 0:n
-
-//     for (int k = nb+1; k < nmax; ++k) {
-//       akm[k] = 0.0;
-//       akh[k] = 0.0;
-//       aks[k] = 0.0;
-//     }
- 
-//     if (n > 0) {
-//       if (akm[0] < wndmix) {
-//         akm[0] = wndmix;
-//       }
-//       if (akh[0] < wndmix) {
-//         akh[0] = wndmix;
-//       }
-//       if (aks[0] < wndmix) {
-//         aks[0] = wndmix;
-//       }
-//     }
-//     return ;
-//   }
-
-//   KOKKOS_INLINE_FUNCTION void formld(
-//       const double (&z)[KM], const double (&t)[KM],
-//           double &amld, const int &n) const {
-//     for (int k = 0; k < n; ++k) {
-//       if (fabs(t[k] - t[0]) > 0.1) {
-// #ifdef D_PRECISION
-//         const double tm = t[0] - sign_double(0.1, t[0] - t[k]);
-// #else
-//         const double tm = t[0] - sign_float(0.1,   t[0] - t[k]);
-// #endif // D_PRECISION
-//         amld = z[k] + (z[k-1] - z[k]) *
-//             (tm - t[k]) / (t[k-1] - t[k] + 1.e-20);
-//         return ;
-//       }
-//     }
-//     amld = z[n-1];
-//     return ;
-//   }
-
-//   KOKKOS_INLINE_FUNCTION int sign_int(const double &x, const double &y) const {
-//     return y >= 0 ? std::abs(static_cast<int>(x)) 
-//         : - std::abs(static_cast<int>(x));
-//   }
-
-//   KOKKOS_INLINE_FUNCTION int sign_float(const double &x, const double &y) const {
-//     return y >= 0.0 ? std::abs(static_cast<float>(x)) 
-//        : - std::abs(static_cast<float>(x));
-//   }
-
-//   KOKKOS_INLINE_FUNCTION double sign_double(const double &x, const double &y) const {
-//     return y >= 0.0 ? fabs(x) : - fabs(x);
-//   }
-
-//   KOKKOS_INLINE_FUNCTION void interp1d_expabs(
-//       double &x,            // and2on2
-//       double &slq2,         // amtaun2
-//       double &sm,           // sm
-//       double &sh,           // sh
-//       double &ss,           // ss
-//       const int &ixmax,     // imax
-//       const double &delta,  // dand2on2
-//       const double &rat     /* rnd2on2 */ ) const {
-//     // printf ("interp1d_expabs\n");
-  
-//     int lx0(0), lx1(0);
-    
-//     if (x > v_and2on2a1_(MT + ixmax)) {
-//       x = v_and2on2a1_(MT + MT);
-//     } else if (x < v_and2on2a1_(0)) {
-//       x = v_and2on2a1_(0);
-//     }
-  
-//     if (fabs(x) < v_and2on2a1_(MT + MT0)) {
-// #ifdef D_PRECISION
-//       lx1 = static_cast<int>(x / delta) + round(sign_double(static_cast<double>(1.0), x)); 
-// #else  // D_PRECISION
-//       lx1 = static_cast<int>(x / delta) + round(sign_float(static_cast<float>(1.0), x)); 
-// #endif // D_PRECISION
-//     } else if (fabs(x) >= v_and2on2a1_(MT + MT)) {
-// #ifdef D_PRECISION
-//       lx0 = round(sign_double(static_cast<double>(MT), x));
-// #else  // D_PRECISION
-//       lx0 = round(sign_float(static_cast<float>(MT), x));
-// #endif // D_PRECISION
-//       lx1 = lx0;
-//     } else {
-// #ifdef D_PRECISION
-//       const double tabindx = sign_double(static_cast<double>(MT0)
-//          + ((log(fabs(x)) - log(v_and2on2a1_(MT + MT0))) / log(rat)), x);
-// #else  // D_PRECISION
-//       const float tabindx = sign_double(static_cast<float>(MT0)
-//          + ((log(fabs(x)) - log(v_and2on2a1_(MT + MT0))) / log(rat)), x);
-// #endif // D_PRECISION
-
-// #ifdef D_PRECISION
-//       lx1 = static_cast<int>(tabindx) + round(sign_double(
-//           static_cast<double>(1.0), x));
-// #else  // D_PRECISION
-//       lx1 = static_cast<int>(tabindx) + round(sign_float(
-//           static_cast<float>(1.0), x));
-// #endif // D_PRECISION
-//     }
-
-//     if (!(fabs(x) >= v_and2on2a1_(MT + MT))) {
-//       if (fabs(v_and2on2a1_(MT + lx1)) < fabs(x)) {
-//         lx1 += sign_int(1, lx1);
-//       } else if (fabs(v_and2on2a1_(MT + lx1 - sign_int(1, lx1))) > fabs(x)) {
-//         lx1 -= sign_int(1, lx1);
-//       }
-
-// #ifdef D_PRECISION
-//       lx0 = lx1 - round(sign_double(
-//           static_cast<double>(1.0), x));
-// #else  // D_PRECISION
-//       lx0 = lx1 - round(sign_float(
-//           static_cast<float>(1.0), x));
-// #endif // D_PRECISION
-//       if (x == 0.0) {
-//         lx1 = 1;
-//       }
-//     }
-//     if ((x > 0.0 && (x < v_and2on2a1_(MT + lx0) || x > v_and2on2a1_(MT + lx1))) ||
-//         (x < 0.0 && (x > v_and2on2a1_(MT + lx0) || x < v_and2on2a1_(MT + lx1)))) {
-//       return;
-//     }
-
-//     const double deltaxta = 1.0 / (v_and2on2a1_(MT + lx1) - v_and2on2a1_(MT + lx0));
-
-//     const double deltax = x - v_and2on2a1_(MT + lx0);
-
-//     double dslq2_x;
-//     if (lx1 == lx0) {
-//       dslq2_x = 0.0;
-//     } else {
-//       dslq2_x = (v_amtaun2a1_(MT + lx1) - v_amtaun2a1_(MT + lx0)) * deltaxta;
-//     }
-
-//     slq2 = v_amtaun2a1_(MT + lx0) + dslq2_x * deltax;
-
-//     double dsm_x;
-//     if (lx1 == lx0) {
-//       dsm_x = 0.0;
-//     } else {
-//       dsm_x = (v_sma1_(MT + lx1) - v_sma1_(MT + lx0)) * deltaxta;
-//     }
-//     sm = v_sma1_(MT + lx0) + dsm_x * deltax;
-
-//     double dsh_x;
-//     if (lx1 == lx0) {
-//       dsh_x = 0.0;
-//     } else {
-//       dsh_x = (v_sha1_(MT + lx1) - v_sha1_(MT + lx0)) * deltaxta;
-//     }
-//     sh = v_sha1_(MT + lx0) + dsh_x * deltax;
-
-//     double dss_x;
-//     if (lx1 == lx0) {
-//       dss_x = 0.0;
-//     } else {
-//       dss_x = (v_ssa1_(MT + lx1) - v_ssa1_(MT + lx0)) * deltaxta;
-//     }
-//     ss = v_ssa1_(MT + lx0) + dss_x * deltax;
-  
-//     return ;  
-//   }
-
-//   KOKKOS_INLINE_FUNCTION void interp2d_expabs(double &ri, double &rid,
-//       double &slq2, double &sm, double &sh, double &ss) const {
-
-//     const double tmp_ri  = 1.0 /ri;
-//     const double tmp_rid = 1.0 /rid;
-
-//     if (ri > v_rib_(MT + MT)) {
-//       if (fabs(rid) <= ri) {
-//         // rid = v_rib_(MT + MT) * (rid / ri);
-//         rid = v_rib_(MT + MT) * (rid * tmp_ri);
-//         ri  = v_rib_(MT + MT);
-//       } else if (rid > ri) {
-//         // ri  = v_ridb_(MT + MT) * (ri / rid);
-//         ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
-//         rid = v_ridb_(MT + MT);
-//       } else if (rid < -ri) {
-//         // ri  = v_ridb_(0) * (ri / rid);
-//         ri  = v_ridb_(0) * (ri * tmp_rid);
-//         rid = v_ridb_(0);
-//       }
-//     } else if (ri < v_rib_(0)) {
-//       if (fabs(rid) <= -ri) {
-//         // rid = v_rib_(0) * (rid / ri);
-//         rid = v_rib_(0) * (rid * tmp_ri);
-//         ri  = v_rib_(0);
-//       } else if (rid > -ri) {
-//         // ri  = v_ridb_(MT + MT) * (ri / rid);
-//         ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
-//         rid = v_ridb_(MT + MT);
-//       } else if (rid < ri) {
-//         // ri  = v_ridb_(0) * (ri / rid);
-//         ri  = v_ridb_(0) * (ri * tmp_rid);
-//         rid = v_ridb_(0);
-//       }
-//     } else if (rid > v_ridb_(MT + MT)) {
-//       // ri  = v_ridb_(MT + MT) * (ri / rid);
-//       ri  = v_ridb_(MT + MT) * (ri * tmp_rid);
-//       rid = v_ridb_(MT + MT);
-//     } else if (rid < v_ridb_(0)) {
-//       // ri  = v_ridb_(0) * (ri / rid);
-//       ri  = v_ridb_(0) * (ri * tmp_rid);
-//       rid = v_ridb_(0);
-//     }
-
-//     int lrid0(0), lrid1(0);
-
-//     if (fabs(rid) < v_ridb_(MT + MT0)) {
-// #ifdef D_PRECISION
-//       lrid1 = static_cast<int>(rid / dri_)
-//           + round(sign_double(static_cast<double>(1.0), rid));
-// #else // D_PRECISION
-//       lrid1 = static_cast<int>(rid / dri_)
-//           + round(sign_float(static_cast<float>(1.0), rid));
-// #endif // D_PRECISION
-//     } else if (fabs(rid) >= v_ridb_(MT + MT)) {
-// #ifdef D_PRECISION
-//       lrid0 = round(sign_double(static_cast<double>(MT), rid));
-// #else // D_PRECISION
-//       lrid0 = round(sign_float(static_cast<float>(MT), rid));
-// #endif // D_PRECISION
-//       lrid1 = lrid0;
-//     } else {
-// #ifdef D_PRECISION
-//       const double tabindrid = sign_double(static_cast<double>(MT0)
-//           + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-//               / log(rri_)), rid);
-// #else // D_PRECISION
-//       const double tabindrid = sign_float(static_cast<float>(MT0)
-//           + ((log(fabs(rid)) - log(v_ridb_(MT + MT0)))
-//               / log(rri)), rid);
-// #endif // D_PRECISION
-
-// #ifdef D_PRECISION
-//       lrid1 = static_cast<int>(tabindrid)
-//           + round(sign_double(static_cast<double>(1.0), rid));
-// #else // D_PRECISION
-//       lrid1 = static_cast<int>(tabindrid)
-//           + round(sign_float(static_cast<float>(1.0), rid));
-// #endif // D_PRECISION
-
-//     }
-
-//     if (!(fabs(rid) >= v_ridb_(MT + MT))) {
-
-//       if (fabs(v_ridb_(MT + lrid1)) < fabs(rid)) {
-//         lrid1 += sign_int(1, lrid1);
-//       } else if (fabs(v_ridb_(MT + lrid1 - sign_int(1, lrid1))) > 
-//           fabs(rid)) {
-//         lrid1 -= sign_int(1, lrid1);
-//       }
-
-// #ifdef D_PRECISION
-//       lrid0 = lrid1 - round(sign_double(
-//           static_cast<double>(1.0), rid));
-// #else // D_PRECISION
-//       lrid0 = lrid1 - round(sign_float(
-//           static_cast<float>(1.0), rid));
-// #endif // D_PRECISION
-//       if (rid == 0.0) {
-//         lrid1 = 1;
-//       }
-//     }
-
-//     // 252
-//     if ((rid > 0.0 && (rid < v_ridb_(MT + lrid0) || rid > v_ridb_(MT + lrid1))) ||
-//         (rid < 0.0 && (rid > v_ridb_(MT + lrid0) || rid < v_ridb_(MT + lrid1)))) {
-//       return ;
-//     }
- 
-//     if (ri > fmin(v_rib_(MT + v_irimax_(MT + lrid0)),
-//                   v_rib_(MT + v_irimax_(MT + lrid1)))) {
-//       slq2 = 0.0;
-//       sm   = 0.0;
-//       sh   = 0.0;
-//       ss   = 0.0;
-//       return ;
-//     }
-
-//     int lri0(0), lri1(0);
-
-//     if (fabs(ri) < v_rib_(MT + MT0)) {
-// #ifdef D_PRECISION
-//       lri1 = static_cast<int>(ri / dri_)
-//           + round(sign_double(static_cast<double>(1.0), ri));
-// #else // D_PRECISION
-//       lri1 = static_cast<int>(ri / dri_)
-//           + round(sign_float(static_cast<float>(1.0), ri));
-// #endif // D_PRECISION
-//     } else if (fabs(ri) >= v_rib_(MT + MT)) {
-// #ifdef D_PRECISION
-//       lri0 = round(sign_double(static_cast<double>(MT), ri));
-// #else // D_PRECISION
-//       lri0 = round(sign_float(static_cast<float>(MT), ri));
-// #endif // D_PRECISION
-//       lri1 = lri0;
-//     } else {
-// #ifdef D_PRECISION
-//       const double tabindri = sign_double(static_cast<double>(MT0)
-//           + ((log(fabs(ri)) - log(v_rib_(MT + MT0)))
-//               / log(rri_)), ri);
-// #else // D_PRECISION
-//       const double tabindri = sign_float(static_cast<float>(MT0)
-//           + ((log(fabs(ri)) - log(v_rib_(MT + MT0)))
-//               / log(rri)), ri);
-// #endif // D_PRECISION
-
-// #ifdef D_PRECISION
-//       lri1 = static_cast<int>(tabindri)
-//           + round(sign_double(static_cast<double>(1.0), ri));
-// #else // D_PRECISION
-//       lri1 = static_cast<int>(tabindri)
-//           + round(sign_float(static_cast<float>(1.0), ri));
-// #endif // D_PRECISION
-//     }
- 
-//     if (!(fabs(ri) >= v_rib_(MT + MT))) {
-//       if (fabs(v_rib_(MT + lri1)) < fabs(ri)) {
-//         lri1 += sign_int(1, lri1);
-//       } else if (fabs(v_rib_(MT + lri1 - sign_int(1, lri1))) >
-//           fabs(ri)) {
-//         lri1 -= sign_int(1, lri1);
-//       }
-
-// #ifdef D_PRECISION
-//       lri0 = lri1 - round(sign_double(
-//           static_cast<double>(1.0), ri));
-// #else // D_PRECISION
-//       lri0 = lri1 - round(sign_float(
-//           static_cast<float>(1.0), ri));
-// #endif // D_PRECISION
-
-//       if (ri == 0.0) {
-//         lri1 = 1;
-//       }
-//     }
-
-//     if ((ri > 0.0 && (ri < v_rib_(MT + lri0) || ri > v_rib_(MT + lri1))) ||
-//         (ri < 0.0 && (ri > v_rib_(MT + lri0) || ri < v_rib_(MT + lri1)))) {
-//       return ;
-//     }
-
-//     const double deltaridta = 1.0 / (v_ridb_(MT + lrid1) - v_ridb_(MT + lrid0));
-//     const double deltarita  = 1.0 / (v_rib_(MT + lri1) - v_rib_(MT + lri0));
-//     const double deltarid = rid - v_ridb_(MT + lrid0);
-//     const double deltari  = ri  - v_rib_(MT + lri0);
-
-//     double dslq2_rid;
-
-//     if (lrid1 == lrid0) {
-//       dslq2_rid = 0.0;
-//     } else {
-//       dslq2_rid = (v_slq2b_(MT+lrid1, MT+lri0) - v_slq2b_(MT+lrid0, MT+lri0))
-//           * deltaridta;
-//     }
-
-//     double dslq2_ri;
-//     if (lri1 == lri0) {
-//       dslq2_ri = 0.0;
-//     } else {
-//       dslq2_ri = (v_slq2b_(MT+lrid0, MT+lri1) - v_slq2b_(MT+lrid0, MT+lri0))
-//           * deltarita;
-//     }
-
-//     slq2 = v_slq2b_(MT+lrid0, MT+lri0)
-//         + dslq2_ri * deltari + dslq2_rid * deltarid;
-
-//     double dsm_rid;
-//     if (lrid1 == lrid0) {
-//       dsm_rid = 0.0;
-//     } else {
-//       dsm_rid = (v_smb_(MT+lrid1, MT+lri0) - v_smb_(MT+lrid0, MT+lri0))
-//           * deltaridta;
-//     }
-
-//     double dsm_ri;
-
-//     if (lri1 == lri0) {
-//       dsm_ri = 0.0;
-//     } else {
-//       dsm_ri = (v_smb_(MT+lrid0, MT+lri1) - v_smb_(MT+lrid0, MT+lri0))
-//           * deltarita;
-//     }
-
-//     sm = v_smb_(MT+lrid0, MT+lri0) 
-//         + dsm_ri * deltari + dsm_rid * deltarid;
-
-//     double dsh_rid;
-//     if (lrid1 == lrid0) {
-//       dsh_rid = 0.0;
-//     } else {
-//       dsh_rid = (v_shb_(MT+lrid1, MT+lri0) - v_shb_(MT+lrid0, MT+lri0))
-//           * deltaridta;
-//     }
-//     double dsh_ri;
-//     if (lri1 == lri0) {
-//       dsh_ri = 0.0;
-//     } else {
-//       dsh_ri = (v_shb_(MT+lrid0, MT+lri1) - v_shb_(MT+lrid0, MT+lri0))
-//           * deltarita;
-//     }
-
-//     sh = v_shb_(MT+lrid0, MT+lri0) 
-//         + dsh_ri * deltari + dsh_rid * deltarid;
-    
-//     double dss_rid;
-//     if (lrid1 == lrid0) {
-//       dss_rid = 0.0;
-//     } else {
-//       dss_rid = (v_ssb_(MT+lrid1, MT+lri0) - v_ssb_(MT+lrid0, MT+lri0))
-//           * deltaridta;
-//     }
-//     double dss_ri;
-//     if (lri1 == lri0) {
-//       dss_ri = 0.0;
-//     } else {
-//       dss_ri = (v_ssb_(MT+lrid0, MT+lri1) - v_ssb_(MT+lrid0, MT+lri0))
-//           * deltarita;
-//     }
-
-//     ss = v_ssb_(MT+lrid0, MT+lri0) 
-//         + dss_ri * deltari + dss_rid * deltarid;
-
-//     return ;
-//   }
-
-//   KOKKOS_INLINE_FUNCTION double acosh1(const double &x) const {
-//     return log(x + sqrt((x * x) - 1.0));
-//   }
-//   KOKKOS_INLINE_FUNCTION double wavelat(const double &xf, const double &yn) 
-//       const {
-//     return xf * acosh1(yn / xf);
-//   }
-
-//   KOKKOS_INLINE_FUNCTION double eplatidepend_(const double &f, const double &an) 
-//       const {
-//     double f_30;
-//     double anum, den;
-//     double pi1, omega;
-//     const double an0 = 5.24e-3;
- 
-//     pi1   = 4.0 * atan(1.0);
-//     omega = pi1 / 43082.0e0;
- 
-//     f_30  = omega;
- 
-//     den   = wavelat(f_30, an0);
- 
-//     anum  = wavelat(f, an);
-//     return anum / den;
-//   }
-
-// };
-#endif // CANUTO
 
 #endif // LICOM3_KOKKKOS_SRC_KOKKOS_IMPL_KOKKOS_READYC_HPP_

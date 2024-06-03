@@ -100,7 +100,7 @@ void cpp_bclinc(){
   // int errorcode;
   double aidif = 0.0;
 
-#ifdef CANUTO
+#ifdef CANUTO2010
   for (int iblock = 0; iblock < nblocks_clinic; ++iblock){
     for(int j = 1; j < JMT-1; ++j){
       for(int i = 1; i < IMT-1; ++i){

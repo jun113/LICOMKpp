@@ -31,7 +31,7 @@ use operators
 #endif
 
 !lhl0711
-#ifdef CANUTO
+#if (defined CANUTO) ||(defined CANUTO2010)
       REAL(r8)    :: AIDIF
 
 !M

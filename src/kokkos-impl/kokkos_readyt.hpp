@@ -80,7 +80,6 @@ using KokkosPconstMod::p_v_beta_canuto;
 using KokkosPmixMod::p_v_rit;
 using KokkosPmixMod::p_v_rict;
 using KokkosPmixMod::p_v_ricdt;
-using KokkosPmixMod::p_v_ricdttms;
 
 using KokkosWorkMod::p_v_pax;
 using KokkosWorkMod::p_v_pay;
@@ -368,11 +367,6 @@ class FunctorReadyt6 {
     const int iblock = 0;
     if (i >= 1 && i < (IMT-1)) {
       const double epsln = 1.0e-25;
-      v_ricdttms_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) * G *
-          ((v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) * 
-               v_alpha_(iblock, k+1, j, i) + 1000.0 * 
-           (v_at_(iblock, 1, k, j, i) - v_at_(iblock, 1, k+1, j, i)) *
-               v_beta_(iblock, k+1, j, i)) * v_odzt_(k+1);
   
       v_ricdt_(iblock, k, j, i) = v_vit_(iblock, k+1, j, i) / 
           ((v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i) + epsln) * 
@@ -385,18 +379,16 @@ class FunctorReadyt6 {
 #endif // CANUTOMIXOUT
     } else {
       v_ricdt_(iblock, k, j, i)    = 0.0;
-      v_ricdttms_(iblock, k, j, i) = 0.0;
     }
     return ;
   }
  private:
-  const ViewDouble1D v_odzt_     = *p_v_odzt;
-  const ViewDouble4D v_vit_      = *p_v_vit;
-  const ViewDouble4D v_ricdt_    = *p_v_ricdt;
-  const ViewDouble4D v_alpha_    = *p_v_alpha;
-  const ViewDouble4D v_beta_     = *p_v_beta;
-  const ViewDouble4D v_ricdttms_ = *p_v_ricdttms;
-  const ViewDouble5D v_at_       = *p_v_at;
+  const ViewDouble1D v_odzt_  = *p_v_odzt;
+  const ViewDouble4D v_vit_   = *p_v_vit;
+  const ViewDouble4D v_ricdt_ = *p_v_ricdt;
+  const ViewDouble4D v_alpha_ = *p_v_alpha;
+  const ViewDouble4D v_beta_  = *p_v_beta;
+  const ViewDouble5D v_at_    = *p_v_at;
 #ifdef CANUTOMIXOUT
   const ViewDouble4D v_alpha_canuto_ = *p_v_alpha_canuto;
   const ViewDouble4D v_beta_canuto_  = *p_v_beta_canuto;
@@ -696,32 +688,29 @@ class FunctorReadyt12 {
 
 class FunctorReadyt13 {
  public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
     const int iblock = 0;
-
-    grad(iblock, 0, j, i, v_work1_, v_work2_, v_psa_);
-
-    v_pay_(iblock, j, i) = - od0_ * v_work2_(iblock, j, i);
-    v_pax_(iblock, j, i) = - od0_ * v_work1_(iblock, j, i);
-
+    double work1, work2;
+    grad(iblock, 0, j, i, work1, work2, v_psa_);
+    v_pay_(iblock, j, i) = - od0_ * work2;
+    v_pax_(iblock, j, i) = - od0_ * work1;
     return ;
   }
   KOKKOS_INLINE_FUNCTION void grad (const int &iblock,
       const int &k, const int &j, const int &i, 
-      const ViewDouble3D &v_gradx,
-      const ViewDouble3D &v_grady, 
-      const ViewDouble3D &v_f) const {
+          double &gradx, double &grady, 
+              const ViewDouble3D &v_f) const {
     const int bid = 0;
-    v_gradx(iblock, j, i) = C0;
-    v_grady(iblock, j, i) = C0;
+    gradx = C0;
+    grady = C0;
     if (i >= 1 && j < (NY_BLOCK-1)) {
       if (k <= v_kmu_(bid, j, i) - 1) {
-        v_gradx(iblock, j, i) = v_dxyur_(bid, j, i, 0) * P5 * 
+        gradx = v_dxyur_(bid, j, i, 0) * P5 * 
             (v_f(iblock, j+1, i  ) - v_f(iblock, j, i-1) - 
              v_f(iblock, j+1, i-1) + v_f(iblock, j, i  ));
       
-        v_grady(iblock, j, i) = v_dxyur_(bid, j, i, 1) * P5 * 
+        grady = v_dxyur_(bid, j, i, 1) * P5 * 
             (v_f(iblock, j+1, i  ) - v_f(iblock, j, i-1) + 
              v_f(iblock, j+1, i-1) - v_f(iblock, j, i  ));
       }
@@ -734,8 +723,6 @@ class FunctorReadyt13 {
   const ViewDouble3D v_pax_   = *p_v_pax;
   const ViewDouble3D v_pay_   = *p_v_pay;
   const ViewDouble3D v_psa_   = *p_v_psa;
-  const ViewDouble3D v_work1_ = *p_v_work1;
-  const ViewDouble3D v_work2_ = *p_v_work2;
   const ViewDouble4D v_dxyur_ = *p_v_dxyur;
 };
 

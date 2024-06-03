@@ -460,7 +460,7 @@ class FunctorTracer7 {
   const ViewDouble5D v_k3_     = *p_v_k3;
 #endif // ISO
 
-#ifdef CANUTO
+#ifndef CANUTO
   const ViewDouble5D v_akt_ = *p_v_akt;
 #endif // CANUTO
 };

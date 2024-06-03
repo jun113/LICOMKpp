@@ -454,8 +454,20 @@ void kokkos_tracer() {
       double err_norm2 = 0.0;
 
 #if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
-      Kokkos::parallel_reduce ("tracer_26", MDRangePolicy<Kokkos::Rank<2>> (
-          koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracer26(), err_norm2);
+      // Kokkos::parallel_reduce ("tracer_26", MDRangePolicy<Kokkos::Rank<2>> (
+      //     koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracer26(), err_norm2);
+      ViewDouble4D::HostMirror h_v_net   = Kokkos::create_mirror_view(*p_v_net);
+      ViewDouble4D::HostMirror h_v_vit   = Kokkos::create_mirror_view(*p_v_vit);
+      ViewDouble3D::HostMirror h_v_tarea = Kokkos::create_mirror_view(*p_v_tarea);
+      Kokkos::deep_copy(h_v_tarea, *p_v_tarea);
+      Kokkos::deep_copy(h_v_net,   *p_v_net);
+      Kokkos::deep_copy(h_v_vit,   *p_v_vit);
+      for (int j = 2; j < JMT-2; ++j) {
+        for (int i = 2; i < IMT-2; ++i) {
+          err_norm2 += h_v_tarea(0, j, i) 
+              * h_v_net(0, 1, j, i) * h_v_vit(0, 0, j, i);
+        }
+      }
 #else
       for (int j = 2; j < JMT-2; ++j) {
         for (int i = 2; i < IMT-2; ++i) {

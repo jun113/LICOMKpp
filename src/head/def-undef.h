@@ -21,7 +21,7 @@
 #undef  COUP
 #undef  ISO
 #define D_PRECISION
-#define CANUTO
+#define CANUTO2010
 #undef  SOLARCHLORO
 #undef  BCKMEX
 #define TIDEMIX
@@ -53,6 +53,6 @@
 
 #define LICOM_ENABLE_FORTRAN_COMPILER_INTEL
 
-#define LICOM_ENABLE_KOKKOS
+#define LICOM_ENABLE_FORTRAN
 
 #endif
