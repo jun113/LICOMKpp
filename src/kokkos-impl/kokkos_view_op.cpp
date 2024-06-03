@@ -1098,7 +1098,7 @@ static void kokkos_init_grid() {
       MAX_BLOCKS_CLINIC, NY_BLOCK, NX_BLOCK);
   new (p_v_uarea_r) ViewDouble3D("pointer_view_uarea_r",
       MAX_BLOCKS_CLINIC, NY_BLOCK, NX_BLOCK);
-  new (p_v_tarea_r) ViewDouble3D("pointer_view_uarea_r",
+  new (p_v_tarea_r) ViewDouble3D("pointer_view_tarea_r",
       MAX_BLOCKS_CLINIC, NY_BLOCK, NX_BLOCK);
   new (p_v_kmt)    ViewInt3D("pointer_view_kmt",
       MAX_BLOCKS_CLINIC, NY_BLOCK, NX_BLOCK);
@@ -1151,7 +1151,7 @@ static void kokkos_init_grid() {
       MAX_BLOCKS_CLINIC, NY_BLOCK, NX_BLOCK);
  UnManagedViewDouble3D h_v_uarea_r (&uarea_r[0][0][0],
       MAX_BLOCKS_CLINIC, NY_BLOCK, NX_BLOCK);
- UnManagedViewDouble3D h_v_tarea_r (&uarea_r[0][0][0],
+ UnManagedViewDouble3D h_v_tarea_r (&tarea_r[0][0][0],
       MAX_BLOCKS_CLINIC, NY_BLOCK, NX_BLOCK);
  UnManagedViewInt3D h_v_basin (&basin[0][0][0], 
       MAX_BLOCKS_CLINIC, JMT, IMT);

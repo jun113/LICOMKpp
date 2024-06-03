@@ -108,7 +108,7 @@ void kokkos_tracer() {
   parallel_for ("tracer_3_upwell_1", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorTracer3());
   parallel_for ("tracer_4_upwell_2", MDRangePolicy<Kokkos::Rank<3>> (
-      koArr3D{0, 0, 1}, koArr3D{KM, JMT-1, IMT}, tile3D), FunctorTracer4());
+      koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracer4());
   parallel_for ("tracer_5_upwell_3", MDRangePolicy<Kokkos::Rank<3>> (
       koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracer5());
   parallel_for ("tracer_6_upwell_4", MDRangePolicy<Kokkos::Rank<2>> (

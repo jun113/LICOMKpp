@@ -59,7 +59,7 @@ void kokkos_readyc () {
       koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorReadyc7());
 
   parallel_for ("readyc_8_upwell_2", MDRangePolicy<Kokkos::Rank<3>> (
-      koArr3D{0, 0, 1}, koArr3D{KM, JMT-1, IMT}, tile3D), FunctorReadyc8());
+      koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorReadyc8());
 
   parallel_for ("readyc_9_upwell_3", MDRangePolicy<Kokkos::Rank<3>> (
       koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorReadyc9());

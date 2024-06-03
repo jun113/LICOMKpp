@@ -330,12 +330,15 @@ class FunctorTracer4 {
   KOKKOS_INLINE_FUNCTION void upwell_2 (const int &iblock, const int &k, 
       const int &j, const int &i, const ViewDouble4D &v_uwk,
           const ViewDouble4D& v_vwk) const {
-    // if (i >= 1 && j < (JMT-1)) {
+    if (i >= 1 && j < (JMT-1)) {
       v_uk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
           * v_ohbu_(iblock, j, i)) * v_uwk(iblock, k, j, i);
       v_vk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
           * v_ohbu_(iblock, j, i)) * v_vwk(iblock, k, j, i);
-    // }
+    } else {
+      v_uk_(iblock, k, j, i) = 0.0;
+      v_vk_(iblock, k, j, i) = 0.0;
+    }
     return ;
   }
 

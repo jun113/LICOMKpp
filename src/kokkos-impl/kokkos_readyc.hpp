@@ -1593,12 +1593,15 @@ class FunctorReadyc8 {
       const int &k, const int &j, const int &i,
           const ViewDouble4D &v_uwk, const ViewDouble4D &v_vwk)
               const {
-    // if (i >= 1 && j < (JMT-1)) {
-    v_uk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
-        * v_ohbu_(iblock, j, i)) * v_uwk(iblock, k, j, i);
-    v_vk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
-        * v_ohbu_(iblock, j, i)) * v_vwk(iblock, k, j, i);
-    // }
+    if (i >= 1 && j < (JMT-1)) {
+      v_uk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
+          * v_ohbu_(iblock, j, i)) * v_uwk(iblock, k, j, i);
+      v_vk_(iblock, k, j, i) = (1.0 + v_work_(iblock, j, i) 
+          * v_ohbu_(iblock, j, i)) * v_vwk(iblock, k, j, i);
+    } else {
+      v_uk_(iblock, k, j, i) = 0.0;
+      v_vk_(iblock, k, j, i) = 0.0;
+    }
     return ;
   }
  private:
@@ -2236,11 +2239,12 @@ class FunctorReadyc18 {
       const ViewDouble4D &v_wk3, const ViewDouble3D &v_wk2) 
           const {
     const int iblock = 0;
-    v_wk2(iblock, j, i) = C0;
+    double wk2 = C0;
     for (int k = 0; k < KM; ++k) {
-      v_wk2(iblock, j, i) += v_dzp_(k) * v_ohbu_(iblock, j, i) 
+      wk2 += v_dzp_(k) * v_ohbu_(iblock, j, i) 
           * v_wk3(iblock, k, j, i) *v_viv_(iblock, k, j, i);
     }
+    v_wk2(iblock, j, i) = wk2;
     return ;
   }
  private:

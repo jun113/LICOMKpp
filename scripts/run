@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-outName=/home/wjl/workspace/licom/kokkos/LICOMKpp/logfile/100km/20240515-234457-IAP_GPU
+outName=/home/wjl/workspace/licom/kokkos/LICOMKpp/logfile/100km/20240603-212353-IAP_GPU
 
 out_licom=${outName}.out
 
