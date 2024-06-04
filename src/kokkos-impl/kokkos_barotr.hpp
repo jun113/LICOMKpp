@@ -384,7 +384,7 @@ class FunctorBarotr7 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const ViewDouble3D v_d2uk_      = *p_v_d2uk;
@@ -453,7 +453,7 @@ class FunctorBarotr8 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double am_ = CppHmixDel4::am;
@@ -519,7 +519,7 @@ class FunctorBarotr9 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double am_ = CppHmixDel4::am;
@@ -791,7 +791,7 @@ class FunctorBarotr18 {
 
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const ViewInt3D v_kmt_        = *p_v_kmt;
@@ -834,7 +834,7 @@ class FunctorBarotr19 {
 
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double ah_ = CppHmixDel4::ah;
