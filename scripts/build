@@ -77,7 +77,7 @@ if [ "${MACHINE}" == "IAP_GPU" ]; then
       -D Kokkos_ENABLE_PROFILING_LOAD_PRINT=On \
       -D Kokkos_ENABLE_COMPILER_WARNINGS=off \
       -D Kokkos_ENABLE_DEBUG=off \
-      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=off \
+      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=on \
       -D Kokkos_ENABLE_SERIAL=on \
       -D NUM_PROCE=${NP} \
       -D LICOM_RES=${LICOM_RES} \

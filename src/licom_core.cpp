@@ -26,7 +26,6 @@ namespace MyTest {
 TestTime::MyTime my_time;
 } // namespace MyTest
 
-
 extern "C" void licom_core_() {
 
 #ifdef LICOM_ENABLE_FORTRAN
@@ -341,8 +340,8 @@ extern "C" void licom_core_() {
       }
       //if (iday == 7) {
       totalday++;
-      if (totalday == 3) {
-      // if (false) {
+      // if (totalday == 3) {
+      if (false) {
         my_time.fence();
 #ifdef LICOM_ENABLE_KOKKOS
         //Kokkos::finalize();
@@ -357,6 +356,10 @@ extern "C" void licom_core_() {
     } // loop: iday
   }   // loop: mm
 //-----------------------------
+  if (CppParamMod::mytid == 0) {
+    printf ("End loops mm and iday\n");
+  }
+  my_time.fence();
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.testTime_finalize();
 #endif // LICOM_ENABLE_TEST_TIME
