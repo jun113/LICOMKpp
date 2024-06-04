@@ -1282,7 +1282,7 @@ class FunctorTracer17{
  private:
   const int n_;
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const ViewInt3D v_kmt_        = *p_v_kmt;
@@ -1317,7 +1317,7 @@ class FunctorTracer18{
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double ah_ = CppHmixDel4::ah;

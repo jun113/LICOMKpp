@@ -101,7 +101,7 @@ elif [ "${MACHINE}" == "419" ]; then
     module load compiler/intel/2017.5.239
     module load mathlib/netcdf/4.4.1/intel
     module load mpi/hpcx/2.7.4/intel-2017.5.239
-    module load compiler/rocm/dtk/22.10.1
+    module load compiler/rocm/dtk/23.10
 
     module list
 
@@ -219,6 +219,9 @@ chmod 777 ../scripts/run
 
 if [ "${MACHINE}" == "IAP_GPU" ]; then
     rm -rf ../scripts/submit
+elif [ "${MACHINE}" == "419" ]; then
+    chmod 777 ../run/dcu_bind
+    chmod 777 ../scripts/submit
 else
     chmod 777 ../scripts/submit
 fi

@@ -1624,7 +1624,7 @@ class FunctorReadyc15 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const ViewDouble3D v_d2uk_      = *p_v_d2uk;
@@ -1696,7 +1696,7 @@ class FunctorReadyc16 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double am_ = CppHmixDel4::am;
@@ -1760,7 +1760,7 @@ class FunctorReadyc17 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double am_ = CppHmixDel4::am;

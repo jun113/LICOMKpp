@@ -355,6 +355,10 @@ extern "C" void licom_core_() {
     } // loop: iday
   }   // loop: mm
 //-----------------------------
+  my_time.fence();
+  if (CppParamMod::mytid == 0) {
+    printf ("End iday and mm of loops.\n");
+  }
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.testTime_finalize();
 #endif // LICOM_ENABLE_TEST_TIME
