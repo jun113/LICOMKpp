@@ -57,7 +57,15 @@
 !
 !-----------------------------------------------------------------------
 
-   real (r8), dimension (:,:,:), allocatable :: &
+   ! wjl 20240604
+   ! real (r8), dimension (:,:,:), allocatable :: &
+   !    DTN,DTS,DTE,DTW,                          &
+   !    DUC,DUN,DUS,DUE,DUW,                      &
+   !    DMC,DMN,DMS,DME,DMW,                      &
+   !    DUM,                                      &
+   !    AHF,              &! variable mixing factor for tracer   mixing
+   !    AMF                ! variable mixing factor for momentum mixing
+   real (r8), dimension (nx_block,ny_block,max_blocks_clinic) :: &
       DTN,DTS,DTE,DTW,                          &
       DUC,DUN,DUS,DUE,DUW,                      &
       DMC,DMN,DMS,DME,DMW,                      &
@@ -132,7 +140,8 @@
 !
 !-----------------------------------------------------------------------
 
-      allocate(AMF(nx_block,ny_block,nblocks_clinic))
+      ! wjl 20240604
+      ! allocate(AMF(nx_block,ny_block,nblocks_clinic))
       do iblock = 1 ,nblocks_clinic
          AMF(:,:,iblock) = sqrt(uarea(:,:,iblock))/   &
                           (2.0D0*radius*pi/DBLE(IMT_GLOBAL))
@@ -151,17 +160,18 @@
 !
 !-----------------------------------------------------------------------
 
-   allocate(DUC(nx_block,ny_block,nblocks_clinic),  &
-            DUN(nx_block,ny_block,nblocks_clinic),  &
-            DUS(nx_block,ny_block,nblocks_clinic),  &
-            DUE(nx_block,ny_block,nblocks_clinic),  &
-            DUW(nx_block,ny_block,nblocks_clinic),  &
-            DMC(nx_block,ny_block,nblocks_clinic),  &
-            DMN(nx_block,ny_block,nblocks_clinic),  &
-            DMS(nx_block,ny_block,nblocks_clinic),  &
-            DME(nx_block,ny_block,nblocks_clinic),  &
-            DMW(nx_block,ny_block,nblocks_clinic),  &
-            DUM(nx_block,ny_block,nblocks_clinic))
+   ! wjl 20240604
+   ! allocate(DUC(nx_block,ny_block,nblocks_clinic),  &
+   !          DUN(nx_block,ny_block,nblocks_clinic),  &
+   !          DUS(nx_block,ny_block,nblocks_clinic),  &
+   !          DUE(nx_block,ny_block,nblocks_clinic),  &
+   !          DUW(nx_block,ny_block,nblocks_clinic),  &
+   !          DMC(nx_block,ny_block,nblocks_clinic),  &
+   !          DMN(nx_block,ny_block,nblocks_clinic),  &
+   !          DMS(nx_block,ny_block,nblocks_clinic),  &
+   !          DME(nx_block,ny_block,nblocks_clinic),  &
+   !          DMW(nx_block,ny_block,nblocks_clinic),  &
+   !          DUM(nx_block,ny_block,nblocks_clinic))
 
    allocate(KXU   (nx_block,ny_block),  &
             KYU   (nx_block,ny_block),  &
@@ -343,7 +353,8 @@
       
 
 
-      allocate(AHF(nx_block,ny_block,nblocks_clinic))
+      ! wjl 20240604
+      ! allocate(AHF(nx_block,ny_block,nblocks_clinic))
       do iblock = 1 ,nblocks_clinic
          AHF(:,:,iblock) = sqrt(tarea(:,:,iblock))/   &
                           (2.0D0*RADIUS*PI/DBLE(IMT_GLOBAL))
@@ -359,10 +370,11 @@
 !
 !-----------------------------------------------------------------------
 
-   allocate(DTN(nx_block,ny_block,nblocks_clinic), &
-            DTS(nx_block,ny_block,nblocks_clinic), &
-            DTE(nx_block,ny_block,nblocks_clinic), &
-            DTW(nx_block,ny_block,nblocks_clinic))
+   ! wjl 20240604
+   ! allocate(DTN(nx_block,ny_block,nblocks_clinic), &
+   !          DTS(nx_block,ny_block,nblocks_clinic), &
+   !          DTE(nx_block,ny_block,nblocks_clinic), &
+   !          DTW(nx_block,ny_block,nblocks_clinic))
 
    allocate(WORK1 (nx_block,ny_block), &
             WORK2 (nx_block,ny_block))

@@ -133,28 +133,10 @@ void kokkos_readyc () {
   parallel_for ("readyc_17_hdiffu_del4_4", MDRangePolicy<Kokkos::Rank<3>> (
       koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorReadyc17());
 #else // BIHAR
-  for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-    for (int k = 0; k < KM; ++k) {
-      // hdiffu_del2(k, hduk, hdvk, up[iblock][k], vp[iblock][k], this_block)
-      parallel_for("readyc_hdiffu_del2_1",
-          MDRangePolicy<Kokkos::Rank<2>>
-              ({0, 0}, {NX_BLOCK, NY_BLOCK}), 
-                  functor_readyc_hdiffu_del2_1());
-      parallel_for("readyc_hdiffu_del2_2",
-          MDRangePolicy<Kokkos::Rank<2>>
-              ({ib-1, jb-1}, {ie, je}), 
-                  functor_readyc_hdiffu_del2_2(k, iblock));
-      parallel_for("readyc_hdiffu_del2_3",
-          MDRangePolicy<Kokkos::Rank<2>>
-              ({0, 0}, {NX_BLOCK, NY_BLOCK}), 
-                  functor_readyc_hdiffu_del2_3(k));
-      // End hdiffu_del2
-      parallel_for("readyc_15",
-          MDRangePolicy<Kokkos::Rank<2>>
-              ({2, 2}, {IMT-2, JMT-2}), 
-                  functor_readyc_15(k, iblock));
-    }
-  }
+  // hdiffu_del2(k, hduk, hdvk, up[iblock], vp[iblock], this_block)
+  parallel_for ("readyc_hdiffu_del2", MDRangePolicy<Kokkos::Rank<3>> (
+      koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorReadyc15());
+  // End hdiffu_del2
 #endif // BIHAR
 #endif // SMAG
   parallel_for ("readyc_18", MDRangePolicy<Kokkos::Rank<2>> (

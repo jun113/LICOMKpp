@@ -66,7 +66,6 @@ void kokkos_barotr() {
 #ifdef SMAG1
 #else // SMAG1
 #ifdef BIHAR
-
     parallel_for ("barotr_5_hdiffu_del4_1", MDRangePolicy<Kokkos::Rank<2>> (
         koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr5());
 
@@ -80,33 +79,10 @@ void kokkos_barotr() {
         koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr8());
 
 #else // BIHAR
-    for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-      // hdiffu_del2(0, hduk, hdvk, ubp[iblock], vbp[iblock], this_block);
-      parallel_for("barotr_hdiffu_del2_1",
-          MDRangePolicy<Kokkos::Rank<2>>
-              ({0, 0}, {NX_BLOCK, NY_BLOCK}), 
-                  functor_barotr_hdiffu_del2_1());
-      const int iiblock = 0;
-      int block_id = blocks_clinic[iiblock];
-      int local_id = iiblock + 1;
-      const struct block this_block = CppBlocks::get_block(&block_id, &local_id);
-      const int ib = this_block.ib;
-      const int ie = this_block.ie;
-      const int jb = this_block.jb;
-      const int je = this_block.je;
-      parallel_for("barotr_hdiffu_del2_2",
-          MDRangePolicy<Kokkos::Rank<2>>
-              ({ib-1, jb-1}, {ie, je}), 
-                  functor_barotr_hdiffu_del2_2(0, iblock));
-      parallel_for("barotr_hdiffu_del2_3",
-          MDRangePolicy<Kokkos::Rank<2>>
-              ({0, 0}, {NX_BLOCK, NY_BLOCK}), 
-                  functor_barotr_hdiffu_del2_3(0));
-      // End hdiffu_del2
-      parallel_for("barotr_6", MDRangePolicy<Kokkos::Rank<2>>
-          ({2, 2}, {IMT-2, JMT-2}), 
-              functor_barotr_6(iblock));
-    }
+    // hdiffu_del2(0, hduk, hdvk, ubp[iblock], vbp[iblock], this_block);
+    parallel_for ("barotr_hdiffu_del2", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr6());
+    // End hdiffu_del2
 #endif // BIHAR
 #endif // SMAG1
 
@@ -160,21 +136,9 @@ void kokkos_barotr() {
             koArr2D{1, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr16());
 #else  // BIHAR
         // hdifft_del2(0, dt2k, hdtk, h0p[iblock], this_block)
-        // parallel_for("barotr_hdifft_del2_1", MDRangePolicy<Kokkos::Rank<2>>
-        //     ({0, 0}, {NX_BLOCK, NY_BLOCK}), 
-        //         functor_barotr_hdifft_del2_1(0));
-
-        // parallel_for("barotr_hdifft_del2_2", MDRangePolicy<Kokkos::Rank<2>>
-        //     ({0, 0}, {NX_BLOCK, NY_BLOCK}), 
-        //         functor_barotr_hdifft_del2_2());
-
-        // parallel_for("barotr_hdifft_del2_3", MDRangePolicy<Kokkos::Rank<2>>
-        //     ({ib-1, jb-1}, {ie, je}), 
-        //         functor_barotr_hdifft_del2_3());
+        parallel_for ("barotr_15_hdifft_del2", MDRangePolicy<Kokkos::Rank<2>> (
+            koArr2D{1, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr15());
         // End hdifft_del2
-        parallel_for("barotr_13", MDRangePolicy<Kokkos::Rank<2>>
-            ({2, 1}, {IMT-2, JMT-2}), 
-                functor_barotr_13(iblock));
 #endif // BIHAR
       } else {
         parallel_for("barotr_17", MDRangePolicy<Kokkos::Rank<2>> (

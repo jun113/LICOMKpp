@@ -592,18 +592,19 @@ void cpp_readyc() {
     }
   }
 #else  // BIHAR
-  for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-    for (int k = 0; k < KM; ++k) {
-      hdiffu_del2(k, hduk, hdvk, up[iblock][k], vp[iblock][k],
-          this_block);
-      for (int j = 2; j < JMT-2; ++j) {
-        for (int i = 2; i < IMT-2; ++i) {
-          dlv[iblock][k][j][i] += hdvk[j][i];
-          dlu[iblock][k][j][i] += hduk[j][i];
-        }
-      }
-    }
-  }
+  // TODO wjl 20240604
+  // for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
+  //   for (int k = 0; k < KM; ++k) {
+  //     hdiffu_del2(k, hduk, hdvk, up[iblock][k], vp[iblock][k],
+  //         this_block);
+  //     for (int j = 2; j < JMT-2; ++j) {
+  //       for (int i = 2; i < IMT-2; ++i) {
+  //         dlv[iblock][k][j][i] += hdvk[j][i];
+  //         dlu[iblock][k][j][i] += hduk[j][i];
+  //       }
+  //     }
+  //   }
+  // }
 #endif // BIHAR
 #endif // SMAG
 

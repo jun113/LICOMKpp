@@ -1246,6 +1246,8 @@ class FunctorTracer16 {
 #endif // ISO
 };
 #endif // CANUTO
+
+#ifdef BIHAR
 class FunctorTracer17{
  public:
   FunctorTracer17 (const int &n) : n_(n) {}
@@ -1285,7 +1287,7 @@ class FunctorTracer17{
  private:
   const int n_;
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const ViewInt3D v_kmt_        = *p_v_kmt;
@@ -1320,7 +1322,7 @@ class FunctorTracer18{
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double ah_ = CppHmixDel4::ah;
@@ -1328,6 +1330,61 @@ class FunctorTracer18{
   const ViewDouble4D v_c_cnsew_ = *p_v_c_cnsew;
   const ViewDouble4D v_tf_      = *p_v_tf;
 };
+#else  // BIHAR
+class FunctorTracer17 {
+ public:
+  FunctorTracer17 (const int &n) : n_(n) {}
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    double hdtk;
+    hdifft_del2 (n_, k, j, i, hdtk, v_atb_);
+    v_tf_(iblock, k, j, i) += hdtk;
+    return;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void hdifft_del2 (const int &n, const int &k, const int &j,const int &i, 
+      double &hdtk, const ViewDouble5D &v_tmix) const {
+    const int bid = 0;
+    const int kk = k + 1;
+    const double cn = (kk <= v_kmt_nsew_(bid, j, i, 0) && kk <= v_kmt_(bid, j, i))
+        ? v_dtn_(bid, j, i) : C0;
+    const double cs = (kk <= v_kmt_nsew_(bid, j, i, 1) && kk <= v_kmt_(bid, j, i))
+        ? v_dts_(bid, j, i) : C0;
+    const double ce = (kk <= v_kmt_nsew_(bid, j, i, 2) && kk <= v_kmt_(bid, j, i))
+        ? v_dte_(bid, j, i) : C0;
+    const double cw = (kk <= v_kmt_nsew_(bid, j, i, 3) && kk <= v_kmt_(bid, j, i))
+        ? v_dtw_(bid, j, i) : C0;
+
+    const double cc = - (cn + cs + ce + cw);
+
+    if (i >= (ib_ - 1) && i < ie_ && j >= (jb_ - 1) && j < je_) {
+      hdtk = ah_ * (cc * v_tmix(bid, n, kk, j    , i    ) 
+                  + cn * v_tmix(bid, n, kk, j - 1, i    ) 
+                  + cs * v_tmix(bid, n, kk, j + 1, i    ) 
+                  + ce * v_tmix(bid, n, kk, j    , i + 1) 
+                  + cw * v_tmix(bid, n, kk, j    , i - 1));
+    }
+    return;
+  }
+
+ private:
+  const int n_;
+  const int ib_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
+  const int jb_ = CppBlocks::jb;
+  const int je_ = CppBlocks::je;
+  const double ah_ = CppHmixDel2::ah;
+  const ViewInt3D v_kmt_      = *p_v_kmt;
+  const ViewInt4D v_kmt_nsew_ = *p_v_kmt_nsew;
+  const ViewDouble3D v_dtn_   = *p_v_dtn;
+  const ViewDouble3D v_dts_   = *p_v_dts;
+  const ViewDouble3D v_dte_   = *p_v_dte;
+  const ViewDouble3D v_dtw_   = *p_v_dtw;
+  const ViewDouble4D v_tf_    = *p_v_tf;
+  const ViewDouble5D v_atb_   = *p_v_atb;
+};
+#endif // BIHAR
 
 // !----------------------------------------
 // !     VERTICAL COMPONENT
@@ -2678,90 +2735,6 @@ class functor_tracer_isoflux_19 {
 };
 // End isoflux
 #else  // ISO
-#ifdef SMAG
-
-#else  // SMAG
-#ifdef BIHAR
-// hdifft_del4(k, dt2k, hdtk, atb[iblock][n][k+1], this_block);
-#else  // BIHAR
-// hdifft_del2(k, hdtk, atb[iblock][n][k+1], this_block);
-class functor_tracer_hdifft_del2_1 {
- public:
-  functor_tracer_hdifft_del2_1(const int &k) : k_(k) {}
-  KOKKOS_INLINE_FUNCTION void operator() 
-      (const int &j, const int &i) const {
-    const int bid = 0;
-    v_cn_(j, i) = (k_ <= v_kmtn_(bid, j, i) && k_ <= v_kmt_(bid, j, i))
-        ? v_dtn_(bid, j, i) : C0;
-    v_cs_(j, i) = (k_ <= v_kmts_(bid, j, i) && k_ <= v_kmt_(bid, j, i))
-        ? v_dts_(bid, j, i) : C0;
-    v_ce_(j, i) = (k_ <= v_kmte_(bid, j, i) && k_ <= v_kmt_(bid, j, i))
-        ? v_dte_(bid, j, i) : C0;
-    v_cw_(j, i) = (k_ <= v_kmtw_(bid, j, i) && k_ <= v_kmt_(bid, j, i))
-        ? v_dtw_(bid, j, i) : C0;
-    v_cc_(j, i) = - (v_cn_(j, i) + v_cs_(j, i) + v_ce_(j, i) + v_cw_(j, i));
-    return ;
-  }
- private:
-  const int k_;
-  const ViewInt3D    v_kmt_  = *p_v_kmt;
-  const ViewInt3D    v_kmtn_ = *p_v_kmtn;
-  const ViewInt3D    v_kmts_ = *p_v_kmts;
-  const ViewInt3D    v_kmte_ = *p_v_kmte;
-  const ViewInt3D    v_kmtw_ = *p_v_kmtw;
-  const ViewDouble2D v_cc_   = *p_v_cc;
-  const ViewDouble2D v_cn_   = *p_v_cn;
-  const ViewDouble2D v_cs_   = *p_v_cs;
-  const ViewDouble2D v_ce_   = *p_v_ce;
-  const ViewDouble2D v_cw_   = *p_v_cw;
-  const ViewDouble2D v_hdtk_ = *p_v_hdtk;
-  const ViewDouble3D v_dtn_  = *p_v_dtn;
-  const ViewDouble3D v_dts_  = *p_v_dts;
-  const ViewDouble3D v_dte_  = *p_v_dte;
-  const ViewDouble3D v_dtw_  = *p_v_dtw;
-};
-
-class functor_tracer_hdifft_del2_2 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator() 
-      (const int &j, const int &i) const {
-    v_hdtk_(j, i) = C0;
-    return ;
-  }
- private:
-  const ViewDouble2D v_hdtk_ = *p_v_hdtk;
-};
-
-class functor_tracer_hdifft_del2_3 {
- public:
-  functor_tracer_hdifft_del2_3(const int &n, const int &k, const int &iblock)
-    : n_(n), k_(k), iblock_(iblock) {}
-
-  KOKKOS_INLINE_FUNCTION void operator() 
-      (const int &j, const int &i) const {
-    v_hdtk_(j, i) = ah_ 
-        * (v_cc_(j, i) * v_atb_(i  , j  , k_+1, n_, iblock_)
-         + v_cn_(j, i) * v_atb_(i  , j-1, k_+1, n_, iblock_)
-         + v_cs_(j, i) * v_atb_(i  , j+1, k_+1, n_, iblock_)
-         + v_ce_(j, i) * v_atb_(i+1, j  , k_+1, n_, iblock_)
-         + v_cw_(j, i) * v_atb_(i-1, j  , k_+1, n_, iblock_));
-    return ;
-  }
- private:
-  const int n_, k_, iblock_;
-  const double ah_ = CppHmixDel2::ah;
-  const ViewDouble2D v_cc_   = *p_v_cc;
-  const ViewDouble2D v_cn_   = *p_v_cn;
-  const ViewDouble2D v_cs_   = *p_v_cs;
-  const ViewDouble2D v_ce_   = *p_v_ce;
-  const ViewDouble2D v_cw_   = *p_v_cw;
-  const ViewDouble2D v_hdtk_ = *p_v_hdtk;
-  const ViewDouble5D v_atb_  = *p_v_atb;
-};
-// End hdifft_del2
-
-#endif // BIHAR
-#endif //SMAG
 #endif // iSO
 
 #ifdef NODIAG

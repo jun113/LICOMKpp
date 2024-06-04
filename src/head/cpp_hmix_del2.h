@@ -5,24 +5,25 @@ namespace CppHmixDel2 {
 
 using CppParamMod::NX_BLOCK;
 using CppParamMod::NY_BLOCK;
+using CppParamMod::MAX_BLOCKS_CLINIC;
 
-extern double (*&dtn)[NY_BLOCK][NX_BLOCK];
-extern double (*&dts)[NY_BLOCK][NX_BLOCK];
-extern double (*&dte)[NY_BLOCK][NX_BLOCK];
-extern double (*&dtw)[NY_BLOCK][NX_BLOCK];
-extern double (*&duc)[NY_BLOCK][NX_BLOCK];
-extern double (*&dun)[NY_BLOCK][NX_BLOCK];
-extern double (*&dus)[NY_BLOCK][NX_BLOCK];
-extern double (*&due)[NY_BLOCK][NX_BLOCK];
-extern double (*&duw)[NY_BLOCK][NX_BLOCK];
-extern double (*&dmc)[NY_BLOCK][NX_BLOCK];
-extern double (*&dmn)[NY_BLOCK][NX_BLOCK];
-extern double (*&dms)[NY_BLOCK][NX_BLOCK];
-extern double (*&dme)[NY_BLOCK][NX_BLOCK];
-extern double (*&dmw)[NY_BLOCK][NX_BLOCK];
-extern double (*&dum)[NY_BLOCK][NX_BLOCK];
-extern double (*&ahf)[NY_BLOCK][NX_BLOCK];
-extern double (*&amf)[NY_BLOCK][NX_BLOCK];
+extern double (&dtn)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dts)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dte)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dtw)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&duc)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dun)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dus)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&due)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&duw)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dmc)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dmn)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dms)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dme)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dmw)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&dum)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&ahf)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
+extern double (&amf)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
 
 extern double &ah;
 extern double &am;

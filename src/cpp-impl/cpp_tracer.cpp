@@ -397,20 +397,21 @@ void cpp_tracer() {
 
 #else  // BIHAR
 
-    double hdtk[JMT][IMT];
-    for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-      const struct block this_block = 
-          all_blocks[blocks_clinic[0] - 1];
-      for (int k = 0; k < KM; ++k) {
-        hdifft_del2(k, hdtk, atb[iblock][n][k+1], this_block);
-        for (int j = 2; j < JMT-2; ++j) {
-          for (int i = 2; i < IMT-2; ++i) {
-            tf[iblock][k][j][i] += hdtk[j][i];
-            dx[iblock][n][k][j][i] = hdtk[j][i];
-          }
-        }
-      }
-    }
+    // TODO wjl 20240604
+    // double hdtk[JMT][IMT];
+    // for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
+    //   const struct block this_block = 
+    //       all_blocks[blocks_clinic[0] - 1];
+    //   for (int k = 0; k < KM; ++k) {
+    //     hdifft_del2(k, hdtk, atb[iblock][n][k+1], this_block);
+    //     for (int j = 2; j < JMT-2; ++j) {
+    //       for (int i = 2; i < IMT-2; ++i) {
+    //         tf[iblock][k][j][i] += hdtk[j][i];
+    //         dx[iblock][n][k][j][i] = hdtk[j][i];
+    //       }
+    //     }
+    //   }
+    // }
 
 #endif // BIHAR
 #endif // SMAG

@@ -56,12 +56,12 @@ extern ViewDouble4D *p_v_at_00_max_min;
 
 #ifdef BIHAR
 extern ViewDouble3D *p_v_dt2k;
+extern ViewDouble4D *p_v_c_cnsew;
 #endif // BIHAR
 
 extern ViewInt1D *p_v_nn;
 extern ViewDouble1D *p_v_xs;
 
-extern ViewDouble4D *p_v_c_cnsew;
 #ifdef ISO
 #ifdef LDD97
 extern ViewDouble4D *p_v_f1;

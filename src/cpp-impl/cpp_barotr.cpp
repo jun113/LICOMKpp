@@ -214,18 +214,19 @@ void cpp_barotr() {
       }
     }
 #else // BIHAR
-    for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-      const struct block this_block = 
-          all_blocks[blocks_clinic[0] - 1];
-      hdiffu_del2(0, hduk, hdvk, 
-          ubp[iblock], vbp[iblock], this_block);
-      for (int j = 2; j < JMT-2; ++j) {
-        for (int i = 2; i < IMT-2; ++i) {
-          wka[iblock][4][j][i] = hduk[j][i];
-          wka[iblock][5][j][i] = hdvk[j][i];
-        }
-      }
-    }
+    // TODO wjl 20240604
+    // for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
+    //   const struct block this_block = 
+    //       all_blocks[blocks_clinic[0] - 1];
+    //   hdiffu_del2(0, hduk, hdvk, 
+    //       ubp[iblock], vbp[iblock], this_block);
+    //   for (int j = 2; j < JMT-2; ++j) {
+    //     for (int i = 2; i < IMT-2; ++i) {
+    //       wka[iblock][4][j][i] = hduk[j][i];
+    //       wka[iblock][5][j][i] = hdvk[j][i];
+    //     }
+    //   }
+    // }
 #endif // BIHAR
 #endif // SMAG1
     for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
@@ -322,7 +323,8 @@ void cpp_barotr() {
         // hdifft_del4(1, dt2k, hdtk, h0p[iblock], this_block);
         hdifft_del4(1, dt2k, hdtk, h0p[iblock]);
 #else  // BIHAR
-        hdifft_del2(1, hdtk, h0p[iblock], this_block);
+      // TODO wjl 20240604
+        // hdifft_del2(1, hdtk, h0p[iblock], this_block);
 #endif // BIHAR
       } else {
         for (int j = 0; j < JMT; ++j) {

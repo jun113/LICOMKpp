@@ -1341,7 +1341,6 @@ static void kokkos_init_hmix_del2() {
   using namespace CppHmixDel2;
   using namespace KokkosHmixDel2;
 
-  auto dev = Kokkos::DefaultExecutionSpace();
   p_v_dtn = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_dts = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_dte = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
@@ -1360,6 +1359,7 @@ static void kokkos_init_hmix_del2() {
   p_v_ahf = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_amf = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
 
+#ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
   new (p_v_dtn) ViewDouble3D("pointer_view_dtn", 
       nblocks_clinic, NY_BLOCK, NX_BLOCK); 
   new (p_v_dts) ViewDouble3D("pointer_view_dts", 
@@ -1395,48 +1395,42 @@ static void kokkos_init_hmix_del2() {
   new (p_v_amf) ViewDouble3D("pointer_view_amf", 
       nblocks_clinic, NY_BLOCK, NX_BLOCK); 
 
-  ViewDouble3D::HostMirror h_v_dtn = create_mirror_view(*p_v_dtn);
-  ViewDouble3D::HostMirror h_v_dts = create_mirror_view(*p_v_dts);
-  ViewDouble3D::HostMirror h_v_dte = create_mirror_view(*p_v_dte);
-  ViewDouble3D::HostMirror h_v_dtw = create_mirror_view(*p_v_dtw);
-  ViewDouble3D::HostMirror h_v_duc = create_mirror_view(*p_v_duc);
-  ViewDouble3D::HostMirror h_v_dun = create_mirror_view(*p_v_dun);
-  ViewDouble3D::HostMirror h_v_dus = create_mirror_view(*p_v_dus);
-  ViewDouble3D::HostMirror h_v_due = create_mirror_view(*p_v_due);
-  ViewDouble3D::HostMirror h_v_duw = create_mirror_view(*p_v_duw);
-  ViewDouble3D::HostMirror h_v_dmc = create_mirror_view(*p_v_dmc);
-  ViewDouble3D::HostMirror h_v_dmn = create_mirror_view(*p_v_dmn);
-  ViewDouble3D::HostMirror h_v_dms = create_mirror_view(*p_v_dms);
-  ViewDouble3D::HostMirror h_v_dme = create_mirror_view(*p_v_dme);
-  ViewDouble3D::HostMirror h_v_dmw = create_mirror_view(*p_v_dmw);
-  ViewDouble3D::HostMirror h_v_dum = create_mirror_view(*p_v_dum);
-  ViewDouble3D::HostMirror h_v_ahf = create_mirror_view(*p_v_ahf);
-  ViewDouble3D::HostMirror h_v_amf = create_mirror_view(*p_v_amf);
+  UnManagedViewDouble3D h_v_dtn (&dtn[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dts (&dts[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dte (&dte[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dtw (&dtw[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_duc (&duc[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dun (&dun[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dus (&dus[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_due (&due[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_duw (&duw[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dmc (&dmc[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dmn (&dmn[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dms (&dms[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dme (&dme[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dmw (&dmw[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_dum (&dum[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_ahf (&ahf[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  UnManagedViewDouble3D h_v_amf (&amf[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
 
-  for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-    for (int j = 0; j < NY_BLOCK; ++j) {
-      for (int i = 0; i < NX_BLOCK; ++i) {
-        h_v_dtn(iblock, j, i) = dtn[iblock][j][i];
-        h_v_dts(iblock, j, i) = dts[iblock][j][i];
-        h_v_dte(iblock, j, i) = dte[iblock][j][i];
-        h_v_dtw(iblock, j, i) = dtw[iblock][j][i];
-        h_v_duc(iblock, j, i) = duc[iblock][j][i];
-        h_v_dun(iblock, j, i) = dun[iblock][j][i];
-        h_v_dus(iblock, j, i) = dus[iblock][j][i];
-        h_v_due(iblock, j, i) = due[iblock][j][i];
-        h_v_duw(iblock, j, i) = duw[iblock][j][i];
-        h_v_dmc(iblock, j, i) = dmc[iblock][j][i];
-        h_v_dmn(iblock, j, i) = dmn[iblock][j][i];
-        h_v_dms(iblock, j, i) = dms[iblock][j][i];
-        h_v_dme(iblock, j, i) = dme[iblock][j][i];
-        h_v_dmw(iblock, j, i) = dmw[iblock][j][i];
-        h_v_dum(iblock, j, i) = dum[iblock][j][i];
-        h_v_ahf(iblock, j, i) = ahf[iblock][j][i];
-        h_v_amf(iblock, j, i) = amf[iblock][j][i];
-      }
-    }
-  }
-
+  auto dev = Kokkos::DefaultExecutionSpace();
   deep_copy(dev, *p_v_dtn, h_v_dtn);
   deep_copy(dev, *p_v_dts, h_v_dts);
   deep_copy(dev, *p_v_dte, h_v_dte);
@@ -1454,6 +1448,43 @@ static void kokkos_init_hmix_del2() {
   deep_copy(dev, *p_v_dum, h_v_dum);
   deep_copy(dev, *p_v_ahf, h_v_ahf);
   deep_copy(dev, *p_v_amf, h_v_amf);
+
+#else  // KOKKOS_ENABLE_DEVICE_MEM_SPACE
+  new (p_v_dtn) ViewDouble3D(&dtn[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dts) ViewDouble3D(&dts[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dte) ViewDouble3D(&dte[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dtw) ViewDouble3D(&dtw[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_duc) ViewDouble3D(&duc[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dun) ViewDouble3D(&dun[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dus) ViewDouble3D(&dus[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_due) ViewDouble3D(&due[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_duw) ViewDouble3D(&duw[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dmc) ViewDouble3D(&dmc[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dmn) ViewDouble3D(&dmn[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dms) ViewDouble3D(&dms[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dme) ViewDouble3D(&dme[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dmw) ViewDouble3D(&dmw[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_dum) ViewDouble3D(&dum[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_ahf) ViewDouble3D(&ahf[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+  new (p_v_amf) ViewDouble3D(&amf[0][0][0], 
+      nblocks_clinic, NY_BLOCK, NX_BLOCK); 
+#endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
   return ;
 }
 #else // BIHAR
@@ -3395,12 +3426,11 @@ static void kokkos_init_tmp_var() {
 
 #ifdef BIHAR
   p_v_dt2k = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
+  p_v_c_cnsew = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
 #endif // BIHAR
 
   p_v_nn = (ViewInt1D *) malloc(sizeof(ViewInt1D));
   p_v_xs = (ViewDouble1D *) malloc(sizeof(ViewDouble1D));
-
-  p_v_c_cnsew = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
 
 // BAROTR
   p_v_gradx = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
@@ -3479,13 +3509,13 @@ static void kokkos_init_tmp_var() {
 #ifdef BIHAR
   new (p_v_dt2k) ViewDouble3D("pointer_view_dt2k", 
       KM, JMT, IMT);
+  new (p_v_c_cnsew) ViewDouble4D("pointer_view_c_cnsew", 
+      KM, NY_BLOCK, NX_BLOCK, 5);
 #endif // BIHAR
 
   new (p_v_nn) ViewInt1D("pointer_view_nn", JMT);
   new (p_v_xs) ViewDouble1D("pointer_view_xs", IMT);
 
-  new (p_v_c_cnsew) ViewDouble4D("pointer_view_c_cnsew", 
-      KM, NY_BLOCK, NX_BLOCK, 5);
   new (p_v_gradx) ViewDouble2D("pointer_view_gradx", JMT, IMT);
   new (p_v_grady) ViewDouble2D("pointer_view_grady", JMT, IMT);
 #ifdef ISO
@@ -3591,6 +3621,8 @@ static void kokkos_init_tmp_var() {
 #ifdef BIHAR
   dt2k = new double[KM * JMT * IMT];
   new (p_v_dt2k) ViewDouble3D(dt2k, KM, JMT, IMT);
+  c_cnsew = new double[5 * KM * NY_BLOCK * NX_BLOCK];
+  new (p_v_c_cnsew) ViewDouble4D(c_cnsew, KM, NY_BLOCK, NX_BLOCK, 5);
 #endif // BIHAR
 
   nn = new int[JMT];
@@ -3598,8 +3630,6 @@ static void kokkos_init_tmp_var() {
   new (p_v_nn) ViewInt1D(nn, JMT);
   new (p_v_xs) ViewDouble1D(xs, IMT);
 
-  c_cnsew = new double[5 * KM * NY_BLOCK * NX_BLOCK];
-  new (p_v_c_cnsew) ViewDouble4D(c_cnsew, KM, NY_BLOCK, NX_BLOCK, 5);
 #ifdef ISO
 #ifdef LDD97
   ViewDouble4D v_f1(view_f1, MAX_BLOCKS_CLINIC, KM, JMT, IMT);

@@ -2,9 +2,9 @@
 
 # set -x
 
-NP=4
-BLOCK_X=180
-BLOCK_Y=110
+NP=40
+BLOCK_X=45
+BLOCK_Y=44
 
 #419 KUNSHAN IAP_GPU TAISHAN OCEANLIGHT
 MACHINE="IAP_GPU"
@@ -69,10 +69,10 @@ if [ "${MACHINE}" == "IAP_GPU" ]; then
       -D CMAKE_C_COMPILER="gcc" \
       -D CMAKE_CXX_COMPILER="${KOKKOS_SRC}/bin/nvcc_wrapper" \
       -D CMAKE_Fortran_COMPILER="ifort" \
-      -D Kokkos_ENABLE_CUDA_CONSTEXPR=on \
-      -D Kokkos_ENABLE_CUDA_LAMBDA=on \
-      -D Kokkos_ENABLE_CUDA=on \
-      -D Kokkos_ARCH_VOLTA70=on \
+      -D Kokkos_ENABLE_CUDA_CONSTEXPR=off \
+      -D Kokkos_ENABLE_CUDA_LAMBDA=off \
+      -D Kokkos_ENABLE_CUDA=off \
+      -D Kokkos_ARCH_VOLTA70=off \
       -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=off \
       -D Kokkos_ENABLE_PROFILING_LOAD_PRINT=On \
       -D Kokkos_ENABLE_COMPILER_WARNINGS=off \

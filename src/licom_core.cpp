@@ -341,8 +341,8 @@ extern "C" void licom_core_() {
       }
       //if (iday == 7) {
       totalday++;
-      // if (totalday == 2) {
-      if (false) {
+      if (totalday == 3) {
+      // if (false) {
         my_time.fence();
 #ifdef LICOM_ENABLE_KOKKOS
         //Kokkos::finalize();

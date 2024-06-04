@@ -103,15 +103,13 @@ using KokkosHmixDel2::  p_v_dtw;
 #endif // BIHAR
 
 #ifdef BIHAR
-
-using KokkosTmpVar::p_v_c_cnsew;
-
 using KokkosTmpVar::p_v_curl;
 using KokkosTmpVar::p_v_d2uk;
 using KokkosTmpVar::p_v_d2vk;
 using KokkosTmpVar::p_v_dt2k;
 using KokkosTmpVar::p_v_gradx;
 using KokkosTmpVar::p_v_grady;
+using KokkosTmpVar::p_v_c_cnsew;
 #endif // BIHAR
 using KokkosTmpVar::p_v_div_out;
 
@@ -220,6 +218,7 @@ class FunctorBarotr4 {
 // -----------------------------------------------------------------
 //  COMPUTE THE "ARTIFICIAL" HORIZONTAL VISCOSITY
 // -----------------------------------------------------------------
+#ifdef BIHAR
 class FunctorBarotr5 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -327,7 +326,7 @@ class FunctorBarotr6 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const ViewDouble3D v_d2uk_      = *p_v_d2uk;
@@ -402,7 +401,7 @@ class FunctorBarotr7 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double am_ = CppHmixDel4::am;
@@ -465,7 +464,7 @@ class FunctorBarotr8 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double am_ = CppHmixDel4::am;
@@ -476,6 +475,80 @@ class FunctorBarotr8 {
   const ViewDouble4D v_dm_cnsew_  = *p_v_dm_cnsew;
   const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
 };
+#else  // BIHAR
+class FunctorBarotr6 {
+ public:
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
+    double hduk, hdvk;
+    hdiffu_del2 (0, j, i, hduk, hdvk, v_ubp_, v_vbp_);
+    v_wka_(0, 4, j, i) = hduk;
+    v_wka_(0, 5, j, i) = hdvk;
+  return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void hdiffu_del2 (const int &k, const int &j, const int &i,
+      double &hduk, double &hdvk, 
+      const ViewDouble3D &v_umixk, const ViewDouble3D &v_vmixk) const {
+    const int bid = 0;
+    hduk = C0;
+    hdvk = C0;
+    if (i >= (ib_-1) && i < (ie_) && j >= (jb_-1) && j < (je_)) {
+      const double cc = v_duc_(bid, j, i) + v_dum_(bid, j, i);
+      hduk = am_ * ((      cc * v_umixk(bid, j  , i  )
+          + v_dun_(bid, j, i) * v_umixk(bid, j-1, i  )
+          + v_dus_(bid, j, i) * v_umixk(bid, j+1, i  )
+          + v_due_(bid, j, i) * v_umixk(bid, j  , i+1)
+          + v_duw_(bid, j, i) * v_umixk(bid, j  , i-1))
+         + (v_dmc_(bid, j, i) * v_vmixk(bid, j  , i  )
+          + v_dmn_(bid, j, i) * v_vmixk(bid, j-1, i  )
+          + v_dms_(bid, j, i) * v_vmixk(bid, j+1, i  )
+          + v_dme_(bid, j, i) * v_vmixk(bid, j  , i+1)
+          + v_dmw_(bid, j, i) * v_vmixk(bid, j  , i-1))) 
+              * v_viv_(bid, k, j, i);
+   
+      hdvk = am_ * ((      cc * v_vmixk(bid, j  , i  )
+          + v_dun_(bid, j, i) * v_vmixk(bid, j-1, i  )
+          + v_dus_(bid, j, i) * v_vmixk(bid, j+1, i  )
+          + v_due_(bid, j, i) * v_vmixk(bid, j  , i+1)
+          + v_duw_(bid, j, i) * v_vmixk(bid, j  , i-1))
+         - (v_dmc_(bid, j, i) * v_umixk(bid, j  , i  )
+          + v_dmn_(bid, j, i) * v_umixk(bid, j-1, i  )
+          + v_dms_(bid, j, i) * v_umixk(bid, j+1, i  )
+          + v_dme_(bid, j, i) * v_umixk(bid, j  , i+1)
+          + v_dmw_(bid, j, i) * v_umixk(bid, j  , i-1)))
+              * v_viv_(bid, k, j, i);
+    }
+    if (k > v_kmu_(bid, j, i) - 1) {
+      hduk = C0;
+      hdvk = C0;
+    }
+    return ;
+  }
+ private:
+  const int ib_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
+  const int jb_ = CppBlocks::jb;
+  const int je_ = CppBlocks::je;
+  const double am_ = CppHmixDel2::am;
+  const ViewInt3D    v_kmu_ = *p_v_kmu;
+  const ViewDouble3D v_duc_ = *p_v_duc;
+  const ViewDouble3D v_dum_ = *p_v_dum;
+  const ViewDouble3D v_dun_ = *p_v_dun;
+  const ViewDouble3D v_dus_ = *p_v_dus;
+  const ViewDouble3D v_due_ = *p_v_due;
+  const ViewDouble3D v_duw_ = *p_v_duw;
+  const ViewDouble3D v_dmc_ = *p_v_dmc;
+  const ViewDouble3D v_dmn_ = *p_v_dmn;
+  const ViewDouble3D v_dms_ = *p_v_dms;
+  const ViewDouble3D v_dme_ = *p_v_dme;
+  const ViewDouble3D v_dmw_ = *p_v_dmw;
+  const ViewDouble3D v_ubp_ = *p_v_ubp;
+  const ViewDouble3D v_vbp_ = *p_v_vbp;
+  const ViewDouble4D v_wka_ = *p_v_wka;
+  const ViewDouble4D v_viv_ = *p_v_viv;
+};
+#endif // BIHAR
 
 class FunctorBarotr9 {
  public:
@@ -679,6 +752,7 @@ class FunctorBarotr14 {
   const ViewDouble4D v_wka_     = *p_v_wka;
 };
 
+#ifdef BIHAR
 class FunctorBarotr15 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (const int &j, const int &i) const {
@@ -717,7 +791,7 @@ class FunctorBarotr15 {
 
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const ViewInt3D v_kmt_        = *p_v_kmt;
@@ -755,7 +829,7 @@ class FunctorBarotr16 {
 
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double ah_ = CppHmixDel4::ah;
@@ -765,6 +839,61 @@ class FunctorBarotr16 {
   const ViewDouble4D v_c_cnsew_ = *p_v_c_cnsew;
   const ViewDouble4D v_vit_     = *p_v_vit;
 };
+#else  // BIHAR
+class FunctorBarotr15 {
+ public:
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &j, const int &i) const {
+    const int iblock = 0;
+    double hdtk;
+    hdifft_del2 (1, j, i, hdtk, v_h0p_);
+    v_work_(iblock, j, i) = v_vit_(iblock, 0, j, i) * (hdtk - v_div_out_(j, i));
+    return;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void hdifft_del2 (const int &k, const int &j,const int &i, 
+      double &hdtk, const ViewDouble3D &v_tmix) const {
+    const int bid = 0;
+    // c n s e w
+    const double cn = (k <= v_kmt_nsew_(bid, j, i, 0) && k <= v_kmt_(bid, j, i))
+        ? v_dtn_(bid, j, i) : C0;
+    const double cs = (k <= v_kmt_nsew_(bid, j, i, 1) && k <= v_kmt_(bid, j, i))
+        ? v_dts_(bid, j, i) : C0;
+    const double ce = (k <= v_kmt_nsew_(bid, j, i, 2) && k <= v_kmt_(bid, j, i))
+        ? v_dte_(bid, j, i) : C0;
+    const double cw = (k <= v_kmt_nsew_(bid, j, i, 3) && k <= v_kmt_(bid, j, i))
+        ? v_dtw_(bid, j, i) : C0;
+
+    const double cc = - (cn + cs + ce + cw);
+
+    if (i >= (ib_ - 1) && i < ie_ && j >= (jb_ - 1) && j < je_) {
+      hdtk = ah_ * (cc * v_tmix(0, j    , i    ) 
+                  + cn * v_tmix(0, j - 1, i    ) 
+                  + cs * v_tmix(0, j + 1, i    ) 
+                  + ce * v_tmix(0, j    , i + 1) 
+                  + cw * v_tmix(0, j    , i - 1));
+    }
+    return;
+  }
+
+ private:
+  const int ib_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
+  const int jb_ = CppBlocks::jb;
+  const int je_ = CppBlocks::je;
+  const double ah_ = CppHmixDel2::ah;
+  const ViewInt3D v_kmt_        = *p_v_kmt;
+  const ViewInt4D v_kmt_nsew_   = *p_v_kmt_nsew;
+  const ViewDouble2D v_div_out_ = *p_v_div_out;
+  const ViewDouble3D v_dtn_     = *p_v_dtn;
+  const ViewDouble3D v_dts_     = *p_v_dts;
+  const ViewDouble3D v_dte_     = *p_v_dte;
+  const ViewDouble3D v_dtw_     = *p_v_dtw;
+  const ViewDouble3D v_h0p_     = *p_v_h0p;
+  const ViewDouble3D v_work_    = *p_v_work;
+  const ViewDouble4D v_vit_     = *p_v_vit;
+};
+#endif // BIHAR
 
 class FunctorBarotr17 {
  public:
@@ -812,147 +941,6 @@ public:
   const ViewDouble3D v_h0bf_ = *p_v_h0bf;
   const ViewDouble3D v_work_ = *p_v_work;
 };
-
-#ifdef SMAG1
-#else // SMAG1
-#ifdef BIHAR
-// hdiffu_del4
-#else  // BIHAR
-// hdiffu_del2
-class functor_barotr_hdiffu_del2_1 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator()(const int &j, const int &i) const {
-    v_hduk_(j, i) = C0;
-    v_hdvk_(j, i) = C0;
-    return;
-  };
-
- private:
-  const ViewDouble2D v_hduk_ = *p_v_hduk;
-  const ViewDouble2D v_hdvk_ = *p_v_hduk;
-};
-class functor_barotr_hdiffu_del2_2 {
- public:
-  functor_barotr_hdiffu_del2_2(const int &k, const int &iblock)
-      : k_(k), iblock_(iblock), v_hduk_(v_hduk), v_hdvk_(v_hdvk) {}
-  KOKKOS_INLINE_FUNCTION void operator()(const int &j, const int &i) const {
-    const int bid = 0;
-    const double cc = v_duc_(bid, j, i) + v_dum_(bid, j, i);
-    v_hduk_(j, i) = am_ * ((cc * v_ubp_(iblock, j, i_) + v_dun_(bid, j, i) * v_ubp_(i, j - 1, iblock_) + v_dus_(bid, j, i) * v_ubp_(i, j + 1, iblock_) + v_due_(bid, j, i) * v_ubp_(i + 1, j, iblock_) + v_duw_(bid, j, i) * v_ubp_(i - 1, j, iblock_)) + (v_dmc_(bid, j, i) * v_vbp_(iblock, j, i_) + v_dmn_(bid, j, i) * v_vbp_(i, j - 1, iblock_) + v_dms_(bid, j, i) * v_vbp_(i, j + 1, iblock_) + v_dme_(bid, j, i) * v_vbp_(i + 1, j, iblock_) + v_dmw_(bid, j, i) * v_vbp_(i - 1, j, iblock_)) * v_viv_(i, j, k_, bid));
-    v_hdvk_(j, i) = am_ * ((cc * v_vp_(iblock, j, i_) + v_dun_(bid, j, i) * v_vp_(i, j - 1, iblock_) + v_dus_(bid, j, i) * v_vp_(i, j + 1, iblock_) + v_due_(bid, j, i) * v_vp_(i + 1, j, iblock_) + v_duw_(bid, j, i) * v_vp_(i - 1, j, iblock_)) + (v_dmc_(bid, j, i) * v_up_(iblock, j, i_) + v_dmn_(bid, j, i) * v_up_(i, j - 1, iblock_) + v_dms_(bid, j, i) * v_up_(i, j + 1, iblock_) + v_dme_(bid, j, i) * v_up_(i + 1, j, iblock_) + v_dmw_(bid, j, i) * v_up_(i - 1, j, iblock_)) * v_viv_(i, j, k_, bid));
-    return;
-  };
-
-private:
-  const int k_, iblock_;
-  const double am_ = CppHmixDel2::am;
-  const ViewDouble2D v_hduk_ = *p_v_hduk;
-  const ViewDouble2D v_hdvk_ = *p_v_hdvk;
-  const ViewDouble3D v_dun_ = *p_v_dun;
-  const ViewDouble3D v_dus_ = *p_v_dus;
-  const ViewDouble3D v_due_ = *p_v_due;
-  const ViewDouble3D v_duw_ = *p_v_duw;
-  const ViewDouble3D v_dmc_ = *p_v_dmc;
-  const ViewDouble3D v_dmn_ = *p_v_dmn;
-  const ViewDouble3D v_dms_ = *p_v_dms;
-  const ViewDouble3D v_dme_ = *p_v_dme;
-  const ViewDouble3D v_dmw_ = *p_v_dmw;
-  const ViewDouble3D v_ubp_ = *p_v_ubp;
-  const ViewDouble3D v_vbp_ = *p_v_vbp;
-  const ViewDouble4D v_viv_ = *p_v_viv;
-};
-class functor_barotr_hdiffu_del2_3 {
- public:
-  functor_barotr_hdiffu_del2_3(const int &k) : k_(k) {}
-  KOKKOS_INLINE_FUNCTION void operator()(const int &j, const int &i) const {
-    const int bid = 0;
-    if (k_ > v_kmu_(bid, j, i) - 1) {
-      v_hduk_(j, i) = C0;
-      v_hdvk_(j, i) = C0;
-    }
-    return ;
-  }
-
- private:
-  const ViewDouble2D v_hduk_ = *p_v_hduk;
-  const ViewDouble2D v_hdvk_ = *p_v_hdvk;
-};
-  // hdiffu_del2
-  // hdifft_del2
-class functor_barotr_hdifft_del2_1 {
- public:
-  functor_barotr_hdifft_del2_1(const int &k) : k_(k) {}
-  KOKKOS_INLINE_FUNCTION void operator()(const int &j, const int &i) const {
-    const int bid = 0;
-    v_cn_(j, i) = (k_ <= v_kmtn_(bid, j, i) && k_ <= v_kmt_(bid, j, i))
-                      ? v_dtn_(bid, j, i) : C0;
-    v_cs_(j, i) = (k_ <= v_kmts_(bid, j, i) && k_ <= v_kmt_(bid, j, i))
-                      ? v_dts_(bid, j, i) : C0;
-    v_ce_(j, i) = (k_ <= v_kmte_(bid, j, i) && k_ <= v_kmt_(bid, j, i))
-                      ? v_dte_(bid, j, i) : C0;
-    v_cw_(j, i) = (k_ <= v_kmtw_(bid, j, i) && k_ <= v_kmt_(bid, j, i))
-                      ? v_dtw_(bid, j, i) : C0;
-    v_cc_(j, i) = -(v_cn_(j, i) + v_cs_(j, i) + v_ce_(j, i) + v_cw_(j, i));
-    return;
-  }
-
- private:
-    const int k_;
-    const ViewDouble2D v_cc_ = *p_v_cc;
-    const ViewDouble2D v_cn_ = *p_v_cn;
-    const ViewDouble2D v_cs_ = *p_v_cs;
-    const ViewDouble2D v_ce_ = *p_v_ce;
-    const ViewDouble2D v_cw_ = *p_v_cw;
-    const ViewDouble2D v_hdtk_ = *p_v_hdtk;
-    const ViewDouble3D v_dtn_ = *p_v_dtn;
-    const ViewDouble3D v_dts_ = *p_v_dts;
-    const ViewDouble3D v_dte_ = *p_v_dte;
-    const ViewDouble3D v_dtw_ = *p_v_dtw;
-    const ViewInt3D v_kmt_ = *p_v_kmt;
-    const ViewInt3D v_kmtn_ = *p_v_kmtn;
-    const ViewInt3D v_kmts_ = *p_v_kmts;
-    const ViewInt3D v_kmte_ = *p_v_kmte;
-    const ViewInt3D v_kmtw_ = *p_v_kmtw;
-  };
-
-  class functor_barotr_hdifft_del2_2 {
-  public:
-    KOKKOS_INLINE_FUNCTION void operator()(const int &j, const int &i) const {
-      v_hdtk_(j, i) = C0;
-      return;
-    }
-
- private:
-    const ViewDouble2D v_hdtk_ = *p_v_hdtk;
-  };
-
-class functor_barotr_hdifft_del2_3 {
- public:
-  functor_barotr_hdifft_del2_3 (const int &iblock) : iblock_(iblock) {}
-
-  KOKKOS_INLINE_FUNCTION void operator() (const int &j, const int &i) const {
-    v_hdtk_(j, i) = ah_ * (v_cc_(j, i) * v_h0p_(i    , j    , iblock_) 
-                         + v_cn_(j, i) * v_h0p_(i    , j - 1, iblock_) 
-                         + v_cs_(j, i) * v_h0p_(i    , j + 1, iblock_) 
-                         + v_ce_(j, i) * v_h0p_(i - 1, j    , iblock_) 
-                         + v_cw_(j, i) * v_h0p_(i - 1, j    , iblock_));
-    return;
-  }
-
- private:
-  const int iblock_;
-  const double ah_ = CppHmixDel2::ah;
-  const ViewDouble2D v_cc_ = *p_v_cc;
-  const ViewDouble2D v_cn_ = *p_v_cn;
-  const ViewDouble2D v_cs_ = *p_v_cs;
-  const ViewDouble2D v_ce_ = *p_v_ce;
-  const ViewDouble2D v_cw_ = *p_v_cw;
-  const ViewDouble2D v_hdtk_ = *p_v_hdtk;
-  const ViewDouble3D v_h0p_ = *p_v_h0p;
-};
-// End hdifft_del4
-#endif // BIHAR
-#endif // SMAG1
 
 //=========================
 KOKKOS_REGISTER_FOR_3D(FunctorBarotr1,  FunctorBarotr1)

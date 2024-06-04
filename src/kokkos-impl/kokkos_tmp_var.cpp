@@ -58,12 +58,12 @@ ViewDouble4D *p_v_at_00_max_min = nullptr;
 
 #ifdef BIHAR
 ViewDouble3D *p_v_dt2k = nullptr;
+ViewDouble4D *p_v_c_cnsew = nullptr;
 #endif // BIHAR
 
 ViewInt1D    *p_v_nn = nullptr;
 ViewDouble1D *p_v_xs = nullptr;
 
-ViewDouble4D *p_v_c_cnsew = nullptr;
 #ifdef ISO
 #ifdef LDD97
 ViewDouble4D *p_v_f1 = nullptr;

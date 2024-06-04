@@ -1,6 +1,6 @@
  &namctl
-  AM_HOR     = 6000
-  AH_HOR     = 6000
+  AM_HOR     = 3000
+  AH_HOR     = 3000
   IDTB       =120
   IDTC       =1440
   IDTS       =1440

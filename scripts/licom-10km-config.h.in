@@ -35,7 +35,7 @@
 #undef  DAILYACC
 #undef  DAILYBUGDET
 
-#define BLCKX   @BLOCK_X@
+#define BLCKX @BLOCK_X@
 #define BLCKY	@BLOCK_Y@
 #define NJMT	2302 
 #define NIMT	3600

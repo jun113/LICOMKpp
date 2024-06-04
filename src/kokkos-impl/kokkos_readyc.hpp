@@ -75,114 +75,115 @@ using CppPconstMod  ::BACK_TIDALMIXING;
 using CppPconstMod  ::LOCAL_MIXING_FRACTION;
 
 #ifdef CANUTO
-using KokkosCanutoMod:: p_v_rib;
-using KokkosCanutoMod:: p_v_ridb;
-using KokkosCanutoMod:: p_v_irimax;
-using KokkosCanutoMod:: p_v_sma1;
-using KokkosCanutoMod:: p_v_sha1;
-using KokkosCanutoMod:: p_v_ssa1;
-using KokkosCanutoMod:: p_v_smb;
-using KokkosCanutoMod:: p_v_shb;
-using KokkosCanutoMod:: p_v_ssb;
-using KokkosCanutoMod:: p_v_slq2b;
-using KokkosCanutoMod:: p_v_sm_r1;
-using KokkosCanutoMod:: p_v_sh_r1;
-using KokkosCanutoMod:: p_v_ss_r1;
-using KokkosCanutoMod:: p_v_slq2_r1;
-using KokkosCanutoMod:: p_v_and2on2a1;
-using KokkosCanutoMod:: p_v_amtaun2a1;
-using KokkosCanutoMod:: p_v_back_ra_r;
+using KokkosCanutoMod::p_v_rib;
+using KokkosCanutoMod::p_v_ridb;
+using KokkosCanutoMod::p_v_irimax;
+using KokkosCanutoMod::p_v_sma1;
+using KokkosCanutoMod::p_v_sha1;
+using KokkosCanutoMod::p_v_ssa1;
+using KokkosCanutoMod::p_v_smb;
+using KokkosCanutoMod::p_v_shb;
+using KokkosCanutoMod::p_v_ssb;
+using KokkosCanutoMod::p_v_slq2b;
+using KokkosCanutoMod::p_v_sm_r1;
+using KokkosCanutoMod::p_v_sh_r1;
+using KokkosCanutoMod::p_v_ss_r1;
+using KokkosCanutoMod::p_v_slq2_r1;
+using KokkosCanutoMod::p_v_and2on2a1;
+using KokkosCanutoMod::p_v_amtaun2a1;
+using KokkosCanutoMod::p_v_back_ra_r;
 #endif // CANUTO
-using KokkosDynMod::    p_v_dlu;
-using KokkosDynMod::    p_v_dlv;
-using KokkosDynMod::    p_v_dlub;
-using KokkosDynMod::    p_v_dlvb;
-using KokkosDynMod::    p_v_h0;
-using KokkosDynMod::    p_v_h0bl;
-using KokkosDynMod::    p_v_h0bf;
-using KokkosDynMod::    p_v_u;
-using KokkosDynMod::    p_v_v;
-using KokkosDynMod::    p_v_up;
-using KokkosDynMod::    p_v_vp;
-using KokkosDynMod::    p_v_ws;
-using KokkosForcMod::   p_v_buoysol;
-using KokkosForcMod::   p_v_buoytur;
-using KokkosForcMod::   p_v_su;
-using KokkosForcMod::   p_v_sv;
-using KokkosForcMod::   p_v_wave_dis;
-using KokkosGrid::      p_v_at0;
-using KokkosGrid::      p_v_atn;
-using KokkosGrid::      p_v_ate;
-using KokkosGrid::      p_v_atne;
-using KokkosGrid::      p_v_dxu;
-using KokkosGrid::      p_v_dyu;
-using KokkosGrid::      p_v_dxyur;
-using KokkosGrid::      p_v_hue;
-using KokkosGrid::      p_v_hun;
-using KokkosGrid::      p_v_htw;
-using KokkosGrid::      p_v_hts;
-using KokkosGrid::      p_v_kmt;
-using KokkosGrid::      p_v_kmu;
-using KokkosGrid::      p_v_fcort;
-using KokkosGrid::      p_v_uarea;
-using KokkosGrid::      p_v_tarea_r;
-using KokkosGrid::      p_v_uarea_r;
-using KokkosPconstMod:: p_v_akmu;
-using KokkosPconstMod:: p_v_akt;
-using KokkosPconstMod:: p_v_akmt;
-using KokkosPconstMod:: p_v_ak_tide;
-using KokkosPconstMod:: p_v_dzp;
-using KokkosPconstMod:: p_v_fztidal;
-using KokkosPconstMod:: p_v_fz_tide;
-using KokkosPconstMod:: p_v_richardson;
-using KokkosPconstMod:: p_v_viv;
-using KokkosPconstMod:: p_v_vit;
-using KokkosPconstMod:: p_v_odzt;
-using KokkosPconstMod:: p_v_odzp;
-using KokkosPconstMod:: p_v_odz_pt;
-using KokkosPconstMod:: p_v_ohbu;
-using KokkosPconstMod:: p_v_ohbt;
-using KokkosPconstMod:: p_v_to;
-using KokkosPconstMod:: p_v_so;
-using KokkosPconstMod:: p_v_snlat;
-using KokkosPconstMod:: p_v_wp3_tidal;
-using KokkosPconstMod:: p_v_zkp;
-using KokkosPmixMod::   p_v_rit;
-using KokkosPmixMod::   p_v_rict;
-using KokkosPmixMod::   p_v_ricdttms;
-using KokkosPmixMod::   p_v_s2t;
-using KokkosTracerMod:: p_v_amld;
-using KokkosTracerMod:: p_v_at;
-using KokkosTracerMod:: p_v_pdensity;
-using KokkosWorkMod::   p_v_uk;
-using KokkosWorkMod::   p_v_vk;
-using KokkosWorkMod::   p_v_wka;
-using KokkosWorkMod::   p_v_wkb;
-using KokkosWorkMod::   p_v_work;
+using KokkosDynMod::   p_v_dlu;
+using KokkosDynMod::   p_v_dlv;
+using KokkosDynMod::   p_v_dlub;
+using KokkosDynMod::   p_v_dlvb;
+using KokkosDynMod::   p_v_h0;
+using KokkosDynMod::   p_v_h0bl;
+using KokkosDynMod::   p_v_h0bf;
+using KokkosDynMod::   p_v_u;
+using KokkosDynMod::   p_v_v;
+using KokkosDynMod::   p_v_up;
+using KokkosDynMod::   p_v_vp;
+using KokkosDynMod::   p_v_ws;
+using KokkosForcMod::  p_v_buoysol;
+using KokkosForcMod::  p_v_buoytur;
+using KokkosForcMod::  p_v_su;
+using KokkosForcMod::  p_v_sv;
+using KokkosForcMod::  p_v_wave_dis;
+using KokkosGrid::     p_v_at0;
+using KokkosGrid::     p_v_atn;
+using KokkosGrid::     p_v_ate;
+using KokkosGrid::     p_v_atne;
+using KokkosGrid::     p_v_dxu;
+using KokkosGrid::     p_v_dyu;
+using KokkosGrid::     p_v_dxyur;
+using KokkosGrid::     p_v_hue;
+using KokkosGrid::     p_v_hun;
+using KokkosGrid::     p_v_htw;
+using KokkosGrid::     p_v_hts;
+using KokkosGrid::     p_v_kmt;
+using KokkosGrid::     p_v_kmu;
+using KokkosGrid::     p_v_fcort;
+using KokkosGrid::     p_v_uarea;
+using KokkosGrid::     p_v_tarea_r;
+using KokkosGrid::     p_v_uarea_r;
+using KokkosPconstMod::p_v_akmu;
+using KokkosPconstMod::p_v_akt;
+using KokkosPconstMod::p_v_akmt;
+using KokkosPconstMod::p_v_ak_tide;
+using KokkosPconstMod::p_v_dzp;
+using KokkosPconstMod::p_v_fztidal;
+using KokkosPconstMod::p_v_fz_tide;
+using KokkosPconstMod::p_v_richardson;
+using KokkosPconstMod::p_v_viv;
+using KokkosPconstMod::p_v_vit;
+using KokkosPconstMod::p_v_odzt;
+using KokkosPconstMod::p_v_odzp;
+using KokkosPconstMod::p_v_odz_pt;
+using KokkosPconstMod::p_v_ohbu;
+using KokkosPconstMod::p_v_ohbt;
+using KokkosPconstMod::p_v_to;
+using KokkosPconstMod::p_v_so;
+using KokkosPconstMod::p_v_snlat;
+using KokkosPconstMod::p_v_wp3_tidal;
+using KokkosPconstMod::p_v_zkp;
+using KokkosPmixMod::  p_v_rit;
+using KokkosPmixMod::  p_v_rict;
+using KokkosPmixMod::  p_v_ricdttms;
+using KokkosPmixMod::  p_v_s2t;
+using KokkosTracerMod::p_v_amld;
+using KokkosTracerMod::p_v_at;
+using KokkosTracerMod::p_v_pdensity;
+using KokkosWorkMod::  p_v_uk;
+using KokkosWorkMod::  p_v_vk;
+using KokkosWorkMod::  p_v_wka;
+using KokkosWorkMod::  p_v_wkb;
+using KokkosWorkMod::  p_v_work;
 #ifdef BIHAR
-using KokkosHmixDel4::  p_v_amf;
+using KokkosHmixDel4:: p_v_amf;
 
-using KokkosHmixDel4::  p_v_du_cnsewm;
-using KokkosHmixDel4::  p_v_dm_cnsew;
-#else // BIHAR
-using KokkosHmixDel2::  p_v_duc;
-using KokkosHmixDel2::  p_v_dum;
-using KokkosHmixDel2::  p_v_dun;
-using KokkosHmixDel2::  p_v_dus;
-using KokkosHmixDel2::  p_v_due;
-using KokkosHmixDel2::  p_v_duw;
-using KokkosHmixDel2::  p_v_dmc;
-using KokkosHmixDel2::  p_v_dmn;
-using KokkosHmixDel2::  p_v_dms;
-using KokkosHmixDel2::  p_v_dme;
-using KokkosHmixDel2::  p_v_dmw;
-#endif // BIHAR
+using KokkosHmixDel4:: p_v_du_cnsewm;
+using KokkosHmixDel4:: p_v_dm_cnsew;
 
 using KokkosTmpVar::p_v_curl;
-using KokkosTmpVar::p_v_wp12;
-using KokkosTmpVar::p_v_wp13;
 using KokkosTmpVar::p_v_d2uk;
 using KokkosTmpVar::p_v_d2vk;
+#else // BIHAR
+using KokkosHmixDel2::p_v_duc;
+using KokkosHmixDel2::p_v_dum;
+using KokkosHmixDel2::p_v_dun;
+using KokkosHmixDel2::p_v_dus;
+using KokkosHmixDel2::p_v_due;
+using KokkosHmixDel2::p_v_duw;
+using KokkosHmixDel2::p_v_dmc;
+using KokkosHmixDel2::p_v_dmn;
+using KokkosHmixDel2::p_v_dms;
+using KokkosHmixDel2::p_v_dme;
+using KokkosHmixDel2::p_v_dmw;
+#endif // BIHAR
+
+using KokkosTmpVar::p_v_wp12;
+using KokkosTmpVar::p_v_wp13;
 using KokkosTmpVar::p_v_uv_ws_face;
 
 using KokkosTmpVar::p_v_wk1;
@@ -1963,6 +1964,7 @@ class FuncAdvMomFlu2 {
 };
 // End advection_momentum(u, v, wka, dlu, dlv, iblock)
 
+#ifdef BIHAR
 class FunctorReadyc14 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -2075,7 +2077,7 @@ class FunctorReadyc15 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const ViewDouble3D v_d2uk_      = *p_v_d2uk;
@@ -2147,7 +2149,7 @@ class FunctorReadyc16 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double am_ = CppHmixDel4::am;
@@ -2211,7 +2213,7 @@ class FunctorReadyc17 {
   }
  private:
   const int ib_ = CppBlocks::ib;
-  const int ie_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
   const int je_ = CppBlocks::je;
   const double am_ = CppHmixDel4::am;
@@ -2223,6 +2225,83 @@ class FunctorReadyc17 {
   const ViewDouble4D v_dm_cnsew_  = *p_v_dm_cnsew;
   const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
 };
+#else  // BIHAR
+class FunctorReadyc15 {
+ public:
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    double hduk, hdvk;
+    hdiffu_del2 (k, j, i, hduk, hdvk, v_up_, v_vp_);
+    v_dlu_(iblock, k, j, i) += hduk;
+    v_dlv_(iblock, k, j, i) += hdvk;
+  return ;
+  }
+  KOKKOS_INLINE_FUNCTION 
+  void hdiffu_del2 (const int &k, const int &j, const int &i,
+      double &hduk, double &hdvk, 
+      const ViewDouble4D &v_umixk, const ViewDouble4D &v_vmixk) const {
+    const int bid = 0;
+    hduk = C0;
+    hdvk = C0;
+
+    if (i >= (ib_-1) && i < (ie_) && j >= (jb_-1) && j < (je_)) {
+      const double cc = v_duc_(bid, j, i) + v_dum_(bid, j, i);
+      hduk = am_ * ((      cc * v_umixk(bid, k, j  , i  )
+          + v_dun_(bid, j, i) * v_umixk(bid, k, j-1, i  )
+          + v_dus_(bid, j, i) * v_umixk(bid, k, j+1, i  )
+          + v_due_(bid, j, i) * v_umixk(bid, k, j  , i+1)
+          + v_duw_(bid, j, i) * v_umixk(bid, k, j  , i-1))
+         + (v_dmc_(bid, j, i) * v_vmixk(bid, k, j  , i  )
+          + v_dmn_(bid, j, i) * v_vmixk(bid, k, j-1, i  )
+          + v_dms_(bid, j, i) * v_vmixk(bid, k, j+1, i  )
+          + v_dme_(bid, j, i) * v_vmixk(bid, k, j  , i+1)
+          + v_dmw_(bid, j, i) * v_vmixk(bid, k, j  , i-1))) 
+              * v_viv_(bid, k, j, i);
+   
+      hdvk = am_ * ((      cc * v_vmixk(bid, k, j  , i  )
+          + v_dun_(bid, j, i) * v_vmixk(bid, k, j-1, i  )
+          + v_dus_(bid, j, i) * v_vmixk(bid, k, j+1, i  )
+          + v_due_(bid, j, i) * v_vmixk(bid, k, j  , i+1)
+          + v_duw_(bid, j, i) * v_vmixk(bid, k, j  , i-1))
+         - (v_dmc_(bid, j, i) * v_umixk(bid, k, j  , i  )
+          + v_dmn_(bid, j, i) * v_umixk(bid, k, j-1, i  )
+          + v_dms_(bid, j, i) * v_umixk(bid, k, j+1, i  )
+          + v_dme_(bid, j, i) * v_umixk(bid, k, j  , i+1)
+          + v_dmw_(bid, j, i) * v_umixk(bid, k, j  , i-1)))
+              * v_viv_(bid, k, j, i);
+    }
+    if (k > v_kmu_(bid, j, i) - 1) {
+      hduk = C0;
+      hdvk = C0;
+    }
+    return ;
+  }
+ private:
+  const int ib_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
+  const int jb_ = CppBlocks::jb;
+  const int je_ = CppBlocks::je;
+  const double am_ = CppHmixDel2::am;
+  const ViewInt3D    v_kmu_ = *p_v_kmu;
+  const ViewDouble3D v_duc_ = *p_v_duc;
+  const ViewDouble3D v_dum_ = *p_v_dum;
+  const ViewDouble3D v_dun_ = *p_v_dun;
+  const ViewDouble3D v_dus_ = *p_v_dus;
+  const ViewDouble3D v_due_ = *p_v_due;
+  const ViewDouble3D v_duw_ = *p_v_duw;
+  const ViewDouble3D v_dmc_ = *p_v_dmc;
+  const ViewDouble3D v_dmn_ = *p_v_dmn;
+  const ViewDouble3D v_dms_ = *p_v_dms;
+  const ViewDouble3D v_dme_ = *p_v_dme;
+  const ViewDouble3D v_dmw_ = *p_v_dmw;
+  const ViewDouble4D v_up_  = *p_v_up;
+  const ViewDouble4D v_vp_  = *p_v_vp;
+  const ViewDouble4D v_dlu_ = *p_v_dlu;
+  const ViewDouble4D v_dlv_ = *p_v_dlv;
+  const ViewDouble4D v_viv_ = *p_v_viv;
+};
+#endif // BIHAR
 
 //-----------------------------------------------------------------
 // VERTICAL INTEGRATION
