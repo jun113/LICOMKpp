@@ -110,16 +110,16 @@ void cpp_bclinc(){
           sbcy[iblock][j][i] = sv[iblock][j][i] * od0; 
 
           bbcx[iblock][j][i] = c0f * 
-              sqrt(up[iblock][kmb-1][j][i] * up[iblock][kmb-1][j][i] 
-                 + vp[iblock][kmb-1][j][i] * vp[iblock][kmb-1][j][i]) 
-                * (up[iblock][kmb-1][j][i] * cag + snlat[iblock][j][i] 
-                 * vp[iblock][kmb-1][j][i] * sag); 
+              std::sqrt(up[iblock][kmb-1][j][i] * up[iblock][kmb-1][j][i] 
+                      + vp[iblock][kmb-1][j][i] * vp[iblock][kmb-1][j][i]) 
+                 * (up[iblock][kmb-1][j][i] * cag + snlat[iblock][j][i] 
+                 *  vp[iblock][kmb-1][j][i] * sag); 
                   
           bbcy[iblock][j][i] = c0f * 
-              sqrt(up[iblock][kmb-1][j][i] * up[iblock][kmb-1][j][i] 
+              std::sqrt(up[iblock][kmb-1][j][i] * up[iblock][kmb-1][j][i] 
                  + vp[iblock][kmb-1][j][i] * vp[iblock][kmb-1][j][i]) 
                 * (vp[iblock][kmb-1][j][i] * cag - snlat[iblock][j][i] 
-                 * up[iblock][kmb-1][j][i] * sag);
+                *  up[iblock][kmb-1][j][i] * sag);
         }//end if
       }
     }
@@ -302,12 +302,11 @@ void cpp_bclinc(){
     my_time.testTime_stop("bclinc calc");
     my_time.testTime_start("bclinc halo u v");
 #endif // LICOM_ENABLE_TEST_BCLINC
-    // pop_haloupdate_bclinc2_(&errorcode);
-    CppPOPHaloMod::pop_halo_update_3dr8(u[0],
+    CppPOPHaloMod::pop_halo_update (&u[0][0][0][0], KM, JMT, IMT,
         CppDomain::POP_haloClinic_C, 
         CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
-    CppPOPHaloMod::pop_halo_update_3dr8(v[0],
+    CppPOPHaloMod::pop_halo_update (&v[0][0][0][0], KM, JMT, IMT,
         CppDomain::POP_haloClinic_C, 
         CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
@@ -367,8 +366,7 @@ void cpp_bclinc(){
     my_time.testTime_stop("bclinc calc");
     my_time.testTime_start("bclinc halo wka");
 #endif // LICOM_ENABLE_TEST_BCLINC
-    // pop_haloupdate_bclinc3_(&errorcode);
-    CppPOPHaloMod::pop_halo_update_3dr8(wka[0],
+    CppPOPHaloMod::pop_halo_update (&wka[0][0][0][0], KM, JMT, IMT,
         CppDomain::POP_haloClinic_C, 
         CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
@@ -419,8 +417,7 @@ void cpp_bclinc(){
     my_time.testTime_stop("bclinc calc");
     my_time.testTime_start("bclinc halo wka");
 #endif // LICOM_ENABLE_TEST_BCLINC
-    // pop_haloupdate_bclinc3_(&errorcode);
-    CppPOPHaloMod::pop_halo_update_3dr8(wka[0],
+    CppPOPHaloMod::pop_halo_update (&wka[0][0][0][0], KM, JMT, IMT,
         CppDomain::POP_haloClinic_C, 
         CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);

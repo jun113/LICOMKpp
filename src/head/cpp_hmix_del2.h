@@ -28,5 +28,15 @@ extern double (&amf)[MAX_BLOCKS_CLINIC][NY_BLOCK][NX_BLOCK];
 extern double &ah;
 extern double &am;
 
+extern void hdiffu_del2(const int &k,
+    double (&hduk)[NY_BLOCK][NX_BLOCK],
+    double (&hdvk)[NY_BLOCK][NX_BLOCK],
+    const double (&umixk)[NY_BLOCK][NX_BLOCK],
+    const double (&vmixk)[NY_BLOCK][NX_BLOCK]);
+
+extern void hdifft_del2(const int &k, 
+    double (&hdtk)[NY_BLOCK][NX_BLOCK],
+    const double (&tmix)[NY_BLOCK][NX_BLOCK]);
+
 } // CppHmixDel2
 #endif // LICOM3_KOKKOS_SRC_HEAD_CPP_HMIX_DEL2_H_

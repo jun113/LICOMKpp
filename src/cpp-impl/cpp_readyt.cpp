@@ -14,18 +14,18 @@
 #include "../head/cpp_extern_functions.h"
 #include "../head/fortran_extern_functions.h"
 
-using CppDomain::nblocks_clinic;
-using CppParamMod::MAX_BLOCKS_CLINIC;
-using CppParamMod::KMM1;
-using CppParamMod::KM;
-using CppParamMod::JMT;
-using CppParamMod::IMT;
-using CppParamMod::NTRA;
-using CppParamMod::JST;
-using CppParamMod::JET;
 
 void cpp_readyt() {
 
+  using CppDomain::nblocks_clinic;
+  using CppParamMod::MAX_BLOCKS_CLINIC;
+  using CppParamMod::KMM1;
+  using CppParamMod::KM;
+  using CppParamMod::JMT;
+  using CppParamMod::IMT;
+  using CppParamMod::NTRA;
+  using CppParamMod::JST;
+  using CppParamMod::JET;
   using CppDynMod::dlu;
   using CppDynMod::dlv;
   using CppDynMod::gg;
@@ -154,12 +154,12 @@ void cpp_readyt() {
     for (int k = 0; k < KMM1; ++k) {
       for (int j = 0; j < JMT-1; ++j) {
         for (int i = 1; i < IMT; ++i) {
-          double tup = dlu[iblock][k][j][i]   - to[k+1];
-          double sup = dlv[iblock][k][j][i]   - so[k+1];
-          double tlo = dlu[iblock][k+1][j][i] - to[k+1];
-          double slo = dlv[iblock][k+1][j][i] - so[k+1];
-          double rhoup = dens(tup, sup, k+1);
-          double rholo = dens(tlo, slo, k+1);
+          const double tup = dlu[iblock][k][j][i]   - to[k+1];
+          const double sup = dlv[iblock][k][j][i]   - so[k+1];
+          const double tlo = dlu[iblock][k+1][j][i] - to[k+1];
+          const double slo = dlv[iblock][k+1][j][i] - so[k+1];
+          const double rhoup = dens(tup, sup, k+1);
+          const double rholo = dens(tlo, slo, k+1);
           ric[iblock][k][j][i] = viv[iblock][k+1][j][i] * 
               od0 * G * (rholo - rhoup) * odzt[k+1];
         }
@@ -172,13 +172,13 @@ void cpp_readyt() {
       for (int j = 0; j < JMT; ++j) {
         for (int i = 0; i < IMT; ++i) {
           // NOTE: ATB[0:KM]
-          double tup = atb[iblock][0][k+1][j][i] - to[k+1];
-          double sup = atb[iblock][1][k+1][j][i] - so[k+1];
-          double tlo = atb[iblock][0][k+2][j][i] - to[k+1];
-          double slo = atb[iblock][1][k+2][j][i] - so[k+1];
+          const double tup = atb[iblock][0][k+1][j][i] - to[k+1];
+          const double sup = atb[iblock][1][k+1][j][i] - so[k+1];
+          const double tlo = atb[iblock][0][k+2][j][i] - to[k+1];
+          const double slo = atb[iblock][1][k+2][j][i] - so[k+1];
 
-          double rhoup = dens(tup, sup, k+1);
-          double rholo = dens(tlo, slo, k+1);
+          const double rhoup = dens(tup, sup, k+1);
+          const double rholo = dens(tlo, slo, k+1);
 
           rict[iblock][k][j][i] = vit[iblock][k+1][j][i] * 
               od0 * G * (rholo - rhoup) * odzt[k+1];
@@ -325,7 +325,7 @@ void cpp_readyt() {
     for (int k = 0; k < KM; ++k) {
       for (int j = 0; j < JMT; ++j) {
         for (int i = 0; i < IMT; ++i) {
-          double abcd = gg[iblock][k][j][i] * 
+          const double abcd = gg[iblock][k][j][i] * 
               ohbt[iblock][j][i] * dzp[k];
           dlu[iblock][0][j][i] = dlu[iblock][0][j][i] + 
               abcd; 

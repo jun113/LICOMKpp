@@ -338,10 +338,9 @@ extern "C" void licom_core_() {
         printf("day: %.3f s, SYPD: %.2f , MM: %d, iday: %d\n", 
             my_time.t_daily, 86400.0 / (my_time.t_daily * 365.0), mm, iday);
       }
-      //if (iday == 7) {
       totalday++;
-      // if (totalday == 3) {
-      if (false) {
+      if (totalday == 3) {
+      // if (false) {
         my_time.fence();
 #ifdef LICOM_ENABLE_KOKKOS
         //Kokkos::finalize();

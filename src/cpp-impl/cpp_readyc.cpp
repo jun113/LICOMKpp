@@ -1,78 +1,36 @@
 #include "../head/def-undef.h"
 #ifndef LICOM_ENABLE_FORTRAN
-#include "../head/cpp_blocks.h"
-#include "../head/cpp_canuto_mod.h"
 #include "../head/cpp_constant_mod.h"
-#include "../head/cpp_domain.h"
 #include "../head/cpp_dyn_mod.h"
 #include "../head/cpp_forc_mod.h"
 #include "../head/cpp_grid.h"
-#include "../head/cpp_hmix_del2.h"
+#ifdef BIHAR
 #include "../head/cpp_hmix_del4.h"
+#else  // BIHAR
+#include "../head/cpp_hmix_del2.h"
+#endif // BIHAR
 #include "../head/cpp_param_mod.h"
 #include "../head/cpp_pconst_mod.h"
 #include "../head/cpp_pmix_mod.h"
 #include "../head/cpp_tracer_mod.h"
 #include "../head/cpp_work_mod.h"
-#include "../head/fortran_blocks.h"
-#include "../head/fortran_canuto_mod.h"
 
 #include "../head/cpp_extern_functions.h"
-#include "../head/fortran_extern_functions.h"
-
-#include <array>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-#include <vector>
-
-using CppDomain  ::nblocks_clinic;
-using CppParamMod::mytid;
-using CppParamMod::MAX_BLOCKS_CLINIC;
-using CppParamMod::KM;
-using CppParamMod::KMM1;
-using CppParamMod::JMT;
-using CppParamMod::IMT;
-using CppParamMod::JST;
-using CppParamMod::JET;
-using CppParamMod::NX_BLOCK;
-using CppParamMod::NY_BLOCK;
-
-static void advection_momentum(
-    const double (&)[KM][JMT][IMT],
-    const double (&)[KM][JMT][IMT],
-    const double (&)[KM][JMT][IMT],
-    double (&)[KM][JMT][IMT],
-    double (&)[KM][JMT][IMT],
-    const int &);
-#ifndef BIHAR
-static void hdiffu_del2(
-    const int &,
-    double (&)[NY_BLOCK][NX_BLOCK],
-    double (&)[NY_BLOCK][NX_BLOCK],
-    const double (&)[NY_BLOCK][NX_BLOCK],
-    const double (&)[NY_BLOCK][NX_BLOCK],
-    const block &);
-#else  // BIHAR
-static void hdiffu_del4(
-    const int &,
-    double (&)[NY_BLOCK][NX_BLOCK],
-    double (&)[NY_BLOCK][NX_BLOCK],
-    const double (&)[NY_BLOCK][NX_BLOCK],
-    const double (&)[NY_BLOCK][NX_BLOCK]);
-// static void hdiffu_del4(
-//     const int &,
-//     double (&)[NY_BLOCK][NX_BLOCK],
-//     double (&)[NY_BLOCK][NX_BLOCK],
-//     const double (&)[NY_BLOCK][NX_BLOCK],
-//     const double (&)[NY_BLOCK][NX_BLOCK],
-//     const block &);
-#endif // BIHAR
 
 void cpp_readyc() {
 
   using CppConstantMod::C0;
+  using CppDomain  ::nblocks_clinic;
+  using CppParamMod::mytid;
+  using CppParamMod::MAX_BLOCKS_CLINIC;
+  using CppParamMod::KM;
+  using CppParamMod::KMM1;
+  using CppParamMod::JMT;
+  using CppParamMod::IMT;
+  using CppParamMod::JST;
+  using CppParamMod::JET;
+  using CppParamMod::NX_BLOCK;
+  using CppParamMod::NY_BLOCK;
 
   // using CppDomain::    blocks_clinic;
   using CppDynMod::    dlu;
@@ -97,10 +55,6 @@ void cpp_readyc() {
   using CppForcMod::   sv;
   using CppForcMod::   ustar;
   using CppForcMod::   wave_dis;
-  // using CppGrid::      au0;
-  // using CppGrid::      aus;
-  // using CppGrid::      auw;
-  // using CppGrid::      ausw;
   using CppGrid::      kmt;
   using CppGrid::      kmu;
   using CppGrid::      fcort;
@@ -145,6 +99,12 @@ void cpp_readyc() {
   using CppPconstMod::MAX_TIDALMIXING;
   using CppPconstMod::MIXING_EF;
   using CppPconstMod::LOCAL_MIXING_FRACTION;
+
+#ifdef BIHAR
+  using CppHmixDel4::hdiffu_del4;
+#else  // BIHAR
+  using CppHmixDel2::hdiffu_del2;
+#endif // BIHAR
 
   double riv1[MAX_BLOCKS_CLINIC][KM][JMT][IMT];
   double riv2[MAX_BLOCKS_CLINIC][KM][JMT][IMT];
@@ -192,8 +152,8 @@ void cpp_readyc() {
 
   for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
     for (int k = 0; k < KM; ++k) {
-      ugrid_to_tgrid(wp12[iblock][k], up[iblock][k], iblock, k);
-      ugrid_to_tgrid(wp13[iblock][k], vp[iblock][k], iblock, k);
+      ugrid_to_tgrid (wp12[iblock][k], up[iblock][k], iblock, k);
+      ugrid_to_tgrid (wp13[iblock][k], vp[iblock][k], iblock, k);
     }
   }
 
@@ -499,8 +459,8 @@ void cpp_readyc() {
 
 #endif // CANUTO
 
-  int errorcode;
-  pop_haloupdate_readyc_(&errorcode);
+  // int errorcode;
+  // pop_haloupdate_readyc_(&errorcode);
 
   // wjl 20231123
   // for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
@@ -529,34 +489,18 @@ void cpp_readyc() {
       }
     }
   }
+
   for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
     for (int k = 0; k < KM; ++k) {
-      for (int j = 0; j < NY_BLOCK-1; ++j) {
-        for (int i = 1; i < NX_BLOCK; ++i) {
-          // wka[iblock][k][j][i] = 
-          //     au0 [iblock][j][i] * ws[iblock][k][j  ][i  ] +
-          //     aus [iblock][j][i] * ws[iblock][k][j+1][i  ] +
-          //     auw [iblock][j][i] * ws[iblock][k][j  ][i-1] +
-          //     ausw[iblock][j][i] * ws[iblock][k][j+1][i-1];
-          wka[iblock][k][j][i] = 
-              CppConstantMod::P25 * ws[iblock][k][j  ][i  ] +
-              CppConstantMod::P25 * ws[iblock][k][j+1][i  ] +
-              CppConstantMod::P25 * ws[iblock][k][j  ][i-1] +
-              CppConstantMod::P25 * ws[iblock][k][j+1][i-1];
-        }
-      }
-      for (int i = 0; i < NX_BLOCK; ++i) {
-        wka[iblock][k][NY_BLOCK-1][i] = C0;
-      }
-      for (int j = 0; j < NY_BLOCK; ++j) {
-        wka[iblock][k][j][0] = C0;
-      }
+      tgrid_to_ugrid (wka[iblock][k], ws[iblock][k], iblock);
     }
   }
+
   for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
     advection_momentum(u[iblock], v[iblock], wka[iblock],
         dlu[iblock], dlv[iblock], iblock);
   }
+
 #ifdef SMAG
   // TODO
   call smag2(k);
@@ -580,8 +524,6 @@ void cpp_readyc() {
 #ifdef BIHAR
   for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
     for (int k = 0; k < KM; ++k) {
-      // hdiffu_del4(k, hduk, hdvk, up[iblock][k], vp[iblock][k],
-      //     this_block);
       hdiffu_del4(k, hduk, hdvk, up[iblock][k], vp[iblock][k]);
       for (int j = 2; j < JMT-2; ++j) {
         for (int i = 2; i < IMT-2; ++i) {
@@ -592,19 +534,17 @@ void cpp_readyc() {
     }
   }
 #else  // BIHAR
-  // TODO wjl 20240604
-  // for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-  //   for (int k = 0; k < KM; ++k) {
-  //     hdiffu_del2(k, hduk, hdvk, up[iblock][k], vp[iblock][k],
-  //         this_block);
-  //     for (int j = 2; j < JMT-2; ++j) {
-  //       for (int i = 2; i < IMT-2; ++i) {
-  //         dlv[iblock][k][j][i] += hdvk[j][i];
-  //         dlu[iblock][k][j][i] += hduk[j][i];
-  //       }
-  //     }
-  //   }
-  // }
+  for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
+    for (int k = 0; k < KM; ++k) {
+      hdiffu_del2(k, hduk, hdvk, up[iblock][k], vp[iblock][k]);
+      for (int j = 2; j < JMT-2; ++j) {
+        for (int i = 2; i < IMT-2; ++i) {
+          dlv[iblock][k][j][i] += hdvk[j][i];
+          dlu[iblock][k][j][i] += hduk[j][i];
+        }
+      }
+    }
+  }
 #endif // BIHAR
 #endif // SMAG
 
@@ -724,727 +664,5 @@ void cpp_readyc() {
 //--------------------
 //  END READYC
 //--------------------
-static void advection_momentum(
-    const double (&uuu)[KM][JMT][IMT],
-    const double (&vvv)[KM][JMT][IMT],
-    const double (&www)[KM][JMT][IMT],
-    double (&adv_uu)[KM][JMT][IMT],
-    double (&adv_vv)[KM][JMT][IMT],
-    const int &iblock){
-
-  using CppConstantMod::C0;
-  using CppConstantMod::P5;
-  using CppConstantMod::P25;
-  using CppPconstMod::odzp;
-  using CppPconstMod::adv_momentum;
-  using CppGrid::dxu;
-  using CppGrid::dyu;
-  using CppGrid::hue;
-  using CppGrid::hun;
-  using CppGrid::uarea_r;
-
-  for (int k = 0; k < KM; ++k) {
-    for (int j = 0; j < JMT; ++j) {
-      for (int i = 0; i < IMT; ++i) {
-        adv_uu[k][j][i] = C0;
-        adv_vv[k][j][i] = C0;
-      }
-    }
-  }
-  std::string str_adv_momentum(adv_momentum);
-  double u_wface[KM][JMT][IMT];
-  double v_sface[KM][JMT][IMT];
-  if (str_adv_momentum.find("centered") != str_adv_momentum.npos) {
-    for (int k = 0; k < KM; ++k) {
-      for (int j = 0; j < JMT-1; ++j) {
-        for (int i = 1; i < IMT; ++i) {
-          u_wface[k][j][i] = (uuu[k][j][i-1] + uuu[k][j  ][i]) *
-              P25 * hue[iblock][j  ][i-1];
-          v_sface[k][j][i] = (vvv[k][j][i  ] + vvv[k][j+1][i]) *
-              P25 * hun[iblock][j+1][i  ];
-        }
-      }
-    }
-  } else if (str_adv_momentum.find("flux") != str_adv_momentum.npos) {
-    for (int k = 0; k < KM; ++k) {
-      for (int j = 0; j < JMT-1; ++j) {
-        for (int i = 1; i < IMT; ++i) {
-          u_wface[k][j][i] = 
-              (uuu[k][j  ][i-1] * dyu[iblock][j  ][i-1] +
-               uuu[k][j  ][i  ] * dyu[iblock][j  ][i  ]) * P25;
-          v_sface[k][j][i] = 
-              (vvv[k][j  ][i  ] * dxu[iblock][j  ][i  ] +
-               vvv[k][j+1][i  ] * dxu[iblock][j+1][i  ]) * P25;
-        }
-      }
-    }
-  } else {
-    if (mytid == 0) {
-      printf("The false advection option for tracer\n");
-    }
-    exit(0);
-  }
-  double adv_z1, adv_z2, adv_z3, adv_z4;
-  if (str_adv_momentum.find("centered") != str_adv_momentum.npos) {
-    for (int k = 0; k < KM; ++k) {
-      for (int j = 2; j < JMT-2; ++j) {
-        for (int i = 2; i < IMT-2; ++i) {
-          adv_uu[k][j][i] = (
-              - u_wface[k][j  ][i  ] * (uuu[k][j  ][i  ] - uuu[k][j  ][i-1])
-              - u_wface[k][j  ][i+1] * (uuu[k][j  ][i+1] - uuu[k][j  ][i  ])
-              - v_sface[k][j  ][i  ] * (uuu[k][j+1][i  ] - uuu[k][j  ][i  ])
-              - v_sface[k][j-1][i  ] * (uuu[k][j  ][i  ] - uuu[k][j-1][i  ])) 
-                  * uarea_r[iblock][j][i];
-
-          adv_vv[k][j][i] = (
-              - u_wface[k][j  ][i  ] * (vvv[k][j  ][i  ] - vvv[k][j  ][i-1])
-              - u_wface[k][j  ][i+1] * (vvv[k][j  ][i+1] - vvv[k][j  ][i  ])
-              - v_sface[k][j  ][i  ] * (vvv[k][j+1][i  ] - vvv[k][j  ][i  ])
-              - v_sface[k][j-1][i  ] * (vvv[k][j  ][i  ] - vvv[k][j-1][i  ])) 
-                  * uarea_r[iblock][j][i];
-
-          if (k == 0) {
-            adv_z1 = 0.0;
-            adv_z3 = 0.0;
-          } else {
-            adv_z1 = www[k][j][i] * (uuu[k-1][j][i] - uuu[k][j][i]);
-            adv_z3 = www[k][j][i] * (vvv[k-1][j][i] - vvv[k][j][i]);
-          }
-
-          if (k == KM-1) {
-            adv_z2 = 0.0;
-            adv_z4 = 0.0;
-          } else {
-            adv_z2 = www[k+1][j][i] * (uuu[k][j][i] - uuu[k+1][j][i]);
-            adv_z4 = www[k+1][j][i] * (vvv[k][j][i] - vvv[k+1][j][i]);
-          }
-
-          adv_uu[k][j][i] -= P5 * odzp[k] *
-              (adv_z1 + adv_z2);
-          adv_vv[k][j][i] -= P5 * odzp[k] *
-              (adv_z3 + adv_z4);
-        }
-      }
-    }
-  } else if (str_adv_momentum.find("flux") != str_adv_momentum.npos) {
-    for (int k = 0; k < KM; ++k) {
-      for (int j = 2; j < JMT-2; ++j) {
-        for (int i = 2; i < IMT-2; ++i) {
-          adv_uu[k][j][i] = (
-              - u_wface[k][j  ][i  ] * (uuu[k][j  ][i  ] + uuu[k][j  ][i-1])
-              + u_wface[k][j  ][i+1] * (uuu[k][j  ][i+1] + uuu[k][j  ][i  ])
-              - v_sface[k][j-1][i  ] * (uuu[k][j  ][i  ] + uuu[k][j-1][i  ])
-              + v_sface[k][j  ][i  ] * (uuu[k][j+1][i  ] + uuu[k][j  ][i  ])) 
-                  * uarea_r[iblock][j][i];
-
-          adv_vv[k][j][i] = (
-              - u_wface[k][j  ][i  ] * (vvv[k][j  ][i  ] + vvv[k][j  ][i-1])
-              + u_wface[k][j  ][i+1] * (vvv[k][j  ][i+1] + vvv[k][j  ][i  ])
-              - v_sface[k][j-1][i  ] * (vvv[k][j  ][i  ] + vvv[k][j-1][i  ])
-              + v_sface[k][j  ][i  ] * (vvv[k][j+1][i  ] + vvv[k][j  ][i  ])) 
-                  * uarea_r[iblock][j][i];
-   
-          if (k == 0) {
-            adv_z1 = 0.0;
-            adv_z3 = 0.0;
-          } else {
-            adv_z1 = www[k][j][i] * (
-                uuu[k-1][j][i] + uuu[k][j][i]) * P5;
-            adv_z3 = www[k][j][i] * (
-                vvv[k-1][j][i] + vvv[k][j][i]) * P5;
-          }
- 
-          if (k == KM-1) {
-            adv_z2 = 0.0;
-            adv_z4 = 0.0;
-          } else {
-            adv_z2 = www[k+1][j][i] * (
-                uuu[k][j][i] + uuu[k+1][j][i]) * P5; 
-            adv_z4 = www[k+1][j][i] * (
-                vvv[k][j][i] + vvv[k+1][j][i]) * P5; 
-          }
-          adv_uu[k][j][i] -= odzp[k] *
-              (adv_z2 - adv_z1);
-          adv_vv[k][j][i] -= odzp[k] *
-              (adv_z4 - adv_z3);
-        }
-      }
-    }
-  } else {
-    if (mytid == 0) {
-      printf("The false advection option for tracer\n");
-    }
-    exit(0);
-  }
-  return ;
-}
-
-#ifndef BIHAR
-static void hdiffu_del2(
-    const int &k,
-    double (&hduk)[NY_BLOCK][NX_BLOCK],
-    double (&hdvk)[NY_BLOCK][NX_BLOCK],
-    const double (&umixk)[NY_BLOCK][NX_BLOCK],
-    const double (&vmixk)[NY_BLOCK][NX_BLOCK],
-    const block &this_block) {
-
-  using CppConstantMod::C0;
-
-  using CppHmixDel2::am;
-  using CppHmixDel2::dmc;
-  using CppHmixDel2::dme;
-  using CppHmixDel2::dmn;
-  using CppHmixDel2::dms;
-  using CppHmixDel2::dmw;
-  using CppHmixDel2::duc;
-  using CppHmixDel2::due;
-  using CppHmixDel2::dum;
-  using CppHmixDel2::dun;
-  using CppHmixDel2::dus;
-  using CppHmixDel2::duw;
-
-  using CppGrid::kmu;
-  using CppPconstMod::viv;
-
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      hduk[j][i] = C0;
-      hdvk[j][i] = C0;
-    }
-  }
-  const int ib = this_block.ib;
-  const int ie = this_block.ie;
-  const int jb = this_block.jb;
-  const int je = this_block.je;
-  const int bid = this_block.local_id;
-  for (int j = jb-1; j < je; ++j) {
-    for (int i = ib-1; i < ie; ++i) {
-      double cc = duc[bid][j][i] + dum[bid][j][i];
-    
-      hduk[j][i] = am * ((cc * umixk[j  ][i  ] +
-              dun[bid][j][i] * umixk[j-1][i  ] +
-              dus[bid][j][i] * umixk[j+1][i  ] +
-              due[bid][j][i] * umixk[j  ][i+1] +
-              duw[bid][j][i] * umixk[j  ][i-1]) +
-             (dmc[bid][j][i] * vmixk[j  ][i  ] +
-              dmn[bid][j][i] * vmixk[j-1][i  ] +
-              dms[bid][j][i] * vmixk[j+1][i  ] +
-              dme[bid][j][i] * vmixk[j  ][i+1] +
-              dmw[bid][j][i] * vmixk[j  ][i-1])) *
-                  viv[bid][k][j][i];
-
-      hdvk[j][i] = am * ((cc * vmixk[j  ][i  ] +
-              dun[bid][j][i] * vmixk[j-1][i  ] +
-              dus[bid][j][i] * vmixk[j+1][i  ] +
-              due[bid][j][i] * vmixk[j  ][i+1] +
-              due[bid][j][i] * vmixk[j  ][i-1]) +
-             (dmc[bid][j][i] * umixk[j  ][i  ] +
-              dmn[bid][j][i] * umixk[j-1][i  ] +
-              dms[bid][j][i] * umixk[j+1][i  ] +
-              dme[bid][j][i] * umixk[j  ][i+1] +
-              dmw[bid][j][i] * umixk[j  ][i-1])) *
-                  viv[bid][k][j][i];
-    }
-  }
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      if (k > kmu[bid][j][i]-1) {
-        hduk[j][i] = C0;
-        hdvk[j][i] = C0;
-      }
-    }
-  }
-  return ;
-}
-#else // BIHAR
-static void hdiffu_del4(
-    const int &k,
-    double (&hduk)[NY_BLOCK][NX_BLOCK],
-    double (&hdvk)[NY_BLOCK][NX_BLOCK],
-    const double (&umixk)[NY_BLOCK][NX_BLOCK],
-    const double (&vmixk)[NY_BLOCK][NX_BLOCK]) {
-
-  using CppBlocks::ib;
-  using CppBlocks::ie;
-  using CppBlocks::jb;
-  using CppBlocks::je;
-  
-  using CppConstantMod::C0;
-  using CppConstantMod::P5;
-  using CppGrid::dxu;
-  using CppGrid::dyu;
-  using CppGrid::dxur;
-  using CppGrid::dyur;
-  using CppGrid::htw;
-  using CppGrid::hts;
-  using CppGrid::kmt;
-  using CppGrid::kmu;
-  using CppGrid::uarea;
-  using CppGrid::tarea_r;
-
-  using CppHmixDel4::am;
-  using CppHmixDel4::amf;
-  using CppHmixDel4::duc;
-  using CppHmixDel4::due;
-  using CppHmixDel4::dum;
-  using CppHmixDel4::dun;
-  using CppHmixDel4::dus;
-  using CppHmixDel4::duw;
-  using CppHmixDel4::dmc;
-  using CppHmixDel4::dme;
-  using CppHmixDel4::dmn;
-  using CppHmixDel4::dms;
-  using CppHmixDel4::dmw;
-  //const int bid = this_block.local_id - 1;
-  const int bid = 0;
-  // TODO this_block
-
-  double div_out[NY_BLOCK][NX_BLOCK];
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      div_out[j][i] = C0;
-    }
-  }
-  for (int j = 1; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK-1; ++i) {
-      if (k <= kmt[bid][j][i]-1) {
-        div_out[j][i] = P5 * (
-            (umixk[j  ][i+1] + umixk[j-1][i+1] * htw[bid][j  ][i+1]) -
-            (umixk[j  ][i  ] + umixk[j-1][i  ] * htw[bid][j  ][i  ]) +
-            (vmixk[j  ][i+1] + vmixk[j  ][i  ] * hts[bid][j  ][i  ]) -
-            (vmixk[j-1][i+1] + vmixk[j-1][i  ] * hts[bid][j-1][i  ])) *
-                tarea_r[bid][j][i];
-      }
-    }
-  }
-  double curl[NY_BLOCK][NX_BLOCK];
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      curl[j][i] = C0;
-    }
-  }
-  for (int j = 1; j < NY_BLOCK; ++j) {
-    for (int i = 1; i < NX_BLOCK; ++i) {
-      if (k <= kmt[bid][j][i]-1) {
-        curl[j][i] = P5 * (
-            vmixk[j  ][i  ] * dyu[bid][j  ][i  ] +
-            vmixk[j-1][i  ] * dyu[bid][j-1][i  ] -
-            vmixk[j  ][i-1] * dyu[bid][j  ][i-1] -
-            vmixk[j-1][i-1] * dyu[bid][j-1][i-1] -
-            umixk[j  ][i  ] * dxu[bid][j  ][i  ] -
-            umixk[j  ][i-1] * dxu[bid][j  ][i-1] +
-            umixk[j-1][i  ] * dxu[bid][j-1][i  ] +
-            umixk[j-1][i-1] * dxu[bid][j-1][i-1]);
-      }
-    }
-  }
-  double gradx1[NY_BLOCK][NX_BLOCK];
-  double grady1[NY_BLOCK][NX_BLOCK];
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      gradx1[j][i] = C0;
-      grady1[j][i] = C0;
-    }
-  }
-  for (int j = 0; j < NY_BLOCK-1; ++j) {
-    for (int i = 1; i < NX_BLOCK; ++i) {
-      gradx1[j][i] = dxur[bid][j][i] * P5 * (
-          curl[j+1][i  ] - curl[j  ][i-1] -
-          curl[j+1][i-1] + curl[j  ][i  ]);
-      grady1[j][i] = dyur[bid][j][i] * P5 * (
-          curl[j+1][i  ] - curl[j  ][i-1] +
-          curl[j+1][i-1] - curl[j  ][i  ]);
-    }
-  }
-  double gradx2[NY_BLOCK][NX_BLOCK];
-  double grady2[NY_BLOCK][NX_BLOCK];
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      gradx2[j][i] = C0;
-      grady2[j][i] = C0;
-    }
-  }
-  for (int j = 0; j < NY_BLOCK-1; ++j) {
-    for (int i = 1; i < NX_BLOCK; ++i) {
-      gradx2[j][i] = dxur[bid][j][i] * P5 * (
-          div_out[j+1][i  ] - div_out[j  ][i-1] -
-          div_out[j+1][i-1] + div_out[j  ][i  ]);
-      grady2[j][i] = dyur[bid][j][i] * P5 * (
-          div_out[j+1][i  ] - div_out[j  ][i-1] +
-          div_out[j+1][i-1] - div_out[j  ][i  ]);
-    }
-  }
-
-  std::vector<std::array<std::array<double, NX_BLOCK>, NY_BLOCK>> 
-      am_factor(nblocks_clinic);
-
-  for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-    for (int j = 0; j < NY_BLOCK; ++j) {
-      for (int i = 0; i < NX_BLOCK; ++i) {
-        am_factor[iblock][j][i] = 1.0;
-      }
-    }
-  }
-  for (int j = jb-2; j < je+1; ++j) {
-    for (int i = ib-2; i < ie+1; ++i) {
-      double dxdy = pow(sqrt(uarea[bid][j][i]), 5) * 45.0;
-      am_factor[bid][j][i] = sqrt(
-          pow(gradx1[j][i], 2) + pow(gradx2[j][i], 2) + 
-          pow(grady1[j][i], 2) + pow(grady2[j][i], 2)) *
-          dxdy / fabs(am * amf[bid][j][i]);
-    }
-  }
-  for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-    for (int j = 0; j < NY_BLOCK; ++j) {
-      for (int i = 0; i < NX_BLOCK; ++i) {
-        am_factor[iblock][j][i] = fmin(40.0, am_factor[iblock][j][i]);
-        am_factor[iblock][j][i] = fmax(1.0,  am_factor[iblock][j][i]);
-      }
-    }
-  }
-  double cc[NY_BLOCK][NX_BLOCK];
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      cc[j][i] = duc[bid][j][i] + dum[bid][j][i];
-    }
-  }
-  double d2uk[NY_BLOCK][NX_BLOCK];
-  double d2vk[NY_BLOCK][NX_BLOCK];
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      d2uk[j][i] = C0;
-      d2vk[j][i] = C0;
-    }
-  }
-  for (int j = jb-2; j < je+1; ++j) {
-    for (int i = ib-2; i < ie+1; ++i) {
-      d2uk[j][i] = (cc[j][i] * umixk[j  ][i  ] +
-              dun[bid][j][i] * umixk[j-1][i  ] +
-              dus[bid][j][i] * umixk[j+1][i  ] +
-              due[bid][j][i] * umixk[j  ][i+1] +
-              duw[bid][j][i] * umixk[j  ][i-1]) +
-             (dmc[bid][j][i] * vmixk[j  ][i  ] +
-              dmn[bid][j][i] * vmixk[j-1][i  ] +
-              dms[bid][j][i] * vmixk[j+1][i  ] +
-              dme[bid][j][i] * vmixk[j  ][i+1] +
-              dmw[bid][j][i] * vmixk[j  ][i-1]);
-    }
-  }
-  for (int j = jb-2; j < je+1; ++j) {
-    for (int i = ib-2; i < ie+1; ++i) {
-      d2vk[j][i] = (cc[j][i] * vmixk[j  ][i  ] +
-              dun[bid][j][i] * vmixk[j-1][i  ] +
-              dus[bid][j][i] * vmixk[j+1][i  ] +
-              due[bid][j][i] * vmixk[j  ][i+1] +
-              duw[bid][j][i] * vmixk[j  ][i-1]) +
-             (dmc[bid][j][i] * umixk[j  ][i  ] +
-              dmn[bid][j][i] * umixk[j-1][i  ] +
-              dms[bid][j][i] * umixk[j+1][i  ] +
-              dme[bid][j][i] * umixk[j  ][i+1] +
-              dmw[bid][j][i] * umixk[j  ][i-1]);
-    }
-  }
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      if (k <= kmu[bid][j][i]-1) {
-        d2uk[j][i] = am_factor[bid][j][i] *
-            amf[bid][j][i] * d2uk[j][i];
-        d2vk[j][i] = am_factor[bid][j][i] *
-            amf[bid][j][i] * d2vk[j][i];
-      } else {
-        d2uk[j][i] = C0;
-        d2vk[j][i] = C0;
-      }
-    }
-  }
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      hduk[j][i] = C0;
-      hdvk[j][i] = C0;
-    }
-  }
-  for (int j = jb-1; j < je; ++j) {
-    for (int i = ib-1; i < ie; ++i) {
-      hduk[j][i] = am * ((cc[j][i] * d2uk[j  ][i  ] +
-                    dun[bid][j][i] * d2uk[j-1][i  ] +
-                    dus[bid][j][i] * d2uk[j+1][i  ] +
-                    due[bid][j][i] * d2uk[j  ][i+1] +
-                    duw[bid][j][i] * d2uk[j  ][i-1]) +
-                   (dmc[bid][j][i] * d2vk[j  ][i  ] +
-                    dmn[bid][j][i] * d2vk[j-1][i  ] +
-                    dms[bid][j][i] * d2vk[j+1][i  ] +
-                    dme[bid][j][i] * d2vk[j  ][i+1] +
-                    dmw[bid][j][i] * d2vk[j  ][i-1]));
-    }
-  }
-  for (int j = jb-1; j < je; ++j) {
-    for (int i = ib-1; i < ie; ++i) {
-      hdvk[j][i] = am * ((cc[j][i] * d2vk[j  ][i  ] +
-                    dun[bid][j][i] * d2vk[j-1][i  ] +
-                    dus[bid][j][i] * d2vk[j+1][i  ] +
-                    due[bid][j][i] * d2vk[j  ][i+1] +
-                    duw[bid][j][i] * d2vk[j  ][i-1]) +
-                   (dmc[bid][j][i] * d2uk[j  ][i  ] +
-                    dmn[bid][j][i] * d2uk[j-1][i  ] +
-                    dms[bid][j][i] * d2uk[j+1][i  ] +
-                    dme[bid][j][i] * d2uk[j  ][i+1] +
-                    dmw[bid][j][i] * d2uk[j  ][i-1]));
-    }
-  }
-  for (int j = 0; j < NY_BLOCK; ++j) {
-    for (int i = 0; i < NX_BLOCK; ++i) {
-      if (k > kmu[bid][j][i]-1) {
-        hduk[j][i] = C0;
-        hdvk[j][i] = C0;
-      }
-    }
-  }
-  return ;
-}
-// static void hdiffu_del4(
-//     const int &k,
-//     double (&hduk)[NY_BLOCK][NX_BLOCK],
-//     double (&hdvk)[NY_BLOCK][NX_BLOCK],
-//     const double (&umixk)[NY_BLOCK][NX_BLOCK],
-//     const double (&vmixk)[NY_BLOCK][NX_BLOCK],
-//     const block &this_block) {
-  
-//   using CppConstantMod::C0;
-//   using CppConstantMod::P5;
-//   using CppGrid::dxu;
-//   using CppGrid::dyu;
-//   using CppGrid::dxur;
-//   using CppGrid::dyur;
-//   using CppGrid::htw;
-//   using CppGrid::hts;
-//   using CppGrid::kmt;
-//   using CppGrid::kmu;
-//   using CppGrid::uarea;
-//   using CppGrid::tarea_r;
-
-//   using CppHmixDel4::am;
-//   using CppHmixDel4::amf;
-//   using CppHmixDel4::duc;
-//   using CppHmixDel4::due;
-//   using CppHmixDel4::dum;
-//   using CppHmixDel4::dun;
-//   using CppHmixDel4::dus;
-//   using CppHmixDel4::duw;
-//   using CppHmixDel4::dmc;
-//   using CppHmixDel4::dme;
-//   using CppHmixDel4::dmn;
-//   using CppHmixDel4::dms;
-//   using CppHmixDel4::dmw;
-//   //const int bid = this_block.local_id - 1;
-//   const int bid = 0;
-//   // TODO this_block
-
-//   double div_out[NY_BLOCK][NX_BLOCK];
-//   for (int j = 0; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK; ++i) {
-//       div_out[j][i] = C0;
-//     }
-//   }
-//   for (int j = 1; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK-1; ++i) {
-//       if (k <= kmt[bid][j][i]-1) {
-//         div_out[j][i] = P5 * (
-//             (umixk[j  ][i+1] + umixk[j-1][i+1] * htw[bid][j  ][i+1]) -
-//             (umixk[j  ][i  ] + umixk[j-1][i  ] * htw[bid][j  ][i  ]) +
-//             (vmixk[j  ][i+1] + vmixk[j  ][i  ] * hts[bid][j  ][i  ]) -
-//             (vmixk[j-1][i+1] + vmixk[j-1][i  ] * hts[bid][j-1][i  ])) *
-//                 tarea_r[bid][j][i];
-//       }
-//     }
-//   }
-//   double curl[NY_BLOCK][NX_BLOCK];
-//   for (int j = 0; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK; ++i) {
-//       curl[j][i] = C0;
-//     }
-//   }
-//   for (int j = 1; j < NY_BLOCK; ++j) {
-//     for (int i = 1; i < NX_BLOCK; ++i) {
-//       if (k <= kmt[bid][j][i]-1) {
-//         curl[j][i] = P5 * (
-//             vmixk[j  ][i  ] * dyu[bid][j  ][i  ] +
-//             vmixk[j-1][i  ] * dyu[bid][j-1][i  ] -
-//             vmixk[j  ][i-1] * dyu[bid][j  ][i-1] -
-//             vmixk[j-1][i-1] * dyu[bid][j-1][i-1] -
-//             umixk[j  ][i  ] * dxu[bid][j  ][i  ] -
-//             umixk[j  ][i-1] * dxu[bid][j  ][i-1] +
-//             umixk[j-1][i  ] * dxu[bid][j-1][i  ] +
-//             umixk[j-1][i-1] * dxu[bid][j-1][i-1]);
-//       }
-//     }
-//   }
-//   double gradx1[NY_BLOCK][NX_BLOCK];
-//   double grady1[NY_BLOCK][NX_BLOCK];
-//   for (int j = 0; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK; ++i) {
-//       gradx1[j][i] = C0;
-//       grady1[j][i] = C0;
-//     }
-//   }
-//   for (int j = 0; j < NY_BLOCK-1; ++j) {
-//     for (int i = 1; i < NX_BLOCK; ++i) {
-//       gradx1[j][i] = dxur[bid][j][i] * P5 * (
-//           curl[j+1][i  ] - curl[j  ][i-1] -
-//           curl[j+1][i-1] + curl[j  ][i  ]);
-//       grady1[j][i] = dyur[bid][j][i] * P5 * (
-//           curl[j+1][i  ] - curl[j  ][i-1] +
-//           curl[j+1][i-1] - curl[j  ][i  ]);
-//     }
-//   }
-//   double gradx2[NY_BLOCK][NX_BLOCK];
-//   double grady2[NY_BLOCK][NX_BLOCK];
-//   for (int j = 0; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK; ++i) {
-//       gradx2[j][i] = C0;
-//       grady2[j][i] = C0;
-//     }
-//   }
-//   for (int j = 0; j < NY_BLOCK-1; ++j) {
-//     for (int i = 1; i < NX_BLOCK; ++i) {
-//       gradx2[j][i] = dxur[bid][j][i] * P5 * (
-//           div_out[j+1][i  ] - div_out[j  ][i-1] -
-//           div_out[j+1][i-1] + div_out[j  ][i  ]);
-//       grady2[j][i] = dyur[bid][j][i] * P5 * (
-//           div_out[j+1][i  ] - div_out[j  ][i-1] +
-//           div_out[j+1][i-1] - div_out[j  ][i  ]);
-//     }
-//   }
-//   const int ib = this_block.ib;
-//   const int ie = this_block.ie;
-//   const int jb = this_block.jb;
-//   const int je = this_block.je;
-
-//   std::vector<std::array<std::array<double, NX_BLOCK>, NY_BLOCK>> 
-//       am_factor(nblocks_clinic);
-
-//   for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-//     for (int j = 0; j < NY_BLOCK; ++j) {
-//       for (int i = 0; i < NX_BLOCK; ++i) {
-//         am_factor[iblock][j][i] = 1.0;
-//       }
-//     }
-//   }
-//   for (int j = jb-2; j < je+1; ++j) {
-//     for (int i = ib-2; i < ie+1; ++i) {
-//       double dxdy = pow(sqrt(uarea[bid][j][i]), 5) * 45.0;
-//       am_factor[bid][j][i] = sqrt(
-//           pow(gradx1[j][i], 2) + pow(gradx2[j][i], 2) + 
-//           pow(grady1[j][i], 2) + pow(grady2[j][i], 2)) *
-//           dxdy / fabs(am * amf[bid][j][i]);
-//     }
-//   }
-//   for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-//     for (int j = 0; j < NY_BLOCK; ++j) {
-//       for (int i = 0; i < NX_BLOCK; ++i) {
-//         am_factor[iblock][j][i] = fmin(40.0, am_factor[iblock][j][i]);
-//         am_factor[iblock][j][i] = fmax(1.0,  am_factor[iblock][j][i]);
-//       }
-//     }
-//   }
-//   double cc[NY_BLOCK][NX_BLOCK];
-//   for (int j = 0; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK; ++i) {
-//       cc[j][i] = duc[bid][j][i] + dum[bid][j][i];
-//     }
-//   }
-//   double d2uk[NY_BLOCK][NX_BLOCK];
-//   double d2vk[NY_BLOCK][NX_BLOCK];
-//   for (int j = 0; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK; ++i) {
-//       d2uk[j][i] = C0;
-//       d2vk[j][i] = C0;
-//     }
-//   }
-//   for (int j = jb-2; j < je+1; ++j) {
-//     for (int i = ib-2; i < ie+1; ++i) {
-//       d2uk[j][i] = (cc[j][i] * umixk[j  ][i  ] +
-//               dun[bid][j][i] * umixk[j-1][i  ] +
-//               dus[bid][j][i] * umixk[j+1][i  ] +
-//               due[bid][j][i] * umixk[j  ][i+1] +
-//               duw[bid][j][i] * umixk[j  ][i-1]) +
-//              (dmc[bid][j][i] * vmixk[j  ][i  ] +
-//               dmn[bid][j][i] * vmixk[j-1][i  ] +
-//               dms[bid][j][i] * vmixk[j+1][i  ] +
-//               dme[bid][j][i] * vmixk[j  ][i+1] +
-//               dmw[bid][j][i] * vmixk[j  ][i-1]);
-//     }
-//   }
-//   for (int j = jb-2; j < je+1; ++j) {
-//     for (int i = ib-2; i < ie+1; ++i) {
-//       d2vk[j][i] = (cc[j][i] * vmixk[j  ][i  ] +
-//               dun[bid][j][i] * vmixk[j-1][i  ] +
-//               dus[bid][j][i] * vmixk[j+1][i  ] +
-//               due[bid][j][i] * vmixk[j  ][i+1] +
-//               duw[bid][j][i] * vmixk[j  ][i-1]) +
-//              (dmc[bid][j][i] * umixk[j  ][i  ] +
-//               dmn[bid][j][i] * umixk[j-1][i  ] +
-//               dms[bid][j][i] * umixk[j+1][i  ] +
-//               dme[bid][j][i] * umixk[j  ][i+1] +
-//               dmw[bid][j][i] * umixk[j  ][i-1]);
-//     }
-//   }
-//   for (int j = 0; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK; ++i) {
-//       if (k <= kmu[bid][j][i]-1) {
-//         d2uk[j][i] = am_factor[bid][j][i] *
-//             amf[bid][j][i] * d2uk[j][i];
-//         d2vk[j][i] = am_factor[bid][j][i] *
-//             amf[bid][j][i] * d2vk[j][i];
-//       } else {
-//         d2uk[j][i] = C0;
-//         d2vk[j][i] = C0;
-//       }
-//     }
-//   }
-//   for (int j = 0; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK; ++i) {
-//       hduk[j][i] = C0;
-//       hdvk[j][i] = C0;
-//     }
-//   }
-//   for (int j = jb-1; j < je; ++j) {
-//     for (int i = ib-1; i < ie; ++i) {
-//       hduk[j][i] = am * ((cc[j][i] * d2uk[j  ][i  ] +
-//                     dun[bid][j][i] * d2uk[j-1][i  ] +
-//                     dus[bid][j][i] * d2uk[j+1][i  ] +
-//                     due[bid][j][i] * d2uk[j  ][i+1] +
-//                     duw[bid][j][i] * d2uk[j  ][i-1]) +
-//                    (dmc[bid][j][i] * d2vk[j  ][i  ] +
-//                     dmn[bid][j][i] * d2vk[j-1][i  ] +
-//                     dms[bid][j][i] * d2vk[j+1][i  ] +
-//                     dme[bid][j][i] * d2vk[j  ][i+1] +
-//                     dmw[bid][j][i] * d2vk[j  ][i-1]));
-//     }
-//   }
-//   for (int j = jb-1; j < je; ++j) {
-//     for (int i = ib-1; i < ie; ++i) {
-//       hdvk[j][i] = am * ((cc[j][i] * d2vk[j  ][i  ] +
-//                     dun[bid][j][i] * d2vk[j-1][i  ] +
-//                     dus[bid][j][i] * d2vk[j+1][i  ] +
-//                     due[bid][j][i] * d2vk[j  ][i+1] +
-//                     duw[bid][j][i] * d2vk[j  ][i-1]) +
-//                    (dmc[bid][j][i] * d2uk[j  ][i  ] +
-//                     dmn[bid][j][i] * d2uk[j-1][i  ] +
-//                     dms[bid][j][i] * d2uk[j+1][i  ] +
-//                     dme[bid][j][i] * d2uk[j  ][i+1] +
-//                     dmw[bid][j][i] * d2uk[j  ][i-1]));
-//     }
-//   }
-//   for (int j = 0; j < NY_BLOCK; ++j) {
-//     for (int i = 0; i < NX_BLOCK; ++i) {
-//       if (k > kmu[bid][j][i]-1) {
-//         hduk[j][i] = C0;
-//         hdvk[j][i] = C0;
-//       }
-//     }
-//   }
-//   return ;
-// }
-#endif // BIHAR
 
 #endif // LICOM_ENABLE_FORTRAN
