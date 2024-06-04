@@ -2,9 +2,9 @@
 
 # set -x
 
-NP=40
-BLOCK_X=45
-BLOCK_Y=44
+NP=4
+BLOCK_X=180
+BLOCK_Y=110
 
 #419 KUNSHAN IAP_GPU TAISHAN OCEANLIGHT
 MACHINE="IAP_GPU"
@@ -69,10 +69,10 @@ if [ "${MACHINE}" == "IAP_GPU" ]; then
       -D CMAKE_C_COMPILER="gcc" \
       -D CMAKE_CXX_COMPILER="${KOKKOS_SRC}/bin/nvcc_wrapper" \
       -D CMAKE_Fortran_COMPILER="ifort" \
-      -D Kokkos_ENABLE_CUDA_CONSTEXPR=off \
-      -D Kokkos_ENABLE_CUDA_LAMBDA=off \
-      -D Kokkos_ENABLE_CUDA=off \
-      -D Kokkos_ARCH_VOLTA70=off \
+      -D Kokkos_ENABLE_CUDA_CONSTEXPR=on \
+      -D Kokkos_ENABLE_CUDA_LAMBDA=on \
+      -D Kokkos_ENABLE_CUDA=on \
+      -D Kokkos_ARCH_VOLTA70=on \
       -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=off \
       -D Kokkos_ENABLE_PROFILING_LOAD_PRINT=On \
       -D Kokkos_ENABLE_COMPILER_WARNINGS=off \
@@ -101,7 +101,7 @@ elif [ "${MACHINE}" == "419" ]; then
     module load compiler/intel/2017.5.239
     module load mathlib/netcdf/4.4.1/intel
     module load mpi/hpcx/2.7.4/intel-2017.5.239
-    module load compiler/rocm/dtk/22.10.1
+    module load compiler/rocm/dtk/23.10
 
     module list
 
@@ -219,6 +219,9 @@ chmod 777 ../scripts/run
 
 if [ "${MACHINE}" == "IAP_GPU" ]; then
     rm -rf ../scripts/submit
+elif [ "${MACHINE}" == "419" ]; then
+    chmod 777 ../run/dcu_bind
+    chmod 777 ../scripts/submit
 else
     chmod 777 ../scripts/submit
 fi
