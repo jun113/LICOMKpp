@@ -159,7 +159,6 @@ extern "C" void licom_core_() {
   }
 
 #if defined(LOWRES)
-  // kokkos_init_jra_daily_high();
   kokkos_init_jra_daily_low();
 #elif defined(HIGHRES) || defined(SUPHIGH)
   kokkos_init_jra_daily_high();
@@ -224,7 +223,6 @@ extern "C" void licom_core_() {
 #if (defined LICOM_ENABLE_KOKKOS)
 #if defined(LOWRES)
       // jra_daily_();
-      // kokkos_jra_daily_high(iday);
       kokkos_jra_daily_low(iday);
 #elif defined(HIGHRES) || defined(SUPHIGH)
       kokkos_jra_daily_high(iday);

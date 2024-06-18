@@ -9,7 +9,7 @@
 #define FRC_CORE
 #define SOLAR
 #define ACOS
-#undef  BIHAR
+#define  BIHAR
 #undef  SMAG_FZ
 #undef  SMAG_OUT
 #define NETCDF
@@ -34,8 +34,8 @@
 #undef  SUPHIGH 
 #undef  DAILYACC
 #undef  DAILYBUGDET
-#define BLCKX   45
-#define BLCKY	44
+#define BLCKX   30
+#define BLCKY	22
 #define NJMT	218 
 #define NIMT	360
 #define NKM     30 
@@ -53,6 +53,6 @@
 
 #define LICOM_ENABLE_FORTRAN_COMPILER_INTEL
 
-#define LICOM_ENABLE_CPP
+#define LICOM_ENABLE_KOKKOS
 
 #endif

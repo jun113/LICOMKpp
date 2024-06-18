@@ -494,59 +494,54 @@ void cpp_init_jra_daily_high () {
 	s_lat  = new double[S_IMT * S_JMT];
 	CppForcMod::buffer = new double[std::max(S_IMT, std::max(S_JMT, 
 			IMT_GLOBAL * JMT_GLOBAL))];
-
-	const int irec = CppPconstMod::number_day;
-	if (CppParamMod::mytid == 0) {
-		printf("jra daily start irec = %d\n", irec);
-	}
 	
 	// ! read in jra data
 	switch(CppParamMod::mytid) {
 		case 0:
 			CppForcMod::rf = new float[S_IMT * S_JMT * 365];
 			// update s_lon s_lat
-			read_jra(irec, 365, "runoff_all.2016_daily.nc", 
+			read_jra(1, 365, "runoff_all.2016_daily.nc", 
 					CppForcMod::buffer, s_lon, s_lat, CppForcMod::rf);
 			break;
 		case 1:
 			CppForcMod::t10 = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "t_10.2016_daily.nc", CppForcMod::t10);
+			read_jra(1, 365, "t_10.2016_daily.nc", CppForcMod::t10);
 			break;
 		case 2:
 			CppForcMod::u10 = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "u_10.2016_daily.nc", CppForcMod::u10);
+			read_jra(1, 365, "u_10.2016_daily.nc", CppForcMod::u10);
 			break;
 		case 3:
 			CppForcMod::v10 = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "v_10.2016_daily.nc", CppForcMod::v10);
+			read_jra(1, 365, "v_10.2016_daily.nc", CppForcMod::v10);
 			break;
 		case 4:
 			CppForcMod::slp = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "slp.2016_daily.nc",  CppForcMod::slp);
+			read_jra(1, 365, "slp.2016_daily.nc",  CppForcMod::slp);
 			break;
 		case 5:
 			CppForcMod::q10 = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "q_10.2016_daily.nc", CppForcMod::q10);
+			read_jra(1, 365, "q_10.2016_daily.nc", CppForcMod::q10);
 			break;
 		case 6:
 			CppForcMod::swhf = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "rsds.2016_daily.nc", CppForcMod::swhf);
+			read_jra(1, 365, "rsds.2016_daily.nc", CppForcMod::swhf);
 			break;
 		case 7:
 			CppForcMod::lwhf = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "rlds.2016_daily.nc", CppForcMod::lwhf);
+			read_jra(1, 365, "rlds.2016_daily.nc", CppForcMod::lwhf);
 			break;
 		case 8:
 			CppForcMod::precr = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "rain.2016_daily.nc", CppForcMod::precr);
+			read_jra(1, 365, "rain.2016_daily.nc", CppForcMod::precr);
 			break;
 		case 9:
 			CppForcMod::precs = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "snow.2016_daily.nc", CppForcMod::precs);
+			read_jra(1, 365, "snow.2016_daily.nc", CppForcMod::precs);
 			break;
 		case 10:
 			CppForcMod::si = new float[S_IMT * S_JMT * 365];
-			read_jra(irec, 365, "ice.2016_daily.nc", CppForcMod::si);
+			read_jra(1, 365, "ice.2016_daily.nc", CppForcMod::si);
 			break;
 		default: break;
 	}
