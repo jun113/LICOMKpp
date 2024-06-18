@@ -9,8 +9,8 @@
 # vimdiff ../run/ocn.log ../ocnlog/ocn.log-c-4proc-180-110-undef-iso-intel
 # vimdiff ../run/ocn.log ../ocnlog/ocn.log-k-cu-4proc-180-110-undefiso
 # vimdiff ../run/ocn.log ../ocnlog/ocn.log-f-4proc-180-110-undefiso-intel
-# vimdiff ../run/ocn.log ../ocnlog/ocn.log-f-120proc-30-22-undefiso-intel
+vimdiff ../run/ocn.log ../ocnlog/ocn.log-f-120proc-30-22-undefiso-intel
 # vimdiff ../run/ocn.log ../ocnlog/ocn.log-f-120proc-30-22-undefiso-canuto2010-intel
 # vimdiff ../run/ocn.log ../ocnlog/ocn.log-f-4proc-180-110-undefiso-canuto2010-intel
-vimdiff ../run/ocn.log ../ocnlog/ocn.log-f-40proc-45-44-undefiso-undefbihar-intel
+# vimdiff ../run/ocn.log ../ocnlog/ocn.log-f-40proc-45-44-undefiso-undefbihar-intel
 # vimdiff ../run/ocn.log ../ocnlog/ocn.log-f-4proc-180-110-undefiso-undefbihar-intel
