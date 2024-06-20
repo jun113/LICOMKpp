@@ -166,6 +166,9 @@ using KokkosHmixDel4::  p_v_amf;
 
 using KokkosHmixDel4::  p_v_du_cnsewm;
 using KokkosHmixDel4::  p_v_dm_cnsew;
+using KokkosTmpVar::p_v_curl;
+using KokkosTmpVar::p_v_d2uk;
+using KokkosTmpVar::p_v_d2vk;
 #else // BIHAR
 using KokkosHmixDel2::  p_v_duc;
 using KokkosHmixDel2::  p_v_dum;
@@ -180,11 +183,8 @@ using KokkosHmixDel2::  p_v_dme;
 using KokkosHmixDel2::  p_v_dmw;
 #endif // BIHAR
 
-using KokkosTmpVar::p_v_curl;
 using KokkosTmpVar::p_v_wp12;
 using KokkosTmpVar::p_v_wp13;
-using KokkosTmpVar::p_v_d2uk;
-using KokkosTmpVar::p_v_d2vk;
 using KokkosTmpVar::p_v_uv_ws_face;
 
 using KokkosTmpVar::p_v_ak_tide_mixing;
@@ -1211,28 +1211,25 @@ class FunctorReadyc10 {
   KOKKOS_INLINE_FUNCTION void upwell_4 (const int &j,
       const int &i, const ViewDouble3D &v_h0wk) const {
     const int iblock = 0;
-
-    v_work_(iblock, j, i) = C0;
+    double work = C0;
 
     if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
       for (int k = 0; k < KM; ++k) {
-        v_work_(iblock, j, i) -= v_dzp_(k)
-            * v_wka_(iblock, k, j, i)
+        work -= v_dzp_(k) * v_wka_(iblock, k, j, i)
                 * v_vit_(iblock, k, j, i);
       }
       double ws = v_ws_(iblock, 0, j, i);
       for (int k = 1; k < KM; ++k) {
         ws = v_vit_(iblock, k, j, i) * (ws + v_dzp_(k-1) 
-            * (v_work_(iblock, j, i) * v_ohbt_(iblock, j, i)
-                + v_wka_(iblock, k-1, j, i  )));
+            * (work * v_ohbt_(iblock, j, i)
+                + v_wka_(iblock, k-1, j, i)));
         v_ws_(iblock, k, j, i) = ws;
       }
-
-      v_work_(iblock, j, i) = 1.0 / (1.0 + v_h0wk(iblock, j, i)
-          * v_ohbt_(iblock, j, i));
+      
+      work = 1.0 / (1.0 + v_h0wk(iblock, j, i) * v_ohbt_(iblock, j, i));
 
       for (int k = 1; k < KM; ++k) {
-        v_ws_(iblock, k, j, i) *= v_work_(iblock, j, i);
+        v_ws_(iblock, k, j, i) *= work;
       }
     }
     return ;
@@ -1240,12 +1237,12 @@ class FunctorReadyc10 {
  private:
   const ViewDouble1D v_dzp_  = *p_v_dzp;
   const ViewDouble3D v_h0_   = *p_v_h0;
-  const ViewDouble3D v_work_ = *p_v_work;
   const ViewDouble3D v_ohbt_ = *p_v_ohbt;
   const ViewDouble4D v_ws_   = *p_v_ws;
   const ViewDouble4D v_vit_  = *p_v_vit;
   const ViewDouble4D v_wka_  = *p_v_wka;
 };
+
 class FunctorReadyc11 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -1516,9 +1513,12 @@ class FunctorReadyc14 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
+#ifdef BIHAR
     hdiffu_del4_1(k, j, i, v_up_, v_vp_);
+#endif // BIHAR
     return ;
   }
+#ifdef BIHAR
   KOKKOS_INLINE_FUNCTION void hdiffu_del4_1(
       const int &k, const int &j, const int &i,
           const ViewDouble4D &v_umixk, const ViewDouble4D &v_vmixk)
@@ -1578,17 +1578,19 @@ class FunctorReadyc14 {
   const ViewDouble4D v_vp_      = *p_v_vp;
   const ViewDouble4D v_wka_     = *p_v_wka;
   const ViewDouble4D v_wkb_     = *p_v_wkb;
+#endif // BIHAR
 };
 
 class FunctorReadyc15 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
-
+#ifdef BIHAR
     hdiffu_del4_2 (k, j, i, v_up_, v_vp_);
-
+#endif // BIHAR
     return ;
   }
+#ifdef BIHAR
   KOKKOS_INLINE_FUNCTION void hdiffu_del4_2 (
       const int &k, const int &j, const int &i,
           const ViewDouble4D &v_umixk, const ViewDouble4D &v_vmixk)
@@ -1622,7 +1624,9 @@ class FunctorReadyc15 {
     }
     return ;
   }
+#endif // BIHAR
  private:
+#ifdef BIHAR
   const int ib_ = CppBlocks::ib;
   const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
@@ -1633,17 +1637,19 @@ class FunctorReadyc15 {
   const ViewDouble4D v_vp_        = *p_v_vp;
   const ViewDouble4D v_dm_cnsew_  = *p_v_dm_cnsew;
   const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
+#endif // BIHAR
 };
 class FunctorReadyc16 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
+#ifdef BIHAR
     const int iblock = 0;
-
     hdiffu_del4_3 (iblock, k, j, i);
-
+#endif // BIHAR
     return ;
   }
+#ifdef BIHAR
   KOKKOS_INLINE_FUNCTION void hdiffu_del4_3 (const int &iblock,
       const int &k, const int &j, const int &i) const {
     const int bid = 0;
@@ -1694,7 +1700,9 @@ class FunctorReadyc16 {
     }
     return ;
   }
+#endif // BIHAR
  private:
+#ifdef BIHAR
   const int ib_ = CppBlocks::ib;
   const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
@@ -1708,18 +1716,22 @@ class FunctorReadyc16 {
   const ViewDouble4D v_wka_   = *p_v_wka;
   const ViewDouble4D v_wkb_   = *p_v_wkb;
   const ViewDouble4D v_dxyur_ = *p_v_dxyur;
+#endif // BIHAR
 };
 class FunctorReadyc17 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
       const int &k, const int &j, const int &i) const {
+#ifdef BIHAR
     const int iblock = 0;
     double hduk, hdvk;
     hdiffu_del4_4 (iblock, k, j, i, hduk, hdvk);
     v_dlu_(iblock, k, j, i) += hduk;
     v_dlv_(iblock, k, j, i) += hdvk;
+#endif // BIHAR
   return ;
   }
+#ifdef BIHAR
   KOKKOS_INLINE_FUNCTION void hdiffu_del4_4 (
       const int &iblock, const int &k, const int &j, const int &i,
           double &hduk, double &hdvk)
@@ -1758,7 +1770,9 @@ class FunctorReadyc17 {
     }
     return ;
   }
+#endif // BIHAR
  private:
+#ifdef BIHAR
   const int ib_ = CppBlocks::ib;
   const int ie_ = CppBlocks::ie;
   const int jb_ = CppBlocks::jb;
@@ -1771,8 +1785,90 @@ class FunctorReadyc17 {
   const ViewDouble4D v_dlv_       = *p_v_dlv;
   const ViewDouble4D v_dm_cnsew_  = *p_v_dm_cnsew;
   const ViewDouble4D v_du_cnsewm_ = *p_v_du_cnsewm;
+#endif // BIHAR
 };
 
+class FuncReadyc15Del2 {
+ public:
+  KOKKOS_INLINE_FUNCTION 
+  void operator () (const int &k, const int &j, const int &i) const {
+#ifndef BIHAR
+    const int iblock = 0;
+    double hduk, hdvk;
+    hdiffu_del2 (k, j, i, hduk, hdvk, v_up_, v_vp_);
+    v_dlu_(iblock, k, j, i) += hduk;
+    v_dlv_(iblock, k, j, i) += hdvk;
+#endif // BIHAR
+  return ;
+  }
+#ifndef BIHAR
+  KOKKOS_INLINE_FUNCTION 
+  void hdiffu_del2 (const int &k, const int &j, const int &i,
+      double &hduk, double &hdvk, 
+      const ViewDouble4D &v_umixk, const ViewDouble4D &v_vmixk) const {
+    const int bid = 0;
+    hduk = C0;
+    hdvk = C0;
+
+    if (i >= (ib_-1) && i < (ie_) && j >= (jb_-1) && j < (je_)) {
+      const double cc = v_duc_(bid, j, i) + v_dum_(bid, j, i);
+      hduk = am_ * ((      cc * v_umixk(bid, k, j  , i  )
+          + v_dun_(bid, j, i) * v_umixk(bid, k, j-1, i  )
+          + v_dus_(bid, j, i) * v_umixk(bid, k, j+1, i  )
+          + v_due_(bid, j, i) * v_umixk(bid, k, j  , i+1)
+          + v_duw_(bid, j, i) * v_umixk(bid, k, j  , i-1))
+         + (v_dmc_(bid, j, i) * v_vmixk(bid, k, j  , i  )
+          + v_dmn_(bid, j, i) * v_vmixk(bid, k, j-1, i  )
+          + v_dms_(bid, j, i) * v_vmixk(bid, k, j+1, i  )
+          + v_dme_(bid, j, i) * v_vmixk(bid, k, j  , i+1)
+          + v_dmw_(bid, j, i) * v_vmixk(bid, k, j  , i-1))) 
+              * v_viv_(bid, k, j, i);
+   
+      hdvk = am_ * ((      cc * v_vmixk(bid, k, j  , i  )
+          + v_dun_(bid, j, i) * v_vmixk(bid, k, j-1, i  )
+          + v_dus_(bid, j, i) * v_vmixk(bid, k, j+1, i  )
+          + v_due_(bid, j, i) * v_vmixk(bid, k, j  , i+1)
+          + v_duw_(bid, j, i) * v_vmixk(bid, k, j  , i-1))
+         - (v_dmc_(bid, j, i) * v_umixk(bid, k, j  , i  )
+          + v_dmn_(bid, j, i) * v_umixk(bid, k, j-1, i  )
+          + v_dms_(bid, j, i) * v_umixk(bid, k, j+1, i  )
+          + v_dme_(bid, j, i) * v_umixk(bid, k, j  , i+1)
+          + v_dmw_(bid, j, i) * v_umixk(bid, k, j  , i-1)))
+              * v_viv_(bid, k, j, i);
+    }
+    if (k > v_kmu_(bid, j, i) - 1) {
+      hduk = C0;
+      hdvk = C0;
+    }
+    return ;
+  }
+#endif // BIHAR
+ private:
+#ifndef BIHAR
+  const int ib_ = CppBlocks::ib;
+  const int ie_ = CppBlocks::ie;
+  const int jb_ = CppBlocks::jb;
+  const int je_ = CppBlocks::je;
+  const double am_ = CppHmixDel2::am;
+  const ViewInt3D    v_kmu_ = *p_v_kmu;
+  const ViewDouble3D v_duc_ = *p_v_duc;
+  const ViewDouble3D v_dum_ = *p_v_dum;
+  const ViewDouble3D v_dun_ = *p_v_dun;
+  const ViewDouble3D v_dus_ = *p_v_dus;
+  const ViewDouble3D v_due_ = *p_v_due;
+  const ViewDouble3D v_duw_ = *p_v_duw;
+  const ViewDouble3D v_dmc_ = *p_v_dmc;
+  const ViewDouble3D v_dmn_ = *p_v_dmn;
+  const ViewDouble3D v_dms_ = *p_v_dms;
+  const ViewDouble3D v_dme_ = *p_v_dme;
+  const ViewDouble3D v_dmw_ = *p_v_dmw;
+  const ViewDouble4D v_up_  = *p_v_up;
+  const ViewDouble4D v_vp_  = *p_v_vp;
+  const ViewDouble4D v_dlu_ = *p_v_dlu;
+  const ViewDouble4D v_dlv_ = *p_v_dlv;
+  const ViewDouble4D v_viv_ = *p_v_viv;
+#endif // BIHAR
+};
 //-----------------------------------------------------------------
 // VERTICAL INTEGRATION
 //-----------------------------------------------------------------
@@ -1991,6 +2087,7 @@ KOKKOS_REGISTER_FOR_3D(FunctorReadyc14, FunctorReadyc14)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc15, FunctorReadyc15)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc16, FunctorReadyc16)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc17, FunctorReadyc17)
+KOKKOS_REGISTER_FOR_3D(FuncReadyc15Del2, FuncReadyc15Del2)
 KOKKOS_REGISTER_FOR_2D(FunctorReadyc18, FunctorReadyc18)
 KOKKOS_REGISTER_FOR_3D(FunctorReadyc19, FunctorReadyc19)
 KOKKOS_REGISTER_FOR_2D(FunctorReadyc20, FunctorReadyc20)

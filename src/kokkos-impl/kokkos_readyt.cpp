@@ -28,8 +28,8 @@ void kokkos_readyt() {
   Kokkos::deep_copy (dev, *p_v_ricdt,    0.0);
   Kokkos::deep_copy (dev, *p_v_ricdttms, 0.0);
 */
-using Kokkos::deep_copy;
-using Kokkos::create_mirror_view;
+// using Kokkos::deep_copy;
+// using Kokkos::create_mirror_view;
 
 //   ViewDouble4D::HostMirror h_v_utl = create_mirror_view(*p_v_utl);
 //   ViewDouble4D::HostMirror h_v_vtl = create_mirror_view(*p_v_vtl);
@@ -165,49 +165,49 @@ using Kokkos::create_mirror_view;
   parallel_for ("readyt_13", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}), FunctorReadyt13());
 
-//   deep_copy(h_v_utl, *p_v_utl);
-//   deep_copy(h_v_vtl, *p_v_vtl);
-//   deep_copy(h_v_utf, *p_v_utf);
-//   deep_copy(h_v_vtf, *p_v_vtf);
-//   deep_copy(h_v_akt, *p_v_akt);
-//   deep_copy(h_v_rict, *p_v_rict);
-//   deep_copy(h_v_pdensity, *p_v_pdensity);
-//   deep_copy(h_v_gg, *p_v_gg);
-//   deep_copy(h_v_pp, *p_v_pp);
-//   deep_copy(h_v_alpha, *p_v_alpha);
-//   deep_copy(h_v_beta, *p_v_beta);
-//   deep_copy(h_v_buoytur, *p_v_buoytur);
-//   deep_copy(h_v_buoysol, *p_v_buoysol);
-//   deep_copy(h_v_ricdt, *p_v_ricdt);
-//   deep_copy(h_v_dlu, *p_v_dlu);
-//   deep_copy(h_v_dlv, *p_v_dlv);
-//   deep_copy(h_v_h0l, *p_v_h0l);
-//   deep_copy(h_v_h0f, *p_v_h0f);
-//   deep_copy(h_v_pxb, *p_v_pxb);
-//   deep_copy(h_v_pyb, *p_v_pyb);
-//   deep_copy(h_v_wgp, *p_v_wgp);
-//   deep_copy(h_v_work, *p_v_work);
-//   deep_copy(h_v_whx, *p_v_whx);
-//   deep_copy(h_v_why, *p_v_why);
-//   deep_copy(h_v_pay, *p_v_pay);
-//   deep_copy(h_v_pax, *p_v_pax);
+  // deep_copy(h_v_utl, *p_v_utl);
+  // deep_copy(h_v_vtl, *p_v_vtl);
+  // deep_copy(h_v_utf, *p_v_utf);
+  // deep_copy(h_v_vtf, *p_v_vtf);
+  // deep_copy(h_v_akt, *p_v_akt);
+  // deep_copy(h_v_rict, *p_v_rict);
+  // deep_copy(h_v_pdensity, *p_v_pdensity);
+  // deep_copy(h_v_gg, *p_v_gg);
+  // deep_copy(h_v_pp, *p_v_pp);
+  // deep_copy(h_v_alpha, *p_v_alpha);
+  // deep_copy(h_v_beta, *p_v_beta);
+  // deep_copy(h_v_buoytur, *p_v_buoytur);
+  // deep_copy(h_v_buoysol, *p_v_buoysol);
+  // deep_copy(h_v_ricdt, *p_v_ricdt);
+  // deep_copy(h_v_dlu, *p_v_dlu);
+  // deep_copy(h_v_dlv, *p_v_dlv);
+  // deep_copy(h_v_h0l, *p_v_h0l);
+  // deep_copy(h_v_h0f, *p_v_h0f);
+  // deep_copy(h_v_pxb, *p_v_pxb);
+  // deep_copy(h_v_pyb, *p_v_pyb);
+  // deep_copy(h_v_wgp, *p_v_wgp);
+  // deep_copy(h_v_work, *p_v_work);
+  // deep_copy(h_v_whx, *p_v_whx);
+  // deep_copy(h_v_why, *p_v_why);
+  // deep_copy(h_v_pay, *p_v_pay);
+  // deep_copy(h_v_pax, *p_v_pax);
 
-//   readyt_debug_(
-//     h_v_utl.data(),
-//     h_v_vtl.data(),
-//     h_v_utf.data(),
-//     h_v_vtf.data(),
-//     h_v_akt.data(),
-//     h_v_rict.data(),
-//     h_v_pdensity.data(),
-//     h_v_gg.data(),
-//     h_v_pp.data(),
-//     h_v_alpha.data(),
-//     h_v_beta.data(),
-//     h_v_ricdt.data(),
-//     h_v_dlu.data(),
-//     h_v_dlv.data()
-//     );
+  // readyt_debug_(
+  //   h_v_utl.data(),
+  //   h_v_vtl.data(),
+  //   h_v_utf.data(),
+  //   h_v_vtf.data(),
+  //   h_v_akt.data(),
+  //   h_v_rict.data(),
+  //   h_v_pdensity.data(),
+  //   h_v_gg.data(),
+  //   h_v_pp.data(),
+  //   h_v_alpha.data(),
+  //   h_v_beta.data(),
+  //   h_v_ricdt.data(),
+  //   h_v_dlu.data(),
+  //   h_v_dlv.data()
+  //   );
   return ;
 }
 #endif // LICOM_ENABLE_KOKKOS

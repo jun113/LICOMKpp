@@ -186,6 +186,20 @@ extern void turb_2 (
     const int     &,        // i
     const int     &         /* j */);
 
+extern void advection_momentum (
+    const double (&uuu)[KM][JMT][IMT],
+    const double (&vvv)[KM][JMT][IMT],
+    const double (&www)[KM][JMT][IMT],
+    double (&adv_uu)[KM][JMT][IMT],
+    double (&adv_vv)[KM][JMT][IMT],
+    const int &iblock);
+
+extern void advection_tracer(const double (&uuu)[KM][JMT][IMT],
+    const double (&vvv)[KM][JMT][IMT], const double (&www)[KM+1][JMT][IMT],
+        const double (&ttt)[KM][JMT][IMT], double (&adv_tt)[KM][JMT][IMT],
+            const int &iblock, const int &mtracer);
+
+
 #ifdef ISO
 
 void isoflux(const int &, 

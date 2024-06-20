@@ -136,6 +136,7 @@ void stepon(const int &mm) {
     hip_readyc();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
+    // readyc_();
     kokkos_readyc();
 #endif // LICOM_ENABLE_KOKKOS
 

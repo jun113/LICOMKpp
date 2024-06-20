@@ -36,7 +36,8 @@ use constant_mod
 use canuto_2010_mod
       IMPLICIT NONE
 !      REAL(r8)  :: WKP (KMP1)
-      REAL(r8),dimension(IMT,JMT,KM) :: wkk1,wkk2,wkk5,wkk6,wkk8,wkk9,wkk10,wkk11
+      REAL(r8),dimension(IMT,JMT,KM) :: wkk1,wkk2,wkk5,wkk8,wkk9,wkk10,wkk11
+      REAL(r8),dimension(IMT,JMT,KMp1) :: wkk6
       REAL(r8),dimension(IMT,JMT) :: wkk7,wkk12,wkk13
       REAL(r8),dimension(IMT,JMT,KMm1) :: wkk3,wkk4
       INTEGER   :: IWK,n2, iblock,kmb
@@ -107,12 +108,20 @@ use canuto_2010_mod
       wp13 = c0
 
     do iblock = 1, nblocks_clinic
+      DO K = 1,KMp1
+         DO J = JST,JET
+            DO I = 1,IMT
+               ws (I,J,K,IBLOCK)= wkk6 (I,J,K)
+            END DO
+         END DO
+      END DO
+    end do
+    do iblock = 1, nblocks_clinic
       DO K = 1,KM
          DO J = JST,JET
             DO I = 1,IMT
                wp12 (I,J,K,IBLOCK)= wkk1 (I,J,K)
                wp13 (I,J,K,IBLOCK)= wkk2 (I,J,K)
-               ws (I,J,K,IBLOCK)= wkk6 (I,J,K)
                wka (I,J,K,IBLOCK)= wkk5 (I,J,K)
                dlu (I,J,K,IBLOCK)= wkk10 (I,J,K)
                dlv (I,J,K,IBLOCK)= wkk11 (I,J,K)
@@ -138,13 +147,89 @@ use canuto_2010_mod
             END DO
          END DO
     end do
+! !$OMP PARALLEL DO PRIVATE (IBLOCK,K)
+!    DO IBLOCK = 1, NBLOCKS_CLINIC
+!       DO K = 1,KM
+!          call ugrid_to_tgrid(wp12(:,:,k,iblock),up(:,:,k,iblock),iblock,k)
+!          call ugrid_to_tgrid(wp13(:,:,k,iblock),vp(:,:,k,iblock),iblock,k)
+!       END DO
+!    END DO
+!
+ 
+! !$OMP PARALLEL DO PRIVATE (IBLOCK)
+!    DO IBLOCK = 1, NBLOCKS_CLINIC
+!       DO K = 1,KMM1
+!          DO J = 2, JMT
+!             DO I = 1,IMT-1
+!                riv1(i,j,k,iblock) = wp12 (I,J,K,iblock)*vit(i,j,k,iblock) - wp12 (I,J,K +1,iblock)*vit(i,j,k+1,iblock)
+!                riv2(i,j,k,iblock) = wp13 (I,J,K,iblock)*vit(i,j,k,iblock) - wp13 (I,J,K +1,iblock)*vit(i,j,k+1,iblock)
+!                s2t (i,j,k,iblock) =vit(i,j,k+1,iblock)*(riv1(i,j,k,iblock)*riv1(i,j,k,iblock)+ & 
+!                                    riv2(i,j,k,iblock)*riv2(i,j,k,iblock))*ODZT(K+1)*ODZT(K+1)
+! #ifdef CANUTO2010  
+!                rit (i,j,k,iblock)= VIT (I,J,K +1,iblock)*rict(i,j,k,iblock)/(s2t(i,j,k,iblock)+epsln)
+! #else          
+!                rit (i,j,k,iblock)= rit (i,j,k,iblock,iblock) +VIT (I,J,K +1,iblock,iblock)* &
+!                                    rict(i,j,k,iblock,iblock)/(s2t(i,j,k,iblock,iblock)+epsln)
+! #endif
+!             END DO
+!          END DO
+!       END DO
+!    END DO
+! !$OMP PARALLEL DO PRIVATE (IBLOCK)
+!    DO IBLOCK = 1, NBLOCKS_CLINIC
+!       DO K = 1,KMM1
+!          DO J = 1, JMT
+!             DO I = 1, IMT
+!                riv1(i,j,k,iblock) = UP (I,J,K,iblock) - UP (I,J,K +1,iblock)
+!                riv2(i,j,k,iblock) = VP (I,J,K,iblock) - VP (I,J,K +1,iblock)
+!                s2u (i,j,k,iblock) =viv(i,j,k+1,iblock)*(riv1(i,j,k,iblock)*riv1(i,j,k,iblock)+riv2(i,j,k,iblock)*riv2(i,j,k,iblock))*ODZT(K+1)*ODZT(K+1)
+! ! calculate the shear square and the T component minus S component of Richardson Number
+! !lhl1204
+!                riu (i,j,k,iblock) = VIV (I,J,K +1,iblock)*ric (i,j,k,iblock)/(s2u(i,j,k,iblock)+epsln)
+! !lhl1204
+!             END DO
+!          END DO
+!       END DO
+!    END DO
+!
+!
+#ifdef BCKMEX
+!add the vertical diffusivity due to internal wave mixing based on Jochum(2009)
+!$OMP PARALLEL
+!$OMP WORKSHARE
+             diff_back=0.0d0
+             diff_back_sh=0.0d0
+             diff_back_nh=0.0d0
+!$OMP END WORKSHARE
+!$OMP END PARALLEL
+!$OMP PARALLEL DO PRIVATE(iblock,j,i)
+   DO iblock = 1, nblocks_clinic
+     DO J = 1, JMT
+         DO I = 1, IMT
+          if(tlat(i,j,iblock)<0.0) then
+           diff_back_sh(i,j,iblock) =diff_back_coef_max*exp(-(0.4d0*(tlat(i,j,iblock)/DEGtoRAD+28.9))**2)
+          else
+           diff_back_nh(i,j,iblock) = diff_back_coef_max*exp(-(0.4d0*(tlat(i,j,iblock)/DEGtoRAD-28.9))**2)
+          endif
+          diff_back(i,j,iblock)=diff_back_eq+diff_back_sh(i,j,iblock)+diff_back_nh(i,j,iblock)
+        if ( tlat(i,j,iblock) .lt. -10.0*degtorad ) then
+          diff_back(i,j,iblock) = diff_back(i,j,iblock) + diff_back_coef
+        elseif  ( abs(tlat(i,j,iblock)) .le. 10.0*degtorad ) then
+          diff_back(i,j,iblock) = diff_back(i,j,iblock) + diff_back_coef*(abs(tlat(i,j,iblock)/DEGtoRAD)/10.0)**2
+        else
+          diff_back(i,j,iblock) = diff_back(i,j,iblock) + diff_back_coef
+        endif
+       ENDDO
+     ENDDO
+   ENDDO
+#endif 
 
 ! #ifdef CANUTO2010
-!
-   !   amld = c0
-   !   akmt = c0
-   !   akmu = c0
-!
+
+!      amld = c0
+!      akmt = c0
+!      akmu = c0
+
 
 ! !$OMP PARALLEL DO PRIVATE (iblock,tq,sq,wp1,wp2,wp3,wp4,wp5,wp6,wp7,wp8,wk1,wk2,wk3,wk4)
 !    do iblock = 1, nblocks_clinic
@@ -224,17 +309,17 @@ use canuto_2010_mod
 !               !  if(mytid == 3) then
 !                ! write(*,*) k,j,i,wk1(k)-wkk5(i,j,k)
 !                ! endif
-!          !   AKMT(I,J,K,iblock)=WK1(K)
-!          !   AKT(I,J,K,1,iblock)=AKT(I,J,K,1,iblock)+ WK2(K)
-!          !   AKT(I,J,K,2,iblock)=AKT(I,J,K,2,iblock)+ WK3(K)
+!            AKMT(I,J,K,iblock)=WK1(K)
+!            AKT(I,J,K,1,iblock)=AKT(I,J,K,1,iblock)+ WK2(K)
+!            AKT(I,J,K,2,iblock)=AKT(I,J,K,2,iblock)+ WK3(K)
 ! #if ( defined TIDEMIX )
-!          !   AKMT(I,J,K,iblock)=AKMT(I,J,K,iblock)+  ak_tide_mixing(K)*5.0
-!          !   AKT(I,J,K,1,iblock)=AKT(I,J,K,1,iblock)+ak_tide_mixing(K)
-!          !   AKT(I,J,K,2,iblock)=AKT(I,J,K,2,iblock)+ak_tide_mixing(K)
+!            AKMT(I,J,K,iblock)=AKMT(I,J,K,iblock)+  ak_tide_mixing(K)*5.0
+!            AKT(I,J,K,1,iblock)=AKT(I,J,K,1,iblock)+ak_tide_mixing(K)
+!            AKT(I,J,K,2,iblock)=AKT(I,J,K,2,iblock)+ak_tide_mixing(K)
 ! #endif 
-!          !   akmt(i,j,k,iblock) = min(akmt(i,j,k,iblock), 8.0D-3*DZP(K)*DZP(K))
-!          !   akt(i,j,k,1,iblock)= min(akt(i,j,k,1,iblock),8.0D-3*DZP(K)*DZP(K))
-!          !   akt(i,j,k,2,iblock)= min(akt(i,j,k,2,iblock),8.0D-3*DZP(K)*DZP(K))
+!            akmt(i,j,k,iblock) = min(akmt(i,j,k,iblock), 8.0D-3*DZP(K)*DZP(K))
+!            akt(i,j,k,1,iblock)= min(akt(i,j,k,1,iblock),8.0D-3*DZP(K)*DZP(K))
+!            akt(i,j,k,2,iblock)= min(akt(i,j,k,2,iblock),8.0D-3*DZP(K)*DZP(K))
 !          END DO
 !         endif
 !          END DO
@@ -247,32 +332,33 @@ use canuto_2010_mod
 !    ! stop
 
 ! !$OMP PARALLEL DO PRIVATE (IBLOCK)
-!    ! do iblock = 1, nblocks_clinic
-!    !    DO K = 1,KMM1
-!    !       call tgrid_to_ugrid(akmu(:,:,k,iblock), akmt(:,:,k,iblock),iblock)
-!    !       do j= 1,jmt
-!    !       do i= 1,imt
-!    !          akmu(i,j,k,iblock) = akmu(i,j,k,iblock)* viv(i,j,k+1,iblock)
-!    !       end do
-!    !       end do
-!    !    END DO
-!    ! end do
+!    do iblock = 1, nblocks_clinic
+!       DO K = 1,KMM1
+!          call tgrid_to_ugrid(akmu(:,:,k,iblock), akmt(:,:,k,iblock),iblock)
+!          do j= 1,jmt
+!          do i= 1,imt
+!             akmu(i,j,k,iblock) = akmu(i,j,k,iblock)* viv(i,j,k+1,iblock)
+!          end do
+!          end do
+!       END DO
+!    end do
 ! !lhl241204
 ! #endif
-!---------------------------------------------------------------------
+! ---------------------------------------------------------------------
 !     COMPUTE THE ADVECTIVE TERM: ZONAL COMPONENT
-!---------------------------------------------------------------------
-      ! CALL UPWELL_debug (U,V,H0,wkk7,wkk8,wkk9,wkk5)
+! ---------------------------------------------------------------------
+      ! CALL UPWELL_debug (U,V,H0,wkk7,wkk8,wkk9,wkk5,wkk6)
+      ! CALL UPWELL (U,V,H0)
       
       ! call fortran_mpi_barrier
       ! stop
-!---------------------------------------------------------------------
+! ---------------------------------------------------------------------
 !     INITIALIZE WORK ARRAYS
-!---------------------------------------------------------------------
+! ---------------------------------------------------------------------
  
-   !   dlu = c0
-   !   dlv = c0
-   !   wka = c0
+    !  dlu = c0
+    !  dlv = c0
+    !  wka = c0
 
 ! !$OMP PARALLEL DO PRIVATE (IBLOCK,K)
 !    do iblock = 1, nblocks_clinic
@@ -281,9 +367,9 @@ use canuto_2010_mod
 !        END DO
 !    end do
 
-!---------------------------------------------------------------------
+! ---------------------------------------------------------------------
 !     COMPUTE THE ADVECTIVE TERMS
-!---------------------------------------------------------------------
+! ---------------------------------------------------------------------
  
 ! !$OMP PARALLEL DO PRIVATE (IBLOCK)
 !     DO IBLOCK = 1, NBLOCKS_CLINIC
@@ -292,60 +378,60 @@ use canuto_2010_mod
 ! !       dlu(:,:,:,IBLOCK)=adv_uu
 ! !       dlv(:,:,:,IBLOCK)=adv_vv
 !    END DO
-!
-!---------------------------------------------------------------------
+
+! ---------------------------------------------------------------------
 !     COMPUTE THE HORIZONTAL VISCOSITY
-!---------------------------------------------------------------------
+! ---------------------------------------------------------------------
  
-! #if ( defined SMAG)
-! !
-!          CALL SMAG2 (K)
-! !
-! #if (defined SMAG_FZ )
-! #else
-! #endif
-! #else
-! #if (defined BIHAR)
+#if ( defined SMAG)
+!
+         CALL SMAG2 (K)
+!
+#if (defined SMAG_FZ )
+#else
+#endif
+#else
+#if (defined BIHAR)
 
-! !$OMP PARALLEL DO PRIVATE (IBLOCK,this_block,K,HDUK,HDVK)
-!    DO IBLOCK = 1, NBLOCKS_CLINIC
-!       this_block = get_block(blocks_clinic(iblock),iblock)
-!       DO K = 1,KM
-!           call hdiffu_del4(k, HDUK, HDVK, up(:,:,k,iblock), vp(:,:,k,iblock), this_block)
-!           do j = 3, jmt-2
-!           do i = 3, imt-2
-!             dlv (i,j,k,iblock) = dlv(i,j,k,iblock) + hdvk(i,j)
-!             dlu (i,j,k,iblock) = dlu(i,j,k,iblock) + hduk(i,j)
-!           end do
-!           end do
-!       END DO
-!    END DO
+!$OMP PARALLEL DO PRIVATE (IBLOCK,this_block,K,HDUK,HDVK)
+   DO IBLOCK = 1, NBLOCKS_CLINIC
+      this_block = get_block(blocks_clinic(iblock),iblock)
+      DO K = 1,KM
+          ! call hdiffu_del4(k, HDUK, HDVK, up(:,:,k,iblock), vp(:,:,k,iblock), this_block)
+          do j = 3, jmt-2
+          do i = 3, imt-2
+            ! dlv (i,j,k,iblock) = dlv(i,j,k,iblock) + hdvk(i,j)
+            ! dlu (i,j,k,iblock) = dlu(i,j,k,iblock) + hduk(i,j)
+          end do
+          end do
+      END DO
+   END DO
 
-! #else
-! !$OMP PARALLEL DO PRIVATE (IBLOCK,this_block,hduk,hdvk,K)
-!    DO IBLOCK = 1, NBLOCKS_CLINIC
-!       this_block = get_block(blocks_clinic(iblock),iblock)
-!       DO K = 1,KM
-!          call hdiffu_del2(k, HDUK, HDVK, up(:,:,k,iblock), vp(:,:,k,iblock), this_block)
-!          DO J = 3, JMT-2
-!             DO I = 3,IMT-2
-!                dlv (i,j,k,iblock) = dlv(i,j,k,iblock) + hdvk(i,j)
-!                dlu (i,j,k,iblock) = dlu(i,j,k,iblock) + hduk(i,j)
-!             END DO
-!          END DO
-!       END DO
-!    END DO
+#else
+!$OMP PARALLEL DO PRIVATE (IBLOCK,this_block,hduk,hdvk,K)
+   DO IBLOCK = 1, NBLOCKS_CLINIC
+      this_block = get_block(blocks_clinic(iblock),iblock)
+      DO K = 1,KM
+        !  call hdiffu_del2(k, HDUK, HDVK, up(:,:,k,iblock), vp(:,:,k,iblock), this_block)
+         DO J = 3, JMT-2
+            DO I = 3,IMT-2
+              !  dlv (i,j,k,iblock) = dlv(i,j,k,iblock) + hdvk(i,j)
+              !  dlu (i,j,k,iblock) = dlu(i,j,k,iblock) + hduk(i,j)
+            END DO
+         END DO
+      END DO
+   END DO
  
-! #endif
-! #endif
+#endif
+#endif
  
  
-!---------------------------------------------------------------------
+! ---------------------------------------------------------------------
 !     VERTICAL INTEGRATION
-!---------------------------------------------------------------------
+! ---------------------------------------------------------------------
       ! CALL VINTEG (DLU,DLUB)
       ! CALL VINTEG (DLV,DLVB)
-!
+
 ! !$OMP PARALLEL DO PRIVATE (iblock,J,I,kmb) 
 !       do iblock = 1, nblocks_clinic
 !          DO J = 2, jmt-1
@@ -379,61 +465,61 @@ use canuto_2010_mod
 !    END DO
  
  
-! !$OMP PARALLEL DO PRIVATE (IBLOCK,diff_u1,diff_v1,diff_u2,diff_v2)
-!     DO IBLOCK = 1, NBLOCKS_CLINIC
-!       DO K = 1,KM
-!       DO J = 2, JMT-1
-!          DO I = 2,IMT-1
-! !lhl1204
-! #ifdef CANUTO2010
-! !       print*,akmU(i,j,k)
-!             if (k==1) then
-!                diff_v1 = SV (I,J,IBLOCK)* OD0*(1-AIDIF)
-!                diff_u1 = SU (I,J,IBLOCK)* OD0*(1-AIDIF)
-!             else
-!                diff_v1= AKMU(I,J,K-1,IBLOCK)*(1-AIDIF)*(VP(I,J,K-1,IBLOCK)- VP(I,J,K,IBLOCK))* &
-!                         ODZT(K)*VIV(I,J,K,IBLOCK)+ &
-!                         (1.0D0- VIV (I,J,K,IBLOCK))* WKA (I,J,K -1,IBLOCK)*(1-AIDIF) &
-!                       * (-SNLAT(I,J,IBLOCK)*UP(I,J,K-1,IBLOCK)*SAG+VP(I,J,K-1,IBLOCK)*CAG)
-!                diff_u1= AKMU(I,J,K-1,IBLOCK)*(1-AIDIF)* (UP(I,J,K-1,IBLOCK)-UP(I,J,K,IBLOCK))*  &
-!                         ODZT (K)*VIV (I,J,K,IBLOCK) + &
-!                        (1.0D0- VIV (I,J,K,IBLOCK))* WKA (I,J,K -1,IBLOCK)*(1-AIDIF) &
-!                       *(UP(I,J,K-1,IBLOCK)*CAG+SNLAT(I,J,IBLOCK)*VP(I,J,K-1,IBLOCK)* SAG)
-!             end if
-!             if (k==km) then
-!                diff_v2= WKA (I,J,KM,IBLOCK)* ( - SNLAT (I,J,IBLOCK)* UP (I,J,KM,IBLOCK)        &
-!                         * SAG + VP (I,J,KM,IBLOCK)* CAG)*(1-AIDIF)
-!                diff_u2= WKA (I,J,KM,IBLOCK)* ( UP (I,J,KM,IBLOCK)* CAG + SNLAT (I,J,IBLOCK)    &
-!                         * VP (I,J,KM,IBLOCK)* SAG)*(1-AIDIF)
-!             else
-!                diff_v2= AKMU(I,J,K,IBLOCK)*(1-AIDIF)*(VP(I,J,K,IBLOCK)- VP(I,J,K+1,IBLOCK))* &
-!                         ODZT(K+1)*VIV(I,J,K+1,IBLOCK)+ &
-!                         (1.0D0- VIV (I,J,K+1,IBLOCK))* WKA (I,J,K,IBLOCK)*(1-AIDIF) &
-!                       * (-SNLAT(I,J,IBLOCK)*UP(I,J,K,IBLOCK)*SAG+VP(I,J,K,IBLOCK)*CAG)
-!                diff_u2= AKMU(I,J,K,IBLOCK)*(1-AIDIF)*(UP(I,J,K,IBLOCK)-UP(I,J,K+1,IBLOCK))*  & 
-!                         ODZT(K+1)*VIV (I,J,K+1,IBLOCK) + &
-!                        (1.0D0- VIV (I,J,K+1,IBLOCK))* WKA (I,J,K,IBLOCK)*(1-AIDIF) &
-!                       *(UP(I,J,K,IBLOCK)*CAG+SNLAT(I,J,IBLOCK)*VP(I,J,K,IBLOCK)* SAG)
-!             end if
-! #else
-! !
-!             call exit_licom(sigAbort,'The false mixing option')
-! !
-! #endif
-! !lhl1204
-!             DLV (I,J,K,IBLOCK) = DLV (I,J,K,IBLOCK) + ODZP (K)* (diff_v1-diff_v2)
-!             DLU (I,J,K,IBLOCK) = DLU (I,J,K,IBLOCK) + ODZP (K)* (diff_u1-diff_u2)
-!         END DO
-!       END DO
-!       END DO
-!    END DO
+!$OMP PARALLEL DO PRIVATE (IBLOCK,diff_u1,diff_v1,diff_u2,diff_v2)
+    DO IBLOCK = 1, NBLOCKS_CLINIC
+      DO K = 1,KM
+      DO J = 2, JMT-1
+         DO I = 2,IMT-1
+!lhl1204
+#ifdef CANUTO2010
+!       print*,akmU(i,j,k)
+            if (k==1) then
+               diff_v1 = SV (I,J,IBLOCK)* OD0*(1-AIDIF)
+               diff_u1 = SU (I,J,IBLOCK)* OD0*(1-AIDIF)
+            else
+               diff_v1= AKMU(I,J,K-1,IBLOCK)*(1-AIDIF)*(VP(I,J,K-1,IBLOCK)- VP(I,J,K,IBLOCK))* &
+                        ODZT(K)*VIV(I,J,K,IBLOCK)+ &
+                        (1.0D0- VIV (I,J,K,IBLOCK))* WKA (I,J,K -1,IBLOCK)*(1-AIDIF) &
+                      * (-SNLAT(I,J,IBLOCK)*UP(I,J,K-1,IBLOCK)*SAG+VP(I,J,K-1,IBLOCK)*CAG)
+               diff_u1= AKMU(I,J,K-1,IBLOCK)*(1-AIDIF)* (UP(I,J,K-1,IBLOCK)-UP(I,J,K,IBLOCK))*  &
+                        ODZT (K)*VIV (I,J,K,IBLOCK) + &
+                       (1.0D0- VIV (I,J,K,IBLOCK))* WKA (I,J,K -1,IBLOCK)*(1-AIDIF) &
+                      *(UP(I,J,K-1,IBLOCK)*CAG+SNLAT(I,J,IBLOCK)*VP(I,J,K-1,IBLOCK)* SAG)
+            end if
+            if (k==km) then
+               diff_v2= WKA (I,J,KM,IBLOCK)* ( - SNLAT (I,J,IBLOCK)* UP (I,J,KM,IBLOCK)        &
+                        * SAG + VP (I,J,KM,IBLOCK)* CAG)*(1-AIDIF)
+               diff_u2= WKA (I,J,KM,IBLOCK)* ( UP (I,J,KM,IBLOCK)* CAG + SNLAT (I,J,IBLOCK)    &
+                        * VP (I,J,KM,IBLOCK)* SAG)*(1-AIDIF)
+            else
+               diff_v2= AKMU(I,J,K,IBLOCK)*(1-AIDIF)*(VP(I,J,K,IBLOCK)- VP(I,J,K+1,IBLOCK))* &
+                        ODZT(K+1)*VIV(I,J,K+1,IBLOCK)+ &
+                        (1.0D0- VIV (I,J,K+1,IBLOCK))* WKA (I,J,K,IBLOCK)*(1-AIDIF) &
+                      * (-SNLAT(I,J,IBLOCK)*UP(I,J,K,IBLOCK)*SAG+VP(I,J,K,IBLOCK)*CAG)
+               diff_u2= AKMU(I,J,K,IBLOCK)*(1-AIDIF)*(UP(I,J,K,IBLOCK)-UP(I,J,K+1,IBLOCK))*  & 
+                        ODZT(K+1)*VIV (I,J,K+1,IBLOCK) + &
+                       (1.0D0- VIV (I,J,K+1,IBLOCK))* WKA (I,J,K,IBLOCK)*(1-AIDIF) &
+                      *(UP(I,J,K,IBLOCK)*CAG+SNLAT(I,J,IBLOCK)*VP(I,J,K,IBLOCK)* SAG)
+            end if
+#else
 !
-!    if (isc < 11 .and. mytid ==5) then
-!       write(120+mytid,*) "DLU,  OK-3, SC=", isc, dlu(14,16,1,1),dlv(14,16,1,1)
-!       write(120+mytid,*) "SU, SV,K-3, SC=", isc, su(14,16,1),sv(14,16,1)
-!     end if
-!     if (isc == 11 .and. mytid ==5) close(120+mytid)
-!     deallocate(riu) 
+            call exit_licom(sigAbort,'The false mixing option')
+!
+#endif
+!lhl1204
+            ! DLV (I,J,K,IBLOCK) = DLV (I,J,K,IBLOCK) + ODZP (K)* (diff_v1-diff_v2)
+            ! DLU (I,J,K,IBLOCK) = DLU (I,J,K,IBLOCK) + ODZP (K)* (diff_u1-diff_u2)
+        END DO
+      END DO
+      END DO
+   END DO
+
+   if (isc < 11 .and. mytid ==5) then
+      write(120+mytid,*) "DLU,  OK-3, SC=", isc, dlu(14,16,1,1),dlv(14,16,1,1)
+      write(120+mytid,*) "SU, SV,K-3, SC=", isc, su(14,16,1),sv(14,16,1)
+    end if
+    if (isc == 11 .and. mytid ==5) close(120+mytid)
+    deallocate(riu) 
  
 !Yu   if (ierr /= 0) then
 !Yu      write(6,*)'allocation error---tmp1,tmp2'

@@ -749,12 +749,12 @@ use shr_sys_mod
  
     deallocate(buffer_real4,buffer)
 ! wjl 20240126
-#ifndef LICOM_ENABLE_FORTRAN
-     deallocate(su3,sv3,psa3,tsa3,qar3,uva3)
-     deallocate(swv3,cld3,sss3,sst3,nswv3,dqdt3)
-     deallocate(seaice3,runoff3)
-     deallocate(wspd3,wspdu3,wspdv3,lwv3,rain3,snow3)
-#endif
+! #ifndef LICOM_ENABLE_FORTRAN
+!      deallocate(su3,sv3,psa3,tsa3,qar3,uva3)
+!      deallocate(swv3,cld3,sss3,sst3,nswv3,dqdt3)
+!      deallocate(seaice3,runoff3)
+!      deallocate(wspd3,wspdu3,wspdv3,lwv3,rain3,snow3)
+! #endif
 
       RETURN
       END SUBROUTINE RDRIVER

@@ -404,27 +404,10 @@ void kokkos_tracer() {
     parallel_for ("tracer_18_hdifft_del4_2", MDRangePolicy<Kokkos::Rank<3>> (
         koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorTracer18());
 #else  // BIHAR
-    for (int iblock = 0; iblock < nblocks_clinic; ++iblock) {
-      for (int k = 0; k < KM; ++k) {
-        // hdifft_del2(k, hdtk, atb[iblock][n][k+1], this_block);
-        parallel_for("tracer_hdifft_del2_1", MDRangePolicy<Kokkos::Rank<2>>
-            ({0, 0}, {NY_BLOCK, NX_BLOCK}, tile2D), 
-                functor_tracer_hdifft_del2_1(k));
-
-        parallel_for("tracer_hdifft_del2_2", MDRangePolicy<Kokkos::Rank<2>>
-            ({0, 0}, {NY_BLOCK, NX_BLOCK}, tile2D), 
-                functor_tracer_hdifft_del2_2());
-
-        parallel_for("tracer_hdifft_del2_3", MDRangePolicy<Kokkos::Rank<2>>
-            ({jb-1, ib-1}, {je, ie}, tile2D), 
-                functor_tracer_hdifft_del2_3(n, k, iblock));
-
-        // End hdifft_del2
-        parallel_for("tracer_10", MDRangePolicy<Kokkos::Rank<2>>
-            ({2, 2}, {JMT-2, IMT-2}, tile2D), 
-                functor_tracer_10(n, k, iblock));
-      }
-    }
+    // hdifft_del2(k, hdtk, atb[iblock][n][k+1], this_block);
+    parallel_for ("tracer_17_hdifft_del2", MDRangePolicy<Kokkos::Rank<3>> (
+        koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorTracer17Del2(n));
+    // End hdifft_del2
 #endif // BIHAR
 #endif //SMAG
 #endif // iSO

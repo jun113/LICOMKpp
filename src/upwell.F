@@ -113,7 +113,7 @@ use operators
       RETURN
       END SUBROUTINE UPWELL
 
-      SUBROUTINE UPWELL_debug (UWK,VWK,H0WK,wk_work,wk_uk,wk_vk,wk_wka)
+      SUBROUTINE UPWELL_debug (UWK,VWK,H0WK,wk_work,wk_uk,wk_vk,wk_wka,wk_ws)
 !     ===============================
  
 #include <def-undef.h>
@@ -130,6 +130,7 @@ use operators
       IMPLICIT NONE
       REAL(r8),dimension(IMT,JMT) :: WK_work
       REAL(r8),dimension(IMT,JMT,km) :: WK_uk,wk_vk,wk_wka
+      REAL(r8),dimension(IMT,JMT,kmp1) :: wk_ws
       REAL(r8):: UWK (IMT,JMT,KM,max_blocks_clinic),VWK (IMT,JMT,KM,max_blocks_clinic),H0WK (IMT,JMT,max_blocks_clinic)
       type(block) :: this_block
       integer :: iblock
@@ -147,13 +148,13 @@ use operators
       !allocate(uk(imt,jmt,km,max_blocks_clinic),vk(imt,jmt,km,max_blocks_clinic))
 
 !M
-   work = 0.0D0
+  !  work = 0.0D0
    ! wka  = 0.0D0
  
 !$OMP PARALLEL DO PRIVATE (IBLOCK)
-   ! DO IBLOCK = 1, NBLOCKS_CLINIC
-   !    call tgrid_to_ugrid(work(:,:,iblock), h0wk(:,:,iblock),iblock)
-   ! END DO
+   DO IBLOCK = 1, NBLOCKS_CLINIC
+      ! call tgrid_to_ugrid(work(:,:,iblock), h0wk(:,:,iblock),iblock)
+   END DO
    IBLOCK = 1
    DO J = 1, JMT
       DO I = 1,IMT
@@ -165,6 +166,14 @@ use operators
       DO I = 1,IMT
          uk (I,J,k, IBLOCK)= wk_uk(i,j,k)
          vk (I,J,k, IBLOCK)= wk_vk(i,j,k)
+         wka (I,J,k, IBLOCK)= wk_wka(i,j,k)
+      END DO
+   END DO
+   end do
+   do k = 1, kmp1
+   DO J = 1, JMT
+      DO I = 1,IMT
+         ws (I,J,k, IBLOCK)= wk_ws(i,j,k)
       END DO
    END DO
    end do
@@ -176,8 +185,8 @@ use operators
       DO K = 1,KM
          DO J = 1, JMT-1
             DO I = 2,IMT
-               ! UK (I,J,K,IBLOCK)= (1.0D0+ WORK (I,J,IBLOCK)* OHBU (I,J,IBLOCK))* UWK (I,J,K,IBLOCK)
-               ! VK (I,J,K,IBLOCK)= (1.0D0+ WORK (I,J,IBLOCK)* OHBU (I,J,IBLOCK))* VWK (I,J,K,IBLOCK)
+              !  UK (I,J,K,IBLOCK)= (1.0D0+ WORK (I,J,IBLOCK)* OHBU (I,J,IBLOCK))* UWK (I,J,K,IBLOCK)
+              !  VK (I,J,K,IBLOCK)= (1.0D0+ WORK (I,J,IBLOCK)* OHBU (I,J,IBLOCK))* VWK (I,J,K,IBLOCK)
             END DO
          END DO
       END DO
@@ -187,7 +196,7 @@ use operators
    DO IBLOCK = 1, NBLOCKS_CLINIC
       DO K = 1,KM
          this_block = get_block(blocks_clinic(iblock),iblock)
-         ! call div(k,wka(:,:,k,iblock),uk(:,:,k,iblock),vk(:,:,k,iblock),this_block)
+        !  call div(k,wka(:,:,k,iblock),uk(:,:,k,iblock),vk(:,:,k,iblock),this_block)
       END DO
    END DO
    ! do k = 1, km
@@ -202,14 +211,14 @@ use operators
    ! END DO
    ! end do
  
-   work = 0.0D0
+  !  work = 0.0D0
  
 !$OMP PARALLEL DO PRIVATE (IBLOCK,K,J,I)
    DO IBLOCK = 1, NBLOCKS_CLINIC
       DO K = 1,KM
          DO J = 2, JMT-1
             DO I = 2,IMT-1
-               WORK (I,J,IBLOCK)= WORK(I,J,IBLOCK) - DZP (K)* WKA (I,J,K,IBLOCK) * VIT (I,J,K,IBLOCK)
+              !  WORK (I,J,IBLOCK)= WORK(I,J,IBLOCK) - DZP (K)* WKA (I,J,K,IBLOCK) * VIT (I,J,K,IBLOCK)
             END DO
          END DO
       END DO
@@ -221,8 +230,8 @@ use operators
       DO K = 2,KM
          DO J = 2, JMT-1
             DO I = 2,IMT-1
-               WS (I,J,K,IBLOCK)= VIT (I,J,K,IBLOCK)* (WS (I,J,K -1,IBLOCK) + &
-               DZP (K -1)* (WORK (I,J,IBLOCK)* OHBT (I,J,IBLOCK) + WKA (I,J,K -1,IBLOCK)))
+              !  WS (I,J,K,IBLOCK)= VIT (I,J,K,IBLOCK)* (WS (I,J,K -1,IBLOCK) + &
+              !  DZP (K -1)* (WORK (I,J,IBLOCK)* OHBT (I,J,IBLOCK) + WKA (I,J,K -1,IBLOCK)))
             END DO
          END DO
       END DO
@@ -242,7 +251,7 @@ use operators
       DO K = 2,KM
          DO J = 2, JMT-1
             DO I = 2,IMT-1
-               WS (I,J,K,IBLOCK)= WS (I,J,K,IBLOCK)* WORK (I,J,IBLOCK)
+              !  WS (I,J,K,IBLOCK)= WS (I,J,K,IBLOCK)* WORK (I,J,IBLOCK)
             END DO
          END DO
       END DO
