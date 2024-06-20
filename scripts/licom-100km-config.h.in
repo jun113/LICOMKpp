@@ -21,7 +21,7 @@
 #undef  COUP
 #undef  ISO
 #define D_PRECISION
-#define CANUTO
+#define CANUTO2010
 #undef  SOLARCHLORO
 #undef  BCKMEX
 #define TIDEMIX

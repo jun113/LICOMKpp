@@ -49,6 +49,7 @@ cd ../run/
 rm -f ocn.log
 rm -f LICOMKpp
 
+chmod 777 ./../scripts/cp-${LICOM_RES}-data
 ./../scripts/cp-${LICOM_RES}-data
 
 cd -
