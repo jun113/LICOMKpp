@@ -841,7 +841,7 @@ class FunctorBarotr15Del2 {
   void operator () (const int &j, const int &i) const {
 #ifndef BIHAR
     const int iblock = 0;
-    double hdtk;
+    double hdtk = 0.0;
     hdifft_del2 (1, j, i, hdtk, v_h0p_);
     v_work_(iblock, j, i) = v_vit_(iblock, 0, j, i) * (hdtk - v_div_out_(j, i));
 #endif // BIHAR
