@@ -1337,7 +1337,7 @@ class FunctorTracer17 {
   KOKKOS_INLINE_FUNCTION 
   void operator () (const int &k, const int &j, const int &i) const {
     const int iblock = 0;
-    double hdtk;
+    double hdtk = 0.0;
     hdifft_del2 (n_, k, j, i, hdtk, v_atb_);
     v_tf_(iblock, k, j, i) += hdtk;
     return;
