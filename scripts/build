@@ -70,11 +70,11 @@ if [ "${MACHINE}" == "IAP_GPU" ]; then
       -D CMAKE_C_COMPILER="gcc" \
       -D CMAKE_CXX_COMPILER="${KOKKOS_SRC}/bin/nvcc_wrapper" \
       -D CMAKE_Fortran_COMPILER="ifort" \
-      -D Kokkos_ENABLE_CUDA_CONSTEXPR=on \
-      -D Kokkos_ENABLE_CUDA_LAMBDA=on \
-      -D Kokkos_ENABLE_CUDA=on \
-      -D Kokkos_ARCH_VOLTA70=on \
-      -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=on \
+      -D Kokkos_ENABLE_CUDA_CONSTEXPR=off \
+      -D Kokkos_ENABLE_CUDA_LAMBDA=off \
+      -D Kokkos_ENABLE_CUDA=off \
+      -D Kokkos_ARCH_VOLTA70=off \
+      -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=off \
       -D Kokkos_ENABLE_PROFILING_LOAD_PRINT=Off \
       -D Kokkos_ENABLE_COMPILER_WARNINGS=off \
       -D Kokkos_ENABLE_DEBUG=off \
