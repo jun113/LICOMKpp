@@ -152,6 +152,82 @@ void daily_update_h2d() {
 #endif // FRC_CORE
 #endif // LICOM_ENABLE_KOKKOS
 
+#ifdef LICOM_ENABLE_KOKKOS
+#ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
+  using CppParamMod::MAX_BLOCKS_CLINIC;
+  using CppParamMod::KM;
+  using CppParamMod::KMP1;
+  using CppParamMod::JMT;
+  using CppParamMod::IMT;
+  using CppParamMod::NX_BLOCK;
+  using CppParamMod::NY_BLOCK;
+  using CppParamMod::NTRA;
+
+  using KokkosDynMod   ::p_v_u;
+  using KokkosDynMod   ::p_v_v;
+  using KokkosDynMod   ::p_v_h0;
+  using KokkosDynMod   ::p_v_ws;
+  using KokkosForcMod  ::p_v_su;
+  using KokkosForcMod  ::p_v_sv;
+  using KokkosForcMod  ::p_v_swv;
+  using KokkosForcMod  ::p_v_sshf;
+  using KokkosForcMod  ::p_v_lthf;
+  using KokkosForcMod  ::p_v_fresh;
+  using KokkosTracerMod::p_v_at;
+  using KokkosTracerMod::p_v_atb;
+
+  auto dev = Kokkos::DefaultExecutionSpace();
+
+  static Kokkos::View<double ***, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_su(&(CppDynMod::su[0][0][0]), 
+              MAX_BLOCKS_CLINIC, JMT, IMT); 
+  Kokkos::deep_copy(dev, *p_v_su, h_v_su);
+
+  static Kokkos::View<double ***, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_su(&(CppDynMod::sv[0][0][0]), 
+              MAX_BLOCKS_CLINIC, JMT, IMT); 
+  Kokkos::deep_copy(dev, *p_v_sv, h_v_sv);
+
+  static Kokkos::View<double ***, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_nswv(&(CppDynMod::nswv[0][0][0]), 
+              MAX_BLOCKS_CLINIC, JMT, IMT); 
+  Kokkos::deep_copy(dev, *p_v_nswv, h_v_nswv);
+
+  static Kokkos::View<double ***, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_swv(&(CppDynMod::swv[0][0][0]), 
+              MAX_BLOCKS_CLINIC, JMT, IMT); 
+  Kokkos::deep_copy(dev, *p_v_swv, h_v_swv);
+
+#ifdef FRC_CORE
+  static Kokkos::View<double ***, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_fresh(&(CppForcMod::fresh[0][0][0]), 
+              MAX_BLOCKS_CLINIC, JMT, IMT); 
+  Kokkos::deep_copy(dev, *p_v_fresh, h_v_fresh);
+
+  static Kokkos::View<double ***, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_seaice(&(CppForcMod::seaice[0][0][0]), 
+              MAX_BLOCKS_CLINIC, JMT, IMT); 
+  Kokkos::deep_copy(dev, *p_v_seaice, h_v_seaice);
+
+#endif // FRC_CORE
+
+  static Kokkos::View<double ***, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_ustar(&(CppForcMod::ustar[0][0][0]), 
+              MAX_BLOCKS_CLINIC, JMT, IMT); 
+  Kokkos::deep_copy(dev, *p_v_ustar, h_v_ustar);
+
+
+
+#endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
+#endif // LICOM_ENABLE_KOKKOS
+
   return ;
 }
 

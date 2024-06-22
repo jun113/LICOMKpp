@@ -160,13 +160,13 @@ extern "C" void licom_core_() {
   }
 
 #if defined(LOWRES)
-  kokkos_init_jra_daily_low();
+  // kokkos_init_jra_daily_low();
 #elif defined(HIGHRES) || defined(SUPHIGH)
-  kokkos_init_jra_daily_high();
+  // kokkos_init_jra_daily_high();
 #endif // defined(HIGHRES) || defined(SUPHIGH)
-  if (CppParamMod::mytid == 0) {
-    printf("Initialize jra daily in Kokkos code done.\n");
-  }
+  // if (CppParamMod::mytid == 0) {
+  //   printf("Initialize jra daily in Kokkos code done.\n");
+  // }
 
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.testTime_stop("Kokkos and jra init");
@@ -222,11 +222,11 @@ extern "C" void licom_core_() {
 #endif // defined(HIGHRES) || defined(SUPHIGH)
 #endif // (defined LICOM_ENABLE_CPP)
 #if (defined LICOM_ENABLE_KOKKOS)
+      jra_daily_();
 #if defined(LOWRES)
-      // jra_daily_();
-      kokkos_jra_daily_low(iday);
+      // kokkos_jra_daily_low(iday);
 #elif defined(HIGHRES) || defined(SUPHIGH)
-      kokkos_jra_daily_high(iday);
+      // kokkos_jra_daily_high(iday);
 #endif // defined(HIGHRES) || defined(SUPHIGH)
 #endif // (defined LICOM_ENABLE_KOKKOS)
 #ifdef LICOM_ENABLE_TEST_TIME
@@ -243,14 +243,14 @@ extern "C" void licom_core_() {
 #endif // LICOM_ENABLE_TEST_TIME
       my_time.start_stepon();
 
-      //my_time.start_daily_h2d();
+      my_time.start_daily_h2d();
 
-      //daily_update_h2d();
+      daily_update_h2d();
 
 #ifdef LICOM_ENABLE_TEST_TIME
-      //my_time.testTime_stop("daily_h2d");
+      // my_time.testTime_stop("daily_h2d");
 #endif // LICOM_ENABLE_TEST_TIME
-      //my_time.end_daily_h2d();
+      my_time.end_daily_h2d();
 
       for (ii = 1; ii <= nss; ++ii) {
 #endif // CPUP
@@ -321,8 +321,8 @@ extern "C" void licom_core_() {
           printf("write_file time: %.3f s\n", my_time.t_once);
         }
 #ifdef LICOM_ENABLE_KOKKOS
-        kokkos_nextstep();
-        // nextstep_();
+        // kokkos_nextstep();
+        nextstep_();
 #else
         nextstep_();
 #endif
