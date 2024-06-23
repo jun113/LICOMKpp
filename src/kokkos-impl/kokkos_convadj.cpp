@@ -36,10 +36,8 @@ void kokkos_convadj() {
     exit(0);
   }
 
-#ifdef LOWRES
   Kokkos::parallel_for("convadj_1", Kokkos::MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorConvadj1 ());
-#endif // LOWRES
 
   // adv tracer == tspas
   if (flag_adv_tracer == 1) {
