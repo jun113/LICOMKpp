@@ -313,7 +313,7 @@ extern "C" void licom_core_() {
 
         my_time.start_once();
 
-        // ssaveins_();
+        ssaveins_();
 
 #ifdef LICOM_ENABLE_TEST_TIME
       my_time.testTime_stop("write file");

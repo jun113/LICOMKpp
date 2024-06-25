@@ -31,8 +31,9 @@ use param_mod
       real(r8),dimension(imt,jmt,max_blocks_clinic):: wave_dis
 #endif
 ! avoid > 2GB common for 5km version
-!      real(r8),allocatable,dimension(:,:,:) :: t10,u10,v10,slp,q10,swhf,lwhf
-!      real(r8),allocatable,dimension(:,:,:) :: precr,precs,rf,si
+      real(r8),allocatable,dimension(:,:,:) :: t10,u10,v10,slp,q10,swhf,lwhf
+      real(r8),allocatable,dimension(:,:,:) :: precr,precs,rf,si
+      real(r8),allocatable,dimension(:,:,:) :: buffer2d
       real(r8),allocatable,dimension(:,:,:,:) :: buffer3d
       real(r8),allocatable,dimension(:,:,:) :: w3d
 end module forc_mod
