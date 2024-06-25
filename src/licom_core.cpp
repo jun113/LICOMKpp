@@ -51,6 +51,7 @@ extern "C" void licom_core_() {
 
   using MyTest::my_time;
   //---------------------------------------------
+  energy_();
 
 #ifndef LICOM_ENABLE_FORTRAN
   get_block_info_();
@@ -237,21 +238,23 @@ extern "C" void licom_core_() {
         printf("jra_daily time: %.3f s\n", my_time.t_once);
       }
 
-#ifdef LICOM_ENABLE_TEST_TIME
-      my_time.testTime_start("stepon");
-      //my_time.testTime_start("daily_h2d");
-#endif // LICOM_ENABLE_TEST_TIME
-      my_time.start_stepon();
 
+#ifdef LICOM_ENABLE_TEST_TIME
+      my_time.testTime_start("daily_h2d");
+#endif // LICOM_ENABLE_TEST_TIME
       my_time.start_daily_h2d();
 
       daily_update_h2d();
 
 #ifdef LICOM_ENABLE_TEST_TIME
-      // my_time.testTime_stop("daily_h2d");
+      my_time.testTime_stop("daily_h2d");
 #endif // LICOM_ENABLE_TEST_TIME
       my_time.end_daily_h2d();
 
+#ifdef LICOM_ENABLE_TEST_TIME
+      my_time.testTime_start("stepon");
+#endif // LICOM_ENABLE_TEST_TIME
+      my_time.start_stepon();
       for (ii = 1; ii <= nss; ++ii) {
 #endif // CPUP
         // fortran_mpi_barrier_();
@@ -260,6 +263,10 @@ extern "C" void licom_core_() {
         // }
         stepon(mm);
       } // loop ii
+#ifdef LICOM_ENABLE_TEST_TIME
+      my_time.testTime_stop("stepon");
+#endif // LICOM_ENABLE_TEST_TIME
+      my_time.end_stepon();
 
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
 #ifdef LICOM_ENABLE_TEST_TIME
@@ -278,10 +285,6 @@ extern "C" void licom_core_() {
 
       energy_();
 
-#ifdef LICOM_ENABLE_TEST_TIME
-      my_time.testTime_stop("stepon");
-#endif // LICOM_ENABLE_TEST_TIME
-      my_time.end_stepon();
       if (mytid == 0) {
         printf("stepon time: %.3f s (SYPD: %.2f), loops: %d\n", 
             my_time.t_stepon, 86400.0 / (my_time.t_stepon * 365.0), nss);

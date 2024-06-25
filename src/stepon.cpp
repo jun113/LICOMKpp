@@ -42,9 +42,9 @@ void stepon(const int &mm) {
   using MyTest::my_time;
 #endif // LICOM_ENABLE_TEST_TIME 
 
-  if (ii == 1 && mm == 1 && iday == 1) {
-   energy_();
-  }
+  // if (ii == 1 && mm == 1 && iday == 1) {
+  //  energy_();
+  // }
 
 //  if (ii == 5) {
 //   exit(0);

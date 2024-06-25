@@ -414,9 +414,9 @@ class FunctorReadyc5 {
         v_ak_tide_mixing_(j, i, k) = fmin(v_ak_tide_mixing_(j, i, k),
             MAX_TIDALMIXING);
 
-        v_richardson_(iblock, k, j, i) = v_rict_(iblock, k, j, i);
-        v_fztidal_(iblock, k, j, i)    = v_fz_tide_(iblock, k, j, i);
-        v_wp3_tidal_(iblock, k, j, i)  = v_wp3_(j, i, k);
+        // v_richardson_(iblock, k, j, i) = v_rict_(iblock, k, j, i);
+        // v_fztidal_(iblock, k, j, i)    = v_fz_tide_(iblock, k, j, i);
+        // v_wp3_tidal_(iblock, k, j, i)  = v_wp3_(j, i, k);
       }
 #ifdef CANUTOMIXOUT
 #endif // CANUTOMIXOUT
@@ -481,17 +481,14 @@ class FunctorReadyc5 {
   const ViewDouble2D v_c_              = *KokkosPconstMod::p_v_c;
   const ViewDouble3D v_ulat_           = *p_v_ulat;
   const ViewDouble3D v_amld_           = *p_v_amld;
-  const ViewDouble3D v_ustar_          = *p_v_ustar;
-  const ViewDouble3D v_fcort_          = *p_v_fcort;
-  const ViewDouble3D v_buoytur_        = *p_v_buoytur;
   const ViewDouble3D v_wave_dis_       = *p_v_wave_dis;
   const ViewDouble4D v_rit_            = *p_v_rit;
   const ViewDouble4D v_rict_           = *p_v_rict;
   const ViewDouble4D v_ricdt_          = *p_v_ricdt;
   const ViewDouble4D v_akmt_           = *p_v_akmt;
-  const ViewDouble4D v_fztidal_        = *p_v_fztidal;
-  const ViewDouble4D v_wp3_tidal_      = *p_v_wp3_tidal;
-  const ViewDouble4D v_richardson_     = *p_v_richardson;
+  // const ViewDouble4D v_fztidal_        = *p_v_fztidal;
+  // const ViewDouble4D v_wp3_tidal_      = *p_v_wp3_tidal;
+  // const ViewDouble4D v_richardson_     = *p_v_richardson;
   const ViewDouble4D v_fz_tide_        = *p_v_fz_tide;
   const ViewDouble4D v_s2t_            = *p_v_s2t;
   const ViewDouble4D v_vit_            = *p_v_vit;

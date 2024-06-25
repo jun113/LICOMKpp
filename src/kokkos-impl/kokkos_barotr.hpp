@@ -452,7 +452,7 @@ class FunctorBarotr8 {
     const int bid = 0;
     hduk = C0;
     hdvk = C0;
-    if (i >= (ib_-1) && i < (ie_) && j >= (jb_-1) && j < (je_)) {
+    if (i >= (ib_-1) && i < (ie_+1) && j >= (jb_-1) && j < (je_+1)) {
       const double cc = v_du_cnsewm_(bid, j, i, 0) 
           + v_du_cnsewm_(bid, j, i, 5);
       hduk = am_ * ((               cc * v_d2uk_(0, j  , i  )

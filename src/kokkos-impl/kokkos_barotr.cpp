@@ -68,7 +68,7 @@ void kokkos_barotr() {
 #ifdef BIHAR
 
     parallel_for ("barotr_5_hdiffu_del4_1", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr5());
+        koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorBarotr5());
 
     parallel_for ("barotr_6_hdiffu_del4_2", MDRangePolicy<Kokkos::Rank<2>> (
         koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr6());
