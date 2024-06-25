@@ -9,7 +9,7 @@
 #define FRC_CORE
 #define SOLAR
 #define ACOS
-#define  BIHAR
+#undef  BIHAR
 #undef  SMAG_FZ
 #undef  SMAG_OUT
 #define NETCDF
