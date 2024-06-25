@@ -40,6 +40,13 @@
       real(r8),dimension(imt_global,jmt_global) :: tmp3
       integer,save:: jra_init=0
 
+      if (.not. allocated (s_lon)) then
+        allocate(s_lon(s_imt, s_jmt))
+      endif
+      if (.not. allocated (s_lat)) then
+        allocate(s_lat(s_imt, s_jmt))
+      endif
+
 !      if ( TNUM.gt.1 ) goto 111
       core_sensible = 0.0     
       core_latent = 0.0      
