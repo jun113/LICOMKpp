@@ -527,7 +527,7 @@ class FunctorReadyc5 {
           const double &Rf_in, const double &Rf_inf_in) const {
     const double l0 = 0.17 * mld_in;
     const double lB = KARMAN_ * std::abs(lev_in * l0) / (l0 + KARMAN_ * std::abs(lev_in));
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
     const double tmp = std::pow(std::pow(1.0 - Rf_in / Rf_inf_in, 4.0), 1.0 / 3.0); 
     const double l = lB * tmp;
     const double B1 = 21.6;
@@ -650,7 +650,7 @@ class FunctorReadyc5 {
       double tmp = std::sqrt(delta);
       y[0] = A * sb + 3.0 * sa * (-B + tmp) / 2.0;
       y[1] = A * sb + 3.0 * sa * (-B - tmp) / 2.0;
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
       real_x = (-sb - sign(std::pow(std::abs(y[0]), 1.0 / 3.0), y[0]) 
                     - sign(std::pow(std::abs(y[1]), 1.0 / 3.0), y[1])) / (3.0 * sa);
 #else
@@ -671,7 +671,7 @@ class FunctorReadyc5 {
       }
     }
  
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
     const double T = (2.0 * A * sb - 3.0 * sa * B) / (2.0 * std::pow(A, 1.5));
 #else
     const double T = (2.0 * A * sb - 3.0 * sa * B) / (2.0 
@@ -720,7 +720,7 @@ class FunctorReadyc5 {
     temp3 = (14.0 * (pi_n[1] - pi_n[2]) - 15.0 * pi_n[2] * pi_n[2]) * Rrho;
     // hwy_need_check
     const double one_minus_Rrho = 1.0 - Rrho;
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
     temp4 = 150.0 * one_minus_Rrho * one_minus_Rrho * one_minus_Rrho; 
 #else
     long double tmp = static_cast<long double>(one_minus_Rrho);
@@ -776,7 +776,7 @@ class FunctorReadyc5 {
  
     A6 = - 1.0 / 60.0;
  
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
     cubic_coef[0] = A1 * (Ri * Ri * Ri) + A2 * (Ri * Ri);
 #else
     tmp = static_cast<long double>(Ri);
@@ -796,7 +796,7 @@ class FunctorReadyc5 {
     const double sig_t = 0.72;
     const double zero  = 1.0e-10;
  
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
     const double pi0_1 = 1.0 / (std::sqrt(27.0 / 5.0 * std::pow(Ko, 3)) 
         * (1.0 + 1.0 / sig_t));
 #else
@@ -841,7 +841,7 @@ class FunctorReadyc5 {
           double &struct_rho, double &r_out, double &r_out_new) const {
  
     // hwy_need_check
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
     const double x = Ri * Gm * std::pow(1.0 - Rrho, -1);
 #else
     const double x = Ri * Gm * 

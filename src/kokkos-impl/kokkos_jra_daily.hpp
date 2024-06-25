@@ -348,7 +348,7 @@ class FunctorJRADaily2 {
     const double vit_times_one_minus_seaice = 
         v_vit_(0, 0, j, i) * (1.0 - v_seaice_(0, j, i));
 
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
     const double model_sst_4 = std::pow(v_model_sst_(j, i), 4);
 #else
     const long double model_sst = static_cast<long double>(v_model_sst_(j, i));

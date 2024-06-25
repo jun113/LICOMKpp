@@ -436,7 +436,7 @@ void kokkos_tracer() {
       double err_norm1;
       double err_norm2 = 0.0;
 
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
       // Kokkos::parallel_reduce ("tracer_26", MDRangePolicy<Kokkos::Rank<2>> (
       //     koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracer26(), err_norm2);
       ViewDouble4D::HostMirror h_v_net   = Kokkos::create_mirror_view(*p_v_net);

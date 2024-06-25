@@ -368,7 +368,7 @@ class FunctorBarotr7 {
     double am_factor = 1.0;
     const double amf = v_amf_(bid, j, i);
     if (i >= (ib_-2) && i < (ie_+1) && j >= (jb_-2) && j < (je_+1)) {
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
       const double dxdy = std::pow (std::sqrt (v_uarea_(bid, j, i)), 5) * 45.0;
 #else
       const long double sqrt_uarea = static_cast<long double>(std::sqrt (v_uarea_(bid, j, i)));
