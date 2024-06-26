@@ -231,4 +231,4 @@ else
     chmod 777 ../scripts/submit
 fi
 
-cp ../bin/LICOMKpp ../run/
+cp ./bin/LICOMKpp ../run/
