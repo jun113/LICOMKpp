@@ -58,7 +58,7 @@ rm -f LICOMKpp
 chmod 777 ./../scripts/cp-${LICOM_RES}-data
 ./../scripts/cp-${LICOM_RES}-data
 
-cd build
+cd ../build
 
 echo Currently machine:
 if [ "${MACHINE}" == "IAP_GPU" ]; then
