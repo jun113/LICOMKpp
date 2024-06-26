@@ -25,8 +25,8 @@ LICOM_ENABLE_FORTRAN_COMPILER="LICOM_ENABLE_FORTRAN_COMPILER_INTEL"
 LICOM_ENABLE_VERSION="LICOM_ENABLE_CUDA"
 LICOM_ENABLE_VERSION="LICOM_ENABLE_HIP"
 LICOM_ENABLE_VERSION="LICOM_ENABLE_CPP"
-LICOM_ENABLE_VERSION="LICOM_ENABLE_FORTRAN"
 LICOM_ENABLE_VERSION="LICOM_ENABLE_KOKKOS"
+LICOM_ENABLE_VERSION="LICOM_ENABLE_FORTRAN"
 
 # Default log dir
 cd ../logfile
@@ -44,7 +44,13 @@ fi
 
 LICOM_GPTL_OUT_FILE="${LOG_DIR}/${LICOM_RES}/${CUR_DATE}-${MACHINE}-gptl.out"
 
-cd ../run/
+cd ..
+
+if [ ! -d "run" ]; then
+    mkdir run
+fi
+
+cd run
 
 rm -f ocn.log
 rm -f LICOMKpp
@@ -52,9 +58,7 @@ rm -f LICOMKpp
 chmod 777 ./../scripts/cp-${LICOM_RES}-data
 ./../scripts/cp-${LICOM_RES}-data
 
-cd -
-
-cd ../build
+cd build
 
 echo Currently machine:
 if [ "${MACHINE}" == "IAP_GPU" ]; then
@@ -227,4 +231,4 @@ else
     chmod 777 ../scripts/submit
 fi
 
-cp ./bin/LICOMKpp ../run/.
+cp ../build/bin/LICOMKpp .
