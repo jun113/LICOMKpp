@@ -635,96 +635,124 @@ use diag_mod
 !     READ INTERMEDIATE RESULTS (fort.22/fort.21)
 !     ------------------------------------------------------------------
  
-       if (mytid==0) then
+       ! wjl 20240626
+      !  if (mytid==0) then
           open (17,file='rpointer.ocn',form='formatted')
           read(17,'(a18)') fname
           close(17)
           open(22,file=trim(out_dir)//fname,form='unformatted')
-       end if
+      !  end if
 !
          allocate (buffer(imt_global,jmt_global))
 !
-         if (mytid==0) then
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 
-       !TODO 
+       ! wjl 20240626
 !        call scatter_global(h0,buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(h0,buffer, master_task, distrb_clinic, &
+      !    call scatter_global(h0,buffer, master_task, distrb_clinic, &
+      !                     field_loc_center, field_type_scalar)
+         call scatter_global_group_dbl(h0,buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_center, field_type_scalar)
 
          call POP_HaloUpdate(h0 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 !
          do k=1,km
-         if (mytid==0) then
+       ! wjl 20240626
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 !        call scatter_global(u(:,:,k,:), buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(u(:,:,k,:), buffer, master_task, distrb_clinic, &
+      !    call scatter_global(u(:,:,k,:), buffer, master_task, distrb_clinic, &
+      !                     field_loc_swcorner, field_type_vector)
+         call scatter_global_group_dbl(u(:,:,k,:), buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_swcorner, field_type_vector)
          end do
          call POP_HaloUpdate(u , POP_haloClinic, POP_gridHorzLocSWcorner , &
                        POP_fieldKindVector, errorCode, fillValue = 0.0_r8)
 !
          do k=1,km
-         if (mytid==0) then
+       ! wjl 20240626
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 !        call scatter_global(v(:,:,k,:),buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(v(:,:,k,:),buffer, master_task, distrb_clinic, &
+      !    call scatter_global(v(:,:,k,:),buffer, master_task, distrb_clinic, &
+      !                     field_loc_swcorner, field_type_vector)
+         call scatter_global_group_dbl(v(:,:,k,:),buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_swcorner, field_type_vector)
          end do
          call POP_HaloUpdate(v , POP_haloClinic, POP_gridHorzLocSWcorner , &
                        POP_fieldKindVector, errorCode, fillValue = 0.0_r8)
 !
          do k=1,km
-         if (mytid==0) then
+       ! wjl 20240626
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 !        call scatter_global(at(:,:,k,1,:),buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(at(:,:,k,1,:),buffer, master_task, distrb_clinic, &
+      !    call scatter_global(at(:,:,k,1,:),buffer, master_task, distrb_clinic, &
+      !                     field_loc_center, field_type_scalar)
+         call scatter_global_group_dbl(at(:,:,k,1,:),buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_center, field_type_scalar)
          end do
          call POP_HaloUpdate(at(:,:,:,1,:) , POP_haloClinic, POP_gridHorzLocCenter , &
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 !
          do k=1,km
-         if (mytid==0) then
+       ! wjl 20240626
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 !        call scatter_global(at(:,:,k,2,:),buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(at(:,:,k,2,:),buffer, master_task, distrb_clinic, &
+      !    call scatter_global(at(:,:,k,2,:),buffer, master_task, distrb_clinic, &
+      !                     field_loc_center, field_type_scalar)
+         call scatter_global_group_dbl(at(:,:,k,2,:),buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_center, field_type_scalar)
          end do
          call POP_HaloUpdate(at(:,:,:,2,:) , POP_haloClinic, POP_gridHorzLocCenter , &
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 !lhl20110728 for ws
+      !    wjl 20240626
+      !    do k=1,km
+      !    if (mytid==0) READ (22)buffer
+      !    end do
+      !    if (mytid==0) READ (22)buffer !su
+      !    if (mytid==0) READ (22)buffer !sv
+      !    if (mytid==0) READ (22)buffer !swv
+      !    if (mytid==0) READ (22)buffer !sshf
+      !    if (mytid==0) READ (22)buffer !lthf
+      !    if (mytid==0) READ (22)buffer  !fresh
+
          do k=1,km
-         if (mytid==0) READ (22)buffer
+         READ (22)buffer
          end do
-         if (mytid==0) READ (22)buffer !su
-         if (mytid==0) READ (22)buffer !sv
-         if (mytid==0) READ (22)buffer !swv
-         if (mytid==0) READ (22)buffer !sshf
-         if (mytid==0) READ (22)buffer !lthf
-         if (mytid==0) READ (22)buffer  !fresh
+         READ (22)buffer !su
+         READ (22)buffer !sv
+         READ (22)buffer !swv
+         READ (22)buffer !sshf
+         READ (22)buffer !lthf
+         READ (22)buffer  !fresh
+
         ! if (mytid==0) READ (22)buffer
         !if (mytid==0) READ (22)buffer !add lwv !noneed for new
         ! if (mytid==0) READ (22)buffer
         ! if (mytid==0) READ (22)buffer
 !lhl20110728
-         if (mytid == 0) then
+      !    wjl 20240626
+      !    if (mytid == 0) then
           read(22)number_month,number_day
            if(nstart==3) then !for branch run !LPF20170621
              number_month= yearadd*12+number_month 
              number_day= dayadd+number_day
            endif
            month= number_month
-         endif
-      call mpi_bcast(month,1,mpi_integer,0,mpi_comm_ocn,ierr)
-      call mpi_bcast(number_month,1,mpi_integer,0,mpi_comm_ocn,ierr)
-      call mpi_bcast(number_day,1,mpi_integer,0,mpi_comm_ocn,ierr)
+      !    endif
+      ! call mpi_bcast(month,1,mpi_integer,0,mpi_comm_ocn,ierr)
+      ! call mpi_bcast(number_month,1,mpi_integer,0,mpi_comm_ocn,ierr)
+      ! call mpi_bcast(number_day,1,mpi_integer,0,mpi_comm_ocn,ierr)
       ! wjl 20240204
             ! write(*,*) 'number_month =',number_month,'mon0=',mon0,&
             !            'number_day=',number_day,'iday=',iday
@@ -808,7 +836,9 @@ use diag_mod
 
 #endif
           deallocate(buffer)
-          if (mytid == 0) CLOSE(22)
+          ! wjl 20240626
+      !     if (mytid == 0) CLOSE(22)
+          CLOSE(22)
 
        if (simple_assm.and.nstart==1) then !LPF20170821 
              number_month= yearadd*12+number_month
