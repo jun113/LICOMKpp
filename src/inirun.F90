@@ -54,17 +54,26 @@ use diag_mod
       integer*4   :: ncid1, iret1
 #if (defined HIGHRES || defined SUPHIGH)
       integer*4 :: ncid,iret !20180928
-      ! wjl 20240315
-      ! Number of tasks per group to parallel reading files
-      integer (i4) :: numTaskPerGroup
-      ! This task is the root task in each group
-      logical :: rootTask
 #endif
       ! wjl 2021/08/03 allocate in dyn_mod
       !allocate(h0(imt,jmt,max_blocks_clinic),u(imt,jmt,km,max_blocks_clinic),v(imt,jmt,km,max_blocks_clinic), &
       !         at(imt,jmt,km,ntra,max_blocks_clinic))
 
       !allocate(atzwp(imt,jmt,km,ntra,max_blocks_clinic))
+      ! --------------------------
+      ! wjl 20240626
+      ! Number of tasks per group to parallel reading files
+      integer (i4) :: numTaskPerGroup
+      ! This task is the root task in each group
+      logical :: rootTask
+     
+      numTaskPerGroup = 25
+      if ((mod(my_task, numTaskPerGroup)) .eq. 0) then
+         rootTask = .True.
+      else
+         rootTask = .False.
+      endif
+      ! --------------------------
 
 
       if (mytid==0)then
@@ -402,15 +411,6 @@ use diag_mod
 
 
 #if (defined HIGHRES)
-
-      ! wjl 20240315
-     
-      numTaskPerGroup = 25
-      if ((mod(my_task, numTaskPerGroup)) .eq. 0) then
-         rootTask = .True.
-      else
-         rootTask = .False.
-      endif
 
       ! wjl 20240315
       ! if (mytid==0) then

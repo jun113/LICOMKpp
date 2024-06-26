@@ -47,7 +47,7 @@ use shr_sys_mod
    logical :: rootTask
 
       ! wjl 20240315
-      numTaskPerGroup = 25
+      numTaskPerGroup = 1
       if ((mod(my_task, numTaskPerGroup)) .eq. 0) then
          rootTask = .True.
       else

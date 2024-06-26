@@ -331,28 +331,30 @@
 !  get global ULAT,ULON
 !
 !-----------------------------------------------------------------------
+   ! wjl 20240626
+   open (11, file='ocn.parm', status='old',iostat=nml_error)
+   if (nml_error /= 0) then
+      nml_error = -1
+   else
+      nml_error =  1
+   endif
+   do while (nml_error > 0)
+      read(11, nml=grid_nml,iostat=nml_error)
+   end do
+   if (nml_error == 0) close(11)
    if (my_task == master_task) then
-      open (11, file='ocn.parm', status='old',iostat=nml_error)
-      if (nml_error /= 0) then
-         nml_error = -1
-      else
-         nml_error =  1
-      endif
-      do while (nml_error > 0)
-         read(11, nml=grid_nml,iostat=nml_error)
-      end do
-      if (nml_error == 0) close(11)
       write(6,*) " horiz_grid_file, vert_grid_file, topography_file, horiz_grid_opt, basin_grid_file"
       write(6,*) horiz_grid_file, vert_grid_file, topography_file, horiz_grid_opt, basin_grid_file
       call flush(6)
    endif
 
 
-      call broadcast_scalar(horiz_grid_file, master_task)
-      call broadcast_scalar(vert_grid_file, master_task)
-      call broadcast_scalar(topography_file, master_task)
-      call broadcast_scalar(horiz_grid_opt, master_task)
-      call read_horiz_grid(horiz_grid_file,.true.)
+   ! wjl 20240626
+   ! call broadcast_scalar(horiz_grid_file, master_task)
+   ! call broadcast_scalar(vert_grid_file, master_task)
+   ! call broadcast_scalar(topography_file, master_task)
+   ! call broadcast_scalar(horiz_grid_opt, master_task)
+   call read_horiz_grid(horiz_grid_file,.true.)
 
 !-----------------------------------------------------------------------
 !  set up topography by getting global KMT field (used for
@@ -360,8 +362,9 @@
 !
 !-----------------------------------------------------------------------
 
-      call broadcast_scalar(topography_file, master_task)
-      call read_topography(topography_file,.true.)
+   ! wjl 20240626
+   ! call broadcast_scalar(topography_file, master_task)
+   call read_topography(topography_file,.true.)
 
  end subroutine init_grid1
 
@@ -435,10 +438,10 @@
 !
 !-----------------------------------------------------------------------
 
-      call broadcast_scalar(horiz_grid_file, master_task)
+      ! call broadcast_scalar(horiz_grid_file, master_task)
       ! call read_horiz_grid(horiz_grid_file,.false.)
       ! wjl 20240315
-      call read_horiz_grid_group(horiz_grid_file, .false., 50)
+      call read_horiz_grid_group(horiz_grid_file, .false., 1)
 
 
 !-----------------------------------------------------------------------
@@ -617,7 +620,7 @@
          write(stdout,*) ' Reading vertical grid from file:', &
                          trim(vert_grid_file)
       endif
-      call broadcast_scalar(vert_grid_file, master_task)
+      ! call broadcast_scalar(vert_grid_file, master_task)
       call read_vert_grid(vert_grid_file)
 
 !  !***
@@ -633,7 +636,7 @@
         if (my_task == master_task) then
            write(stdout,*) ' Reading Basin Index from file:', trim(basin_grid_file)
         endif
-        call broadcast_scalar(basin_grid_file, master_task)
+      !   call broadcast_scalar(basin_grid_file, master_task)
         call read_basin(basin_grid_file)
       end if
 !      write(899,*) basin
@@ -647,7 +650,7 @@
 
       if (my_task == master_task) write(stdout,'(a30,a)') &
          ' Reading topography from file:', trim(topography_file)
-      call broadcast_scalar(topography_file, master_task)
+      ! call broadcast_scalar(topography_file, master_task)
       call read_topography(topography_file,.false.)
 
 !-----------------------------------------------------------------------
@@ -792,28 +795,33 @@
                 TLON_G(imt_global,jmt_global)) 
                 
       INQUIRE(iolength=reclength) TLAT_G
-      if (my_task == master_task) then
+      ! wjl 20240626
+      ! if (my_task == master_task) then
          open(25,file=trim(horiz_grid_file),status='old', &
               form='unformatted', access='direct', recl=reclength, &
               iostat=ioerr)
-      endif   
+      ! endif   
       
-      call broadcast_scalar(ioerr, master_task)
+      ! wjl 20240626
+      ! call broadcast_scalar(ioerr, master_task)
       if (ioerr /= 0) call exit_licom(sigAbort, &
                                     'Error opening horiz_grid_file')
                                     
-      if (my_task == master_task) then
+      ! wjl 20240626
+      ! if (my_task == master_task) then
          read(25,rec=1,iostat=ioerr) TLAT_G
          read(25,rec=2,iostat=ioerr) TLON_G
          close(25)
-      endif
+      ! endif
       
-      call broadcast_scalar(ioerr, master_task)
+      ! wjl 20240626
+      ! call broadcast_scalar(ioerr, master_task)
       if (ioerr /= 0) call exit_LICOM(sigAbort, &
                                     'Error reading horiz_grid_file')
                                     
-      call broadcast_array(TLAT_G, master_task)
-      call broadcast_array(TLON_G, master_task)
+      ! wjl 20240626
+      ! call broadcast_array(TLAT_G, master_task)
+      ! call broadcast_array(TLON_G, master_task)
 
 !-----------------------------------------------------------------------
 !
@@ -1404,14 +1412,16 @@
 !     ODZP   1/DZP
 !     ODZT   1/DZT
 
-   if (my_task == master_task) then
+   ! wjl 20240624
+   ! if (my_task == master_task) then
       open (25, file=trim(vert_grid_file),form='unformatted')
       read(25) zkp
       close(25)
-   endif
+   ! endif
 
 
-      call broadcast_array(zkp, master_task)
+   ! wjl 20240624
+      ! call broadcast_array(zkp, master_task)
       lev1=zkp
       DO K = 1,KM
          DZP (K) = ZKP (K) - ZKP (K +1)
@@ -1474,7 +1484,7 @@
 !
 !-----------------------------------------------------------------------
       ! wjl 20240317
-      numTaskPerGroup = 25
+      numTaskPerGroup = 1
       if ((mod(my_task, numTaskPerGroup)) .eq. 0) then
          rootTask = .True.
       else
@@ -1488,18 +1498,16 @@
       INQUIRE(iolength=reclength) KMT_G
       ! wjl 20240317
       ! if (my_task == master_task) then
-      if (rootTask) then
-         open(25, file=topography_file,status='old',form='unformatted', &
-                  access='direct', recl=reclength, iostat=ioerr)
-      endif
+      open(25, file=topography_file,status='old',form='unformatted', &
+            access='direct', recl=reclength, iostat=ioerr)
 
-      call broadcast_scalar(ioerr, master_task)
-      if (ioerr /= 0) call exit_LICOM(sigAbort, &
-                                 'Error opening topography_file')
+      ! call broadcast_scalar(ioerr, master_task)
+      ! if (ioerr /= 0) call exit_LICOM(sigAbort, &
+      !                            'Error opening topography_file')
 
-      ! wjl 20240317
+      ! wjl 20240626
       ! if (my_task == master_task) then
-      if (rootTask) then
+      ! if (rootTask) then
          read(25, rec=1, iostat=ioerr) KMT_G
          close(25)
 
@@ -1555,13 +1563,13 @@
 !        kmt_g(3251,1945)= 25
 !        kmt_g(3252,1945)= 25
 !        kmt_g(3253,1945)= 25
-      endif
+      ! endif
 
-      call broadcast_scalar(ioerr, master_task)
-      if (ioerr /= 0) call exit_LICOM(sigAbort, &
-                                 'Error reading topography_file')
+      ! call broadcast_scalar(ioerr, master_task)
+      ! if (ioerr /= 0) call exit_LICOM(sigAbort, &
+      !                            'Error reading topography_file')
 
-      call broadcast_array(KMT_G, master_task)
+      ! call broadcast_array(KMT_G, master_task)
 
 !-----------------------------------------------------------------------
 !
@@ -1621,19 +1629,20 @@
 !
 
       INQUIRE(iolength=reclength) BASIN_G
-      if (my_task == master_task) then
+      ! wjl 20240624
+      ! if (my_task == master_task) then
          open(25, file=basin_file,status='old',form='unformatted', &
                   access='direct', recl=reclength, iostat=ioerr)
-      endif
+      ! endif
 
-      call broadcast_scalar(ioerr, master_task)
+      ! call broadcast_scalar(ioerr, master_task)
       if (ioerr /= 0) call exit_LICOM(sigAbort, &
                                  'Error opening basin file')
 
-      if (my_task == master_task) then
+      ! if (my_task == master_task) then
          read(25, rec=1, iostat=ioerr) BASIN_G
          close(25)
-      endif
+      ! endif
 !
       call scatter_global(basin, basin_g, master_task, distrb_clinic, &
                           field_loc_center, field_type_scalar)
