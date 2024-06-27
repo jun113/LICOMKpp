@@ -83,26 +83,26 @@ using Kokkos::MDRangePolicy;
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
     gpu_put_halo_transpose_bclinc (CppPOPHaloMod::arrCommPriorK, *p_v_v,
         0, 2, KM, JMT, IMT);
-#elif (defined KOKKOS_ENABLE_ATHREAD)
-    athread_get_halo_transpose_double_host ((*p_v_u).data(), CppPOPHaloMod::arrCommPriorK,
-        2, 2, KM, JMT, IMT);
-    pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
-        KM, JMT, IMT, 
-          CppDomain::POP_haloClinic_C, 
-          CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
-          CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
-    athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_u).data(), 
-        0, 2, KM, JMT, IMT);
+// #elif (defined KOKKOS_ENABLE_ATHREAD)
+//     athread_get_halo_transpose_double_host ((*p_v_u).data(), CppPOPHaloMod::arrCommPriorK,
+//         2, 2, KM, JMT, IMT);
+//     pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
+//         KM, JMT, IMT, 
+//           CppDomain::POP_haloClinic_C, 
+//           CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
+//           CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
+//     athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_u).data(), 
+//         0, 2, KM, JMT, IMT);
  
-    athread_get_halo_transpose_double_host ((*p_v_v).data(), CppPOPHaloMod::arrCommPriorK,
-        2, 2, KM, JMT, IMT);
-    pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
-        KM, JMT, IMT, 
-          CppDomain::POP_haloClinic_C, 
-          CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
-          CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
-    athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_v).data(), 
-        0, 2, KM, JMT, IMT);
+//     athread_get_halo_transpose_double_host ((*p_v_v).data(), CppPOPHaloMod::arrCommPriorK,
+//         2, 2, KM, JMT, IMT);
+//     pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
+//         KM, JMT, IMT, 
+//           CppDomain::POP_haloClinic_C, 
+//           CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
+//           CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
+//     athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_v).data(), 
+//         0, 2, KM, JMT, IMT);
 #else
     CppPOPHaloMod::pop_halo_update((*p_v_u).data(), KM, JMT, IMT,
         CppDomain::POP_haloClinic_C, 
@@ -153,19 +153,19 @@ using Kokkos::MDRangePolicy;
 
     gpu_put_halo_transpose_bclinc (CppPOPHaloMod::arrCommPriorK, *p_v_wka,
         0, 2, KM, JMT, IMT);
-#elif (defined KOKKOS_ENABLE_ATHREAD)
-    // Athread LDM
-    athread_get_halo_transpose_double_host ((*p_v_wka).data(), CppPOPHaloMod::arrCommPriorK,
-        2, 2, KM, JMT, IMT);
+// #elif (defined KOKKOS_ENABLE_ATHREAD)
+//     // Athread LDM
+//     athread_get_halo_transpose_double_host ((*p_v_wka).data(), CppPOPHaloMod::arrCommPriorK,
+//         2, 2, KM, JMT, IMT);
  
-    pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
-        KM, JMT, IMT, 
-        CppDomain::POP_haloClinic_C, 
-        CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
-        CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
+//     pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
+//         KM, JMT, IMT, 
+//         CppDomain::POP_haloClinic_C, 
+//         CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
+//         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
  
-    athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_wka).data(), 
-        0, 2, KM, JMT, IMT);
+//     athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_wka).data(), 
+//         0, 2, KM, JMT, IMT);
 #else
     CppPOPHaloMod::pop_halo_update((*p_v_wka).data(), KM, JMT, IMT,
         CppDomain::POP_haloClinic_C, 
@@ -202,19 +202,19 @@ using Kokkos::MDRangePolicy;
 
     gpu_put_halo_transpose_bclinc (CppPOPHaloMod::arrCommPriorK, *p_v_wka,
         0, 2, KM, JMT, IMT);
-#elif (defined KOKKOS_ENABLE_ATHREAD)
-    // Athread LDM
-    athread_get_halo_transpose_double_host ((*p_v_wka).data(), CppPOPHaloMod::arrCommPriorK,
-        2, 2, KM, JMT, IMT);
+// #elif (defined KOKKOS_ENABLE_ATHREAD)
+//     // Athread LDM
+//     athread_get_halo_transpose_double_host ((*p_v_wka).data(), CppPOPHaloMod::arrCommPriorK,
+//         2, 2, KM, JMT, IMT);
 
-    pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
-        KM, JMT, IMT, 
-        CppDomain::POP_haloClinic_C, 
-        CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
-        CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
+//     pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
+//         KM, JMT, IMT, 
+//         CppDomain::POP_haloClinic_C, 
+//         CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
+//         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
 
-    athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_wka).data(), 
-        0, 2, KM, JMT, IMT);
+//     athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_wka).data(), 
+//         0, 2, KM, JMT, IMT);
 #else
     CppPOPHaloMod::pop_halo_update((*p_v_wka).data(), KM, JMT, IMT,
         CppDomain::POP_haloClinic_C, 
