@@ -71,10 +71,10 @@ void kokkos_barotr() {
         koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorBarotr5());
 
     parallel_for ("barotr_6_hdiffu_del4_2", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr6());
+        koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorBarotr6());
 
     parallel_for ("barotr_7_hdiffu_del4_3", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr7());
+        koArr2D{1, 1}, koArr2D{JMT-1, IMT-1}, tile2D), FunctorBarotr7());
 
     parallel_for ("readyc_8_hdiffu_del4_4", MDRangePolicy<Kokkos::Rank<2>> (
         koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr8());
@@ -131,7 +131,7 @@ void kokkos_barotr() {
       if (nc % 4 == 0) {
 #ifdef BIHAR
         parallel_for ("barotr_15_hdifft_del4_1", MDRangePolicy<Kokkos::Rank<2>> (
-            koArr2D{1, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr15());
+            koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBarotr15());
 
         parallel_for ("barotr_16_hdifft_del4_2", MDRangePolicy<Kokkos::Rank<2>> (
             koArr2D{1, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBarotr16());

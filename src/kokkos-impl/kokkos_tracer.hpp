@@ -1211,7 +1211,7 @@ class FunctorTracer15 {
   const ViewDouble4D v_vit_    = *p_v_vit;
 };
 
-#ifdef CANUTO
+// #ifdef CANUTO
 class FunctorTracer16 {
  public:
   FunctorTracer16 (const int &n) : n_(n) {}
@@ -1242,7 +1242,7 @@ class FunctorTracer16 {
   const ViewDouble5D v_k3_     = *p_v_k3;
 #endif // ISO
 };
-#endif // CANUTO
+// #endif // CANUTO
 class FunctorTracer17{
  public:
   FunctorTracer17 (const int &n) : n_(n) {}
