@@ -2072,6 +2072,9 @@ class FunctorReadyc15 {
            + v_dm_cnsew_ (bid, j, i, 2) * v_umixk(bid, k, j+1, i  )
            + v_dm_cnsew_ (bid, j, i, 3) * v_umixk(bid, k, j  , i+1)
            + v_dm_cnsew_ (bid, j, i, 4) * v_umixk(bid, k, j  , i-1));
+    } else {
+      v_d2uk_(k, j, i) = 0.0;
+      v_d2vk_(k, j, i) = 0.0;
     }
     return ;
   }

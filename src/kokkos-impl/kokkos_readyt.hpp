@@ -303,7 +303,7 @@ class FunctorReadyt5 {
 
     const int iblock = 0;
 
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
     const double tmp1 = - v_pp(iblock, k, j, i) 
         / od0_ / 10000.0 * v_mask(iblock, k, j, i);
     const double tmp2 = tmp1 * tmp1;
