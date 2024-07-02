@@ -10,6 +10,7 @@
 #include "../head/kokkos_pconst_mod.h"
 #include "../head/kokkos_tracer_mod.h"
 #include "../head/kokkos_output_mod.h"
+#include "../head/kokkos_tmp_var.h" 
 
 #include "../head/kokkos_config.hpp"
 
@@ -36,19 +37,21 @@ class FunctorConvadj1 {
     int lcven =   1;
 #endif // LOWRES   
     int lcon  = - 1;
-    double rhoup[KM] = {0.0};
-    double rholo[KM] = {0.0};
+    for (int k = 0; k < KM; ++k) {
+      v_rholo_(j, i, k) = 0.0;
+      v_rhoup_(j, i, k) = 0.0;
+    }
     for (int l = 0; l < KM - 1; ++l) {
       int l1 = l + 1;
       const double tup = v_at_(iblock, 0, l1, j, i) - v_to_(l1);
       const double sup = v_at_(iblock, 1, l1, j, i) - v_so_(l1);
       const double tlo = v_at_(iblock, 0, l, j, i) - v_to_(l1);
       const double slo = v_at_(iblock, 1, l, j, i) - v_so_(l1);
-      rhoup[l1] = dens(tup, sup, l1);
-      rholo[l]  = dens(tlo, slo, l1);
+      v_rhoup_(j, i, l1) = dens(tup, sup, l1);
+      v_rholo_(j, i, l)  = dens(tlo, slo, l1);
     }
     for (int k = kcon-1; k >= 1; --k) {
-      if (rholo[k-1] > rhoup[k]) {
+      if (v_rholo_(j, i, k-1) > v_rhoup_(j, i, k)) {
         lcon = k - 1;
       }
     }
@@ -75,11 +78,11 @@ class FunctorConvadj1 {
       for (;;) { //start conv_2
         if (lconb != (kcon - 1)) {
           int l1 = lconb + 1;
-          rholo[lconb] = dens(
+          v_rholo_(j, i, lconb) = dens(
               v_at_(iblock, 0, lconb, j, i) - v_to_(l1),
               v_at_(iblock, 1, lconb, j, i) - v_so_(l1), l1);
 
-          if (rholo[lconb] > rhoup[l1]) {
+          if (v_rholo_(j, i, lconb) > v_rhoup_(j, i, l1)) {
             ++lconb;
             dztsum += v_dzp_(lconb);  
             for (int n = 0; n < 2; ++n) {
@@ -96,16 +99,16 @@ class FunctorConvadj1 {
         }   //end if
         if (lcona > 0) {
           int l1 = lcona - 1;
-          rholo[l1] = dens(
+          v_rholo_(j, i, l1) = dens(
               v_at_(iblock, 0, l1, j, i) - v_to_(lcona),
               v_at_(iblock, 1, l1, j, i) - v_so_(lcona),
                   lcona);
-          rhoup[lcona] = dens(
+          v_rhoup_(j, i, lcona) = dens(
               v_at_(iblock, 0, lcona, j, i) - v_to_(lcona), 
               v_at_(iblock, 1, lcona, j, i) - v_so_(lcona), 
                   lcona);
 
-          if (rholo[lcona - 1] > rhoup[lcona]) {
+          if (v_rholo_(j, i, lcona - 1) > v_rhoup_(j, i, lcona)) {
             --lcona;
             dztsum += v_dzp_(lcona);
             for (int n = 0; n < 2; ++n) {
@@ -147,7 +150,7 @@ class FunctorConvadj1 {
         if (lcon == (KM-1)) {
           break ;
         }
-        if (rholo[lcon] <= rhoup[lcon + 1]) {
+        if (v_rholo_(j, i, lcon) <= v_rhoup_(j, i, lcon + 1)) {
           continue ;
         }
         break;
@@ -164,15 +167,17 @@ class FunctorConvadj1 {
     return dens;
   }
  private:
-  const ViewDouble1D v_so_   = *KokkosPconstMod::p_v_so;
-  const ViewDouble1D v_to_   = *KokkosPconstMod::p_v_to;
-  const ViewDouble1D v_dzp_  = *KokkosPconstMod::p_v_dzp;
-  const ViewDouble2D v_c_    = *KokkosPconstMod::p_v_c;
-  const ViewInt3D    v_kmt_  = *KokkosGrid::p_v_kmt;
+  const ViewInt3D    v_kmt_   = *KokkosGrid::p_v_kmt;
+  const ViewDouble1D v_so_    = *KokkosPconstMod::p_v_so;
+  const ViewDouble1D v_to_    = *KokkosPconstMod::p_v_to;
+  const ViewDouble1D v_dzp_   = *KokkosPconstMod::p_v_dzp;
+  const ViewDouble2D v_c_     = *KokkosPconstMod::p_v_c;
+  const ViewDouble3D v_rhoup_ = *KokkosTmpVar::p_v_wk1;
+  const ViewDouble3D v_rholo_ = *KokkosTmpVar::p_v_wk2;
 #ifdef LOWRES               
-  const ViewFloat4D v_icmon_ = *KokkosOutputMod::p_v_icmon;
+  const ViewFloat4D v_icmon_  = *KokkosOutputMod::p_v_icmon;
 #endif                      
-  const ViewDouble5D v_at_   = *KokkosTracerMod::p_v_at;
+  const ViewDouble5D v_at_    = *KokkosTracerMod::p_v_at;
 };
 
 class FunctorConvadj2 {
