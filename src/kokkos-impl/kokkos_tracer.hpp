@@ -401,26 +401,26 @@ class FunctorTracer6 {
   void upwell_4 (const int &iblock, const int &j, 
       const int &i, const ViewDouble3D &v_h0wk) const {
 
-    v_work_(iblock, j, i) = C0;
+    double work = 0.0;
 
     if (i >= 1 && i < (IMT-1) && j >= 1 && j < (JMT-1)) {
       for (int k = 0; k < KM; ++k) {
-        v_work_(iblock, j, i) -= v_dzp_(k)
+        work -= v_dzp_(k)
             * v_wka_(iblock, k, j, i) * v_vit_(iblock, k, j, i);
       }
       double ws = v_ws_(iblock, 0, j, i);
       for (int k = 1; k < KM; ++k) {
         ws = v_vit_(iblock, k, j, i) * (ws + v_dzp_(k-1) 
-            * (v_work_(iblock, j, i) * v_ohbt_(iblock, j, i)
+            * (work * v_ohbt_(iblock, j, i)
                 + v_wka_(iblock, k-1, j, i)));
         v_ws_(iblock, k, j, i) = ws;
       }
 
-      v_work_(iblock, j, i) = 1.0 / (1.0 + v_h0wk(iblock, j, i)
+      work = 1.0 / (1.0 + v_h0wk(iblock, j, i)
           * v_ohbt_(iblock, j, i));
 
       for (int k = 1; k < KM; ++k) {
-        v_ws_(iblock, k, j, i) *= v_work_(iblock, j, i);
+        v_ws_(iblock, k, j, i) *= work;
       }
     }
     return ;
@@ -428,7 +428,6 @@ class FunctorTracer6 {
  private:
   const ViewDouble1D v_dzp_  = *p_v_dzp;
   const ViewDouble3D v_stf_  = *p_v_stf;
-  const ViewDouble3D v_work_ = *p_v_work;
   const ViewDouble3D v_ohbt_ = *p_v_ohbt;
   const ViewDouble4D v_ws_   = *p_v_ws;
   const ViewDouble4D v_vit_  = *p_v_vit;
