@@ -549,8 +549,8 @@ void kokkos_tracer() {
       exit(0);
     }
 
-    parallel_for("tracer_31", MDRangePolicy<Kokkos::Rank<3>>
-        ({0, 0, 0}, {KM, JMT, IMT}, tile3D), FunctorTracer31());
+    // parallel_for("tracer_31", MDRangePolicy<Kokkos::Rank<3>>
+    //     ({0, 0, 0}, {KM, JMT, IMT}, tile3D), FunctorTracer31());
 
     // invtrit(vtl, stf, wkc, aidif, c2dtts)
     parallel_for ("tracer_32_invtrit", MDRangePolicy<Kokkos::Rank<2>> (
@@ -599,10 +599,10 @@ void kokkos_tracer() {
 #endif // LICOM_ENABLE_TEST_TRACER
     //--------------------
 
-    parallel_for ("tracer_33", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorTracer33 (n, c2dtts));
-    parallel_for ("tracer_34", MDRangePolicy<Kokkos::Rank<3>> (
-        koArr3D{1, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracer34 (n, c2dtts));
+    // parallel_for ("tracer_33", MDRangePolicy<Kokkos::Rank<2>> (
+    //     koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorTracer33 (n, c2dtts));
+    // parallel_for ("tracer_34", MDRangePolicy<Kokkos::Rank<3>> (
+    //     koArr3D{1, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracer34 (n, c2dtts));
 
     //const char* horiz_grid_opt_lat_lon  = "lat_lon";
     //if (str_trim_cmp(horiz_grid_opt, horiz_grid_opt_lat_lon) == 0) {

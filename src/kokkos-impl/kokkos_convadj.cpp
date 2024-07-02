@@ -44,8 +44,8 @@ void kokkos_convadj() {
   Kokkos::parallel_for("convadj_2", Kokkos::MDRangePolicy<Kokkos::Rank<4>> (
       koArr4D{0, 0, 0, 0}, koArr4D{NTRA, KM, JMT, IMT}), FunctorConvadj2(c2dtts));
   } else {
-  Kokkos::parallel_for("convadj_3", Kokkos::MDRangePolicy<Kokkos::Rank<2>> (
-      koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorConvadj3(c2dtts));
+  // Kokkos::parallel_for("convadj_3", Kokkos::MDRangePolicy<Kokkos::Rank<2>> (
+  //     koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorConvadj3(c2dtts));
   }
 
   return ;

@@ -70,8 +70,8 @@ using CppParamMod::S_JMT;
 using CppParamMod::NX_BLOCK;
 using CppParamMod::NY_BLOCK;
 
-using CppParamMod::JMT_GLOBAL;
-using CppParamMod::IMT_GLOBAL;
+// using CppParamMod::JMT_GLOBAL;
+// using CppParamMod::IMT_GLOBAL;
 
 using CppParamMod::KMP1;
 
@@ -760,38 +760,38 @@ void kokkos_init_forc_mod() {
       MAX_BLOCKS_CLINIC, JMT, IMT);
 #endif // TIDEMIX
 
-  new (p_v_buffer) ViewDouble1D("pointer_view_buffer",
-      std::max(S_IMT, std::max(S_JMT, IMT_GLOBAL * JMT_GLOBAL)));
+  // new (p_v_buffer) ViewDouble1D("pointer_view_buffer",
+  //     std::max(S_IMT, std::max(S_JMT, IMT_GLOBAL * JMT_GLOBAL)));
 
-  new (p_v_s_wx)   ViewDouble2D("pointer_view_s_wx", 
-      S_JMT + 2, S_IMT + 2);
-  new (p_v_s_wy)   ViewDouble2D("pointer_view_s_wy", 
-      S_JMT + 2, S_IMT + 2);
-  new (p_v_s_work) ViewDouble2D("pointer_view_s_work", 
-      S_JMT + 2, S_IMT + 2);
+  // new (p_v_s_wx)   ViewDouble2D("pointer_view_s_wx", 
+  //     S_JMT + 2, S_IMT + 2);
+  // new (p_v_s_wy)   ViewDouble2D("pointer_view_s_wy", 
+  //     S_JMT + 2, S_IMT + 2);
+  // new (p_v_s_work) ViewDouble2D("pointer_view_s_work", 
+  //     S_JMT + 2, S_IMT + 2);
 
-  new (p_v_tsa3)    ViewDouble2D("pointer_view_tsa3", JMT, IMT);
-  new (p_v_wspd3)   ViewDouble2D("pointer_view_wspd3", JMT, IMT);
-  new (p_v_wspdu3)  ViewDouble2D("pointer_view_wspdu3", JMT, IMT);
-  new (p_v_wspdv3)  ViewDouble2D("pointer_view_wspdv3", JMT, IMT);
-  new (p_v_psa3)    ViewDouble2D("pointer_view_psa3", JMT, IMT);
-  new (p_v_qar3)    ViewDouble2D("pointer_view_qar3", JMT, IMT);
-  new (p_v_swv3)    ViewDouble2D("pointer_view_swv3", JMT, IMT);
-  new (p_v_lwv3)    ViewDouble2D("pointer_view_lwv3", JMT, IMT);
-  new (p_v_rain3)   ViewDouble2D("pointer_view_rain3", JMT, IMT);
-  new (p_v_snow3)   ViewDouble2D("pointer_view_snow3", JMT, IMT);
-  new (p_v_runoff3) ViewDouble2D("pointer_view_runoff3", JMT, IMT);
-  new (p_v_seaice3) ViewDouble2D("pointer_view_seaice3", JMT, IMT);
+  // new (p_v_tsa3)    ViewDouble2D("pointer_view_tsa3", JMT, IMT);
+  // new (p_v_wspd3)   ViewDouble2D("pointer_view_wspd3", JMT, IMT);
+  // new (p_v_wspdu3)  ViewDouble2D("pointer_view_wspdu3", JMT, IMT);
+  // new (p_v_wspdv3)  ViewDouble2D("pointer_view_wspdv3", JMT, IMT);
+  // new (p_v_psa3)    ViewDouble2D("pointer_view_psa3", JMT, IMT);
+  // new (p_v_qar3)    ViewDouble2D("pointer_view_qar3", JMT, IMT);
+  // new (p_v_swv3)    ViewDouble2D("pointer_view_swv3", JMT, IMT);
+  // new (p_v_lwv3)    ViewDouble2D("pointer_view_lwv3", JMT, IMT);
+  // new (p_v_rain3)   ViewDouble2D("pointer_view_rain3", JMT, IMT);
+  // new (p_v_snow3)   ViewDouble2D("pointer_view_snow3", JMT, IMT);
+  // new (p_v_runoff3) ViewDouble2D("pointer_view_runoff3", JMT, IMT);
+  // new (p_v_seaice3) ViewDouble2D("pointer_view_seaice3", JMT, IMT);
 
-  new (p_v_windx)         ViewDouble2D("pointer_view_windx",         JMT, IMT);
-  new (p_v_windy)         ViewDouble2D("pointer_view_windy",         JMT, IMT);
-  new (p_v_model_sst)     ViewDouble2D("pointer_view_model_sst",     JMT, IMT);
-  new (p_v_zz)            ViewDouble2D("pointer_view_zz",            JMT, IMT);
-  new (p_v_qs)            ViewDouble2D("pointer_view_qs",            JMT, IMT);
-  new (p_v_theta)         ViewDouble2D("pointer_view_theta",         JMT, IMT);
-  new (p_v_core_sensible) ViewDouble2D("pointer_view_core_sensible", JMT, IMT);
-  new (p_v_core_latent)   ViewDouble2D("pointer_view_core_latent",   JMT, IMT);
-  new (p_v_core_tau)      ViewDouble2D("pointer_view_core_tau",      JMT, IMT);
+  // new (p_v_windx)         ViewDouble2D("pointer_view_windx",         JMT, IMT);
+  // new (p_v_windy)         ViewDouble2D("pointer_view_windy",         JMT, IMT);
+  // new (p_v_model_sst)     ViewDouble2D("pointer_view_model_sst",     JMT, IMT);
+  // new (p_v_zz)            ViewDouble2D("pointer_view_zz",            JMT, IMT);
+  // new (p_v_qs)            ViewDouble2D("pointer_view_qs",            JMT, IMT);
+  // new (p_v_theta)         ViewDouble2D("pointer_view_theta",         JMT, IMT);
+  // new (p_v_core_sensible) ViewDouble2D("pointer_view_core_sensible", JMT, IMT);
+  // new (p_v_core_latent)   ViewDouble2D("pointer_view_core_latent",   JMT, IMT);
+  // new (p_v_core_tau)      ViewDouble2D("pointer_view_core_tau",      JMT, IMT);
 
   UnManagedViewDouble3D h_v_psa (&psa[0][0][0],
       MAX_BLOCKS_CLINIC, JMT, IMT);
@@ -932,64 +932,64 @@ void kokkos_init_forc_mod() {
       MAX_BLOCKS_CLINIC, JMT, IMT);
 #endif // TIDEMIX
 
-  CppForcMod::buffer = new double[std::max(S_IMT, std::max(S_JMT, 
-      IMT_GLOBAL * JMT_GLOBAL))];
-  new (p_v_buffer) ViewDouble1D(buffer,
-      std::max(S_IMT, std::max(S_JMT, IMT_GLOBAL * JMT_GLOBAL)));
+  // CppForcMod::buffer = new double[std::max(S_IMT, std::max(S_JMT, 
+  //     IMT_GLOBAL * JMT_GLOBAL))];
+  // new (p_v_buffer) ViewDouble1D(buffer,
+  //     std::max(S_IMT, std::max(S_JMT, IMT_GLOBAL * JMT_GLOBAL)));
 
-  CppForcMod::tsa3    = new double [JMT * IMT];
-  CppForcMod::wspd3   = new double [JMT * IMT];
-  CppForcMod::wspdu3  = new double [JMT * IMT];
-  CppForcMod::wspdv3  = new double [JMT * IMT];
-  CppForcMod::psa3    = new double [JMT * IMT];
-  CppForcMod::qar3    = new double [JMT * IMT];
-  CppForcMod::swv3    = new double [JMT * IMT];
-  CppForcMod::lwv3    = new double [JMT * IMT];
-  CppForcMod::rain3   = new double [JMT * IMT];
-  CppForcMod::snow3   = new double [JMT * IMT];
-  CppForcMod::runoff3 = new double [JMT * IMT];
-  CppForcMod::seaice3 = new double [JMT * IMT];
+  // CppForcMod::tsa3    = new double [JMT * IMT];
+  // CppForcMod::wspd3   = new double [JMT * IMT];
+  // CppForcMod::wspdu3  = new double [JMT * IMT];
+  // CppForcMod::wspdv3  = new double [JMT * IMT];
+  // CppForcMod::psa3    = new double [JMT * IMT];
+  // CppForcMod::qar3    = new double [JMT * IMT];
+  // CppForcMod::swv3    = new double [JMT * IMT];
+  // CppForcMod::lwv3    = new double [JMT * IMT];
+  // CppForcMod::rain3   = new double [JMT * IMT];
+  // CppForcMod::snow3   = new double [JMT * IMT];
+  // CppForcMod::runoff3 = new double [JMT * IMT];
+  // CppForcMod::seaice3 = new double [JMT * IMT];
 
-  new (p_v_tsa3)    ViewDouble2D(tsa3,    JMT, IMT);
-  new (p_v_wspd3)   ViewDouble2D(wspd3,   JMT, IMT);
-  new (p_v_wspdu3)  ViewDouble2D(wspdu3,  JMT, IMT);
-  new (p_v_wspdv3)  ViewDouble2D(wspdv3,  JMT, IMT);
-  new (p_v_psa3)    ViewDouble2D(psa3,    JMT, IMT);
-  new (p_v_qar3)    ViewDouble2D(qar3,    JMT, IMT);
-  new (p_v_swv3)    ViewDouble2D(swv3,    JMT, IMT);
-  new (p_v_lwv3)    ViewDouble2D(lwv3,    JMT, IMT);
-  new (p_v_rain3)   ViewDouble2D(rain3,   JMT, IMT);
-  new (p_v_snow3)   ViewDouble2D(snow3,   JMT, IMT);
-  new (p_v_runoff3) ViewDouble2D(runoff3, JMT, IMT);
-  new (p_v_seaice3) ViewDouble2D(seaice3, JMT, IMT);
+  // new (p_v_tsa3)    ViewDouble2D(tsa3,    JMT, IMT);
+  // new (p_v_wspd3)   ViewDouble2D(wspd3,   JMT, IMT);
+  // new (p_v_wspdu3)  ViewDouble2D(wspdu3,  JMT, IMT);
+  // new (p_v_wspdv3)  ViewDouble2D(wspdv3,  JMT, IMT);
+  // new (p_v_psa3)    ViewDouble2D(psa3,    JMT, IMT);
+  // new (p_v_qar3)    ViewDouble2D(qar3,    JMT, IMT);
+  // new (p_v_swv3)    ViewDouble2D(swv3,    JMT, IMT);
+  // new (p_v_lwv3)    ViewDouble2D(lwv3,    JMT, IMT);
+  // new (p_v_rain3)   ViewDouble2D(rain3,   JMT, IMT);
+  // new (p_v_snow3)   ViewDouble2D(snow3,   JMT, IMT);
+  // new (p_v_runoff3) ViewDouble2D(runoff3, JMT, IMT);
+  // new (p_v_seaice3) ViewDouble2D(seaice3, JMT, IMT);
 
-  CppForcMod::s_wx   = new double [(S_JMT+2) * (S_IMT+2)];
-  CppForcMod::s_wy   = new double [(S_JMT+2) * (S_IMT+2)];
-  CppForcMod::s_work = new double [(S_JMT+2) * (S_IMT+2)];
+  // CppForcMod::s_wx   = new double [(S_JMT+2) * (S_IMT+2)];
+  // CppForcMod::s_wy   = new double [(S_JMT+2) * (S_IMT+2)];
+  // CppForcMod::s_work = new double [(S_JMT+2) * (S_IMT+2)];
 
-  new (p_v_s_wx)   ViewDouble2D(s_wx,   S_JMT + 2, S_IMT + 2);
-  new (p_v_s_wy)   ViewDouble2D(s_wy,   S_JMT + 2, S_IMT + 2);
-  new (p_v_s_work) ViewDouble2D(s_work, S_JMT + 2, S_IMT + 2);
+  // new (p_v_s_wx)   ViewDouble2D(s_wx,   S_JMT + 2, S_IMT + 2);
+  // new (p_v_s_wy)   ViewDouble2D(s_wy,   S_JMT + 2, S_IMT + 2);
+  // new (p_v_s_work) ViewDouble2D(s_work, S_JMT + 2, S_IMT + 2);
 
-  CppForcMod::windx         = new double [JMT * IMT];
-  CppForcMod::windy         = new double [JMT * IMT];
-  CppForcMod::model_sst     = new double [JMT * IMT];
-  CppForcMod::zz            = new double [JMT * IMT];
-  CppForcMod::qs            = new double [JMT * IMT];
-  CppForcMod::theta         = new double [JMT * IMT];
-  CppForcMod::core_sensible = new double [JMT * IMT];
-  CppForcMod::core_latent   = new double [JMT * IMT];
-  CppForcMod::core_tau      = new double [JMT * IMT];
+  // CppForcMod::windx         = new double [JMT * IMT];
+  // CppForcMod::windy         = new double [JMT * IMT];
+  // CppForcMod::model_sst     = new double [JMT * IMT];
+  // CppForcMod::zz            = new double [JMT * IMT];
+  // CppForcMod::qs            = new double [JMT * IMT];
+  // CppForcMod::theta         = new double [JMT * IMT];
+  // CppForcMod::core_sensible = new double [JMT * IMT];
+  // CppForcMod::core_latent   = new double [JMT * IMT];
+  // CppForcMod::core_tau      = new double [JMT * IMT];
 
-  new (p_v_windx)         ViewDouble2D(windx,         JMT, IMT);
-  new (p_v_windy)         ViewDouble2D(windy,         JMT, IMT);
-  new (p_v_model_sst)     ViewDouble2D(model_sst,     JMT, IMT);
-  new (p_v_zz)            ViewDouble2D(zz,            JMT, IMT);
-  new (p_v_qs)            ViewDouble2D(qs,            JMT, IMT);
-  new (p_v_theta)         ViewDouble2D(theta,         JMT, IMT);
-  new (p_v_core_sensible) ViewDouble2D(core_sensible, JMT, IMT);
-  new (p_v_core_latent)   ViewDouble2D(core_latent,   JMT, IMT);
-  new (p_v_core_tau)      ViewDouble2D(core_tau,      JMT, IMT);
+  // new (p_v_windx)         ViewDouble2D(windx,         JMT, IMT);
+  // new (p_v_windy)         ViewDouble2D(windy,         JMT, IMT);
+  // new (p_v_model_sst)     ViewDouble2D(model_sst,     JMT, IMT);
+  // new (p_v_zz)            ViewDouble2D(zz,            JMT, IMT);
+  // new (p_v_qs)            ViewDouble2D(qs,            JMT, IMT);
+  // new (p_v_theta)         ViewDouble2D(theta,         JMT, IMT);
+  // new (p_v_core_sensible) ViewDouble2D(core_sensible, JMT, IMT);
+  // new (p_v_core_latent)   ViewDouble2D(core_latent,   JMT, IMT);
+  // new (p_v_core_tau)      ViewDouble2D(core_tau,      JMT, IMT);
 
 #endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
 
@@ -2329,15 +2329,15 @@ static void kokkos_init_pconst_mod() {
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
 #if (defined NETCDF) || (defined ALL)
-  new (p_v_lon) ViewFloat1D("pointer_view_lon", IMT_GLOBAL);
-  new (p_v_lat) ViewFloat1D("pointer_view_lat", JMT_GLOBAL);
+  // new (p_v_lon) ViewFloat1D("pointer_view_lon", IMT_GLOBAL);
+  // new (p_v_lat) ViewFloat1D("pointer_view_lat", JMT_GLOBAL);
 
-  new (p_v_lon_o) ViewFloat2D("pointer_view_lon_o", JMT_GLOBAL, IMT_GLOBAL);
-  new (p_v_lat_o) ViewFloat2D("pointer_view_lat_o", JMT_GLOBAL, IMT_GLOBAL);
+  // new (p_v_lon_o) ViewFloat2D("pointer_view_lon_o", JMT_GLOBAL, IMT_GLOBAL);
+  // new (p_v_lat_o) ViewFloat2D("pointer_view_lat_o", JMT_GLOBAL, IMT_GLOBAL);
 
 #endif // NETCDF || ALL
-  new (p_v_s_lon) ViewDouble2D("pointer_view_s_lon", S_JMT, S_IMT);
-  new (p_v_s_lat) ViewDouble2D("pointer_view_s_lat", S_JMT, S_IMT);
+  // new (p_v_s_lon) ViewDouble2D("pointer_view_s_lon", S_JMT, S_IMT);
+  // new (p_v_s_lat) ViewDouble2D("pointer_view_s_lat", S_JMT, S_IMT);
 
 
   new (p_v_zkt)  ViewDouble1D("pointer_view_zkt",  KM);
@@ -2463,11 +2463,11 @@ static void kokkos_init_pconst_mod() {
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
 #if (defined NETCDF) || (defined ALL)
-  UnManagedViewFloat1D h_v_lon (&lon[0], IMT_GLOBAL);
-  UnManagedViewFloat1D h_v_lat (&lat[0], JMT_GLOBAL);
+  // UnManagedViewFloat1D h_v_lon (&lon[0], IMT_GLOBAL);
+  // UnManagedViewFloat1D h_v_lat (&lat[0], JMT_GLOBAL);
 
-  UnManagedViewFloat2D h_v_lon_o (&lon_o[0][0], JMT_GLOBAL, IMT_GLOBAL);
-  UnManagedViewFloat2D h_v_lat_o (&lat_o[0][0], JMT_GLOBAL, IMT_GLOBAL);
+  // UnManagedViewFloat2D h_v_lon_o (&lon_o[0][0], JMT_GLOBAL, IMT_GLOBAL);
+  // UnManagedViewFloat2D h_v_lat_o (&lat_o[0][0], JMT_GLOBAL, IMT_GLOBAL);
 
 #endif // NETCDF || ALL
 
@@ -2669,17 +2669,17 @@ static void kokkos_init_pconst_mod() {
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
 #if (defined NETCDF) || (defined ALL)
-  new (p_v_lon) ViewFloat1D(&lon[0], IMT_GLOBAL);
-  new (p_v_lat) ViewFloat1D(&lat[0], JMT_GLOBAL);
+  // new (p_v_lon) ViewFloat1D(&lon[0], IMT_GLOBAL);
+  // new (p_v_lat) ViewFloat1D(&lat[0], JMT_GLOBAL);
 
-  new (p_v_lon_o) ViewFloat2D(&lon_o[0][0], JMT_GLOBAL, IMT_GLOBAL);
-  new (p_v_lat_o) ViewFloat2D(&lat_o[0][0], JMT_GLOBAL, IMT_GLOBAL);
+  // new (p_v_lon_o) ViewFloat2D(&lon_o[0][0], JMT_GLOBAL, IMT_GLOBAL);
+  // new (p_v_lat_o) ViewFloat2D(&lat_o[0][0], JMT_GLOBAL, IMT_GLOBAL);
 
 #endif // NETCDF || ALL
-	s_lon  = new double[S_IMT * S_JMT];
-	s_lat  = new double[S_IMT * S_JMT];
-  new (p_v_s_lon) ViewDouble2D(s_lon, S_JMT, S_IMT);
-  new (p_v_s_lat) ViewDouble2D(s_lat, S_JMT, S_IMT);
+	// s_lon  = new double[S_IMT * S_JMT];
+	// s_lat  = new double[S_IMT * S_JMT];
+  // new (p_v_s_lon) ViewDouble2D(s_lon, S_JMT, S_IMT);
+  // new (p_v_s_lat) ViewDouble2D(s_lat, S_JMT, S_IMT);
 
 
   new (p_v_zkt)  ViewDouble1D(&zkt[0],  KM);
@@ -3538,8 +3538,8 @@ static void kokkos_init_tmp_var() {
   new (p_v_wp13) ViewDouble4D("pointer_view_wp13",
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
-  new (p_v_wk1) ViewDouble3D("pointer_view_wk1", JMT, IMT, KM);
-  new (p_v_wk2) ViewDouble3D("pointer_view_wk2", JMT, IMT, KM);
+  new (p_v_wk1) ViewDouble3D("pointer_view_wk1", JMT, IMT, KM + 1);
+  new (p_v_wk2) ViewDouble3D("pointer_view_wk2", JMT, IMT, KM + 1);
   new (p_v_wk3) ViewDouble3D("pointer_view_wk3", JMT, IMT, KM);
   new (p_v_wk4) ViewDouble3D("pointer_view_wk4", JMT, IMT, KM);
   new (p_v_wp1) ViewDouble3D("pointer_view_wp1", JMT, IMT, KM);
@@ -3646,8 +3646,8 @@ static void kokkos_init_tmp_var() {
   new (p_v_wp13) ViewDouble4D(wp13,
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
-  double* wk1 = new double[KM * JMT * IMT];
-  double* wk2 = new double[KM * JMT * IMT];
+  double* wk1 = new double[(KM+1) * JMT * IMT];
+  double* wk2 = new double[(KM+1) * JMT * IMT];
   double* wk3 = new double[KM * JMT * IMT];
   double* wk4 = new double[KM * JMT * IMT];
   double* wp1 = new double[KM * JMT * IMT];
@@ -3658,8 +3658,8 @@ static void kokkos_init_tmp_var() {
   double* wp6 = new double[KM * JMT * IMT];
   double* wp7 = new double[KM * JMT * IMT];
   double* wp8 = new double[KM * JMT * IMT];
-  new (p_v_wk1) ViewDouble3D(wk1, JMT, IMT, KM);
-  new (p_v_wk2) ViewDouble3D(wk2, JMT, IMT, KM);
+  new (p_v_wk1) ViewDouble3D(wk1, JMT, IMT, KM + 1);
+  new (p_v_wk2) ViewDouble3D(wk2, JMT, IMT, KM + 1);
   new (p_v_wk3) ViewDouble3D(wk3, JMT, IMT, KM);
   new (p_v_wk4) ViewDouble3D(wk4, JMT, IMT, KM);
 

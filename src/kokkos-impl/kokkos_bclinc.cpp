@@ -55,9 +55,6 @@ using Kokkos::MDRangePolicy;
     parallel_for ("bclinc_10", MDRangePolicy<Kokkos::Rank<2>> (
         koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBclinc10());
 
-    parallel_for ("bclinc_11", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBclinc11());
-
 #ifdef LICOM_ENABLE_TEST_BCLINC
     my_time.testTime_start("bclinc haloupdate uv");
 #endif // LICOM_ENABLE_TEST_BCLINC
