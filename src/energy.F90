@@ -125,7 +125,7 @@ use blocks
 
       if (mytid==0 )then
       WRITE (16,FMT='(I5,I3,6D25.15)') MONTH,IDAY,EK0,EA0,EB0,ET0,ES0,0.1 !,t1-t0
-!      call flush_(6)
+      call flush(16)
       end if
 
      ! if (mytid==0) then

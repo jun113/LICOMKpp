@@ -258,7 +258,7 @@ void stepon(const int &mm) {
 // if (CppParamMod::mytid == 0) {
 //   printf("wjl bclinc ok\n");
 // }
-  // daily_update_d2h();
+  // energy_d2h();
   // energy_();
   // -----------------------
 } // End for (jj = 1; jj <= ncc; ++jj)
@@ -358,7 +358,7 @@ void stepon(const int &mm) {
   my_time.icesnow_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-  daily_update_d2h();
+  energy_d2h();
   energy_();
 //**********************
 

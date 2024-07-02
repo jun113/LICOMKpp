@@ -65,6 +65,7 @@ extern void kokkos_jra_daily_high (const int &iday);
 
 extern void daily_update_h2d();
 extern void daily_update_d2h();
+extern void energy_d2h();
 
 extern void kokkos_nextstep();
 
