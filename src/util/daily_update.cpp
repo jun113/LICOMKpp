@@ -235,3 +235,56 @@ void daily_update_d2h() {
 
   return ;
 }
+
+// copy back to energy
+// u v h0 at
+void energy_d2h() {
+
+#ifdef LICOM_ENABLE_KOKKOS
+#ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
+  using CppParamMod::MAX_BLOCKS_CLINIC;
+  using CppParamMod::KM;
+  using CppParamMod::KMP1;
+  using CppParamMod::JMT;
+  using CppParamMod::IMT;
+  using CppParamMod::NX_BLOCK;
+  using CppParamMod::NY_BLOCK;
+  using CppParamMod::NTRA;
+
+  using KokkosDynMod   ::p_v_u;
+  using KokkosDynMod   ::p_v_v;
+  using KokkosDynMod   ::p_v_h0;
+  using KokkosTracerMod::p_v_at;
+
+  auto dev = Kokkos::DefaultExecutionSpace();
+  // u v h0 at
+
+  static Kokkos::View<double ****, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_u(&(CppDynMod::u[0][0][0][0]), 
+              MAX_BLOCKS_CLINIC, KM, JMT, IMT); 
+  Kokkos::deep_copy(dev, h_v_u, *p_v_u);
+
+  static Kokkos::View<double ****, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_v(&(CppDynMod::v[0][0][0][0]), 
+              MAX_BLOCKS_CLINIC, KM, JMT, IMT); 
+  Kokkos::deep_copy(dev, h_v_v, *p_v_v);
+
+  static Kokkos::View<double ***, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_h0(&(CppDynMod::h0[0][0][0]), 
+              MAX_BLOCKS_CLINIC, JMT, IMT); 
+  Kokkos::deep_copy(dev, h_v_h0, *p_v_h0);
+
+  static Kokkos::View<double *****, Layout, 
+      Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_at(&(CppTracerMod::at[0][0][0][0][0]), 
+              MAX_BLOCKS_CLINIC, NTRA, KM, JMT, IMT); 
+  Kokkos::deep_copy(dev, h_v_at, *p_v_at);
+
+#endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
+#endif // LICOM_ENABLE_KOKKOS
+
+  return ;
+}

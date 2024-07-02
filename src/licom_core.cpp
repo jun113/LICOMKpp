@@ -262,6 +262,10 @@ extern "C" void licom_core_() {
         //   printf("ii = %d\n", ii);
         // }
         stepon(mm);
+        // if (ii % 10 == 0) {
+        //   energy_d2h ();
+        //   energy_();
+        // }
       } // loop ii
 #ifdef LICOM_ENABLE_TEST_TIME
       my_time.testTime_stop("stepon");

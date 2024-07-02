@@ -358,8 +358,8 @@ void stepon(const int &mm) {
   my_time.icesnow_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-  daily_update_d2h();
-  energy_();
+  // daily_update_d2h();
+  // energy_();
 //**********************
 
   if (ii == 1) {
