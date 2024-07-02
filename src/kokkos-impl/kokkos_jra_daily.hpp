@@ -544,12 +544,12 @@ class FunctorNcarOceanFluxesJra {
     return y >= static_cast<T>(0) ? std::abs(x) : - std::abs(x);
   }
 };
-KOKKOS_REGISTER_FOR_2D(FunctorInterplationNearest, FunctorInterplationNearest)
-KOKKOS_REGISTER_FOR_2D(FunctorNear1, FunctorNear1)
-KOKKOS_REGISTER_FOR_1D(FunctorNear2, FunctorNear2)
-KOKKOS_REGISTER_FOR_2D(FunctorJRADaily1, FunctorJRADaily1)
-KOKKOS_REGISTER_FOR_2D(FunctorJRADaily2, FunctorJRADaily2)
-KOKKOS_REGISTER_FOR_2D(FunctorJRADaily3, FunctorJRADaily3)
-KOKKOS_REGISTER_FOR_2D(FunctorNcarOceanFluxesJra, FunctorNcarOceanFluxesJra)
+// KOKKOS_REGISTER_FOR_2D(FunctorInterplationNearest, FunctorInterplationNearest)
+// KOKKOS_REGISTER_FOR_2D(FunctorNear1, FunctorNear1)
+// KOKKOS_REGISTER_FOR_1D(FunctorNear2, FunctorNear2)
+// KOKKOS_REGISTER_FOR_2D(FunctorJRADaily1, FunctorJRADaily1)
+// KOKKOS_REGISTER_FOR_2D(FunctorJRADaily2, FunctorJRADaily2)
+// KOKKOS_REGISTER_FOR_2D(FunctorJRADaily3, FunctorJRADaily3)
+// KOKKOS_REGISTER_FOR_2D(FunctorNcarOceanFluxesJra, FunctorNcarOceanFluxesJra)
 
 #endif // LICOM3_KOKKKOS_SRC_KOKKOS_IMPL_KOKKOS_JRA_DAILY_HPP_
