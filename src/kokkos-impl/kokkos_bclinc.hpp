@@ -12,6 +12,7 @@
 #include "../head/kokkos_work_mod.h"
 #include "../head/kokkos_forc_mod.h"
 #include "../head/kokkos_grid.h"
+#include "../head/kokkos_tmp_var.h" 
 #include "../head/kokkos_config.hpp"
 
 #include "Kokkos_Core.hpp"

@@ -172,8 +172,8 @@ class FunctorConvadj1 {
   const ViewDouble1D v_to_    = *KokkosPconstMod::p_v_to;
   const ViewDouble1D v_dzp_   = *KokkosPconstMod::p_v_dzp;
   const ViewDouble2D v_c_     = *KokkosPconstMod::p_v_c;
-  const ViewDouble3D v_rhoup_ = *KokkosTmpVal::p_v_wp1;
-  const ViewDouble3D v_rholo_ = *KokkosTmpVal::p_v_wp2;
+  const ViewDouble3D v_rhoup_ = *KokkosTmpVar::p_v_wp1;
+  const ViewDouble3D v_rholo_ = *KokkosTmpVar::p_v_wp2;
 #ifdef LOWRES               
   const ViewFloat4D v_icmon_  = *KokkosOutputMod::p_v_icmon;
 #endif                      
