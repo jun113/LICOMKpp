@@ -12,6 +12,7 @@
 #include "../head/kokkos_work_mod.h"
 #include "../head/kokkos_forc_mod.h"
 #include "../head/kokkos_grid.h"
+#include "../head/kokkos_tmp_var.h" 
 #include "../head/kokkos_config.hpp"
 
 #include "Kokkos_Core.hpp"
@@ -75,6 +76,13 @@ using KokkosWorkMod::p_v_wkb;
 using KokkosForcMod::p_v_psa;
 using KokkosForcMod::p_v_su;
 using KokkosForcMod::p_v_sv;
+
+using KokkosTmpVar::p_v_wp1;
+using KokkosTmpVar::p_v_wp2;
+using KokkosTmpVar::p_v_wp3;
+using KokkosTmpVar::p_v_wp4;
+using KokkosTmpVar::p_v_wk1;
+using KokkosTmpVar::p_v_wk2;
 
 class FunctorBclinc1 {
  public:
@@ -365,91 +373,6 @@ class FunctorBclinc10 {
     const double aidif = 0.0; 
 #endif // CANUTO
     invtriu(j, i, v_u_, v_sbcx_, v_bbcx_, v_akmu_, aidif, dtc_);
-    return ;
-  }
-  KOKKOS_INLINE_FUNCTION void invtriu (const int &j, const int &i,
-      const ViewDouble4D &v_wk,
-      const ViewDouble3D &v_topbc,
-      const ViewDouble3D &v_bombc,
-      const ViewDouble4D &v_dcb,
-      const double &aidif, const double &c2dtc) const {
-    int k;
-    const int iblock = 0;
-    double a8[KM], b8[KM], c8[KM], d8[KM];
-    double e8[KM+1], f8[KM+1];
-
-    const double c2dtc_times_aidif = c2dtc * aidif;
-
-    if (v_kmu_(iblock, j, i) > 0) {
-      const int kz = v_kmu_(iblock, j, i);
-      for (k = 1; k < kz; ++k) {
-        a8[k] = v_dcb(iblock, k-1, j, i) * v_odzt_(k) 
-            * v_odzp_(k) * c2dtc_times_aidif;
-        d8[k] = v_wk(iblock, k, j, i);
-      }
-      for (k = 1; k < kz - 1 ; ++k) { 
-        c8[k] = v_dcb(iblock, k, j, i) * v_odzt_(k + 1) 
-            * v_odzp_(k) * c2dtc_times_aidif;
-        b8[k] = 1.0 +  a8[k] + c8[k];
-        e8[k] = 0.0;
-        f8[k] = 0.0;
-      }
-      //B.C. AT TOP
-      k = 0;
-      a8[k] = v_odzp_(k) * c2dtc_times_aidif;
-      c8[k] = v_dcb(iblock, k, j, i) * v_odzt_(k+1) * v_odzp_(k) 
-          * c2dtc_times_aidif;
-      b8[k] = 1.0 + c8[k];
-      d8[k] = v_wk(iblock, k, j, i);
-      e8[k] = 0.0;
-      f8[k] = 0.0;
-      //B.C. AT BOTTOM
-      b8[kz-1] = 1.0 + a8[kz-1];
-      c8[kz-1] = v_odzp_[kz-1] * c2dtc_times_aidif;
-      e8[kz] = 0.0;
-      f8[kz] = 0.0;
-      d8[kz-1] = v_wk(iblock, kz-1, j, i) 
-          - v_bombc(iblock, j, i) * v_odzp_(kz-1) * c2dtc_times_aidif;
-      //NOW INVERT
-      for (k = kz - 1; k >= 0; --k) {
-        const double g0 = 1.0 / (b8[k] - c8[k] * e8[k+1]);
-        e8[k] = a8[k] * g0;
-        f8[k] = (d8[k] + c8[k] * f8[k+1]) * g0;
-      }
-     //B.C. AT SURFACE 
-      k = 0;
-      double wk = (e8[k] * v_topbc(iblock, j, i) + f8[k]) 
-          * v_viv_(iblock, k, j, i); 
-      v_wk(iblock, k, j, i) = wk;
-      for (k = 1; k < kz ; ++k) {
-        wk = (e8[k] * wk + f8[k]) * v_viv_(iblock, k, j, i);
-        v_wk(iblock, k, j, i) = wk;
-      } 
-    }
-    return ;
-  }
- private:
-  const double dtc_ = CppPconstMod::dtc;
-
-  const ViewInt3D    v_kmu_  = *p_v_kmu;
-  const ViewDouble1D v_odzt_ = *p_v_odzt;
-  const ViewDouble1D v_odzp_ = *p_v_odzp;
-  const ViewDouble3D v_sbcx_ = *p_v_sbcx;
-  const ViewDouble3D v_bbcx_ = *p_v_bbcx;
-  const ViewDouble4D v_u_    = *p_v_u;
-  const ViewDouble4D v_viv_  = *p_v_viv;
-  const ViewDouble4D v_akmu_ = *p_v_akmu;
-};
-
-class FunctorBclinc11 {
- public:
-  KOKKOS_INLINE_FUNCTION void operator () (
-      const int &j, const int &i) const {
-#if (defined CANUTO) || (defined CANUTO2010)
-    const double aidif = 0.5;
-#else  // CANUTO
-    const double aidif = 0.0; 
-#endif // CANUTO
     invtriu(j, i, v_v_, v_sbcy_, v_bbcy_, v_akmu_, aidif, dtc_);
     return ;
   }
@@ -461,53 +384,52 @@ class FunctorBclinc11 {
       const double &aidif, const double &c2dtc) const {
     int k;
     const int iblock = 0;
-    double a8[KM], b8[KM], c8[KM], d8[KM];
-    double e8[KM+1], f8[KM+1];
+
     const double c2dtc_times_aidif = c2dtc * aidif;
 
     if (v_kmu_(iblock, j, i) > 0) {
       const int kz = v_kmu_(iblock, j, i);
       for (k = 1; k < kz; ++k) {
-        a8[k] = v_dcb(iblock, k-1, j, i) * v_odzt_(k) 
+        v_a8_(j, i, k) = v_dcb(iblock, k-1, j, i) * v_odzt_(k) 
             * v_odzp_(k) * c2dtc_times_aidif;
-        d8[k] = v_wk(iblock, k, j, i);
+        v_d8_(j, i, k) = v_wk(iblock, k, j, i);
       }
       for (k = 1; k < kz - 1 ; ++k) { 
-        c8[k] = v_dcb(iblock, k, j, i) * v_odzt_(k + 1) 
+        v_c8_(j, i, k) = v_dcb(iblock, k, j, i) * v_odzt_(k + 1) 
             * v_odzp_(k) * c2dtc_times_aidif;
-        b8[k] = 1.0 +  a8[k] + c8[k];
-        e8[k] = 0.0;
-        f8[k] = 0.0;
+        v_b8_(j, i, k) = 1.0 +  v_a8_(j, i, k) + v_c8_(j, i, k);
+        v_e8_(j, i, k) = 0.0;
+        v_f8_(j, i, k) = 0.0;
       }
       //B.C. AT TOP
       k = 0;
-      a8[k] = v_odzp_(k) * c2dtc_times_aidif;
-      c8[k] = v_dcb(iblock, k, j, i) * v_odzt_(k+1) * v_odzp_(k) 
+      v_a8_(j, i, k) = v_odzp_(k) * c2dtc_times_aidif;
+      v_c8_(j, i, k) = v_dcb(iblock, k, j, i) * v_odzt_(k+1) * v_odzp_(k) 
           * c2dtc_times_aidif;
-      b8[k] = 1.0 + c8[k];
-      d8[k] = v_wk(iblock, k, j, i);
-      e8[k] = 0.0;
-      f8[k] = 0.0;
+      v_b8_(j, i, k) = 1.0 + v_c8_(j, i, k);
+      v_d8_(j, i, k) = v_wk(iblock, k, j, i);
+      v_e8_(j, i, k) = 0.0;
+      v_f8_(j, i, k) = 0.0;
       //B.C. AT BOTTOM
-      b8[kz-1] = 1.0 + a8[kz-1];
-      c8[kz-1] = v_odzp_[kz-1] * c2dtc_times_aidif;
-      e8[kz] = 0.0;
-      f8[kz] = 0.0;
-      d8[kz-1] = v_wk(iblock, kz-1, j, i) 
+      v_b8_(j, i, kz-1) = 1.0 + v_a8_(j, i, kz-1);
+      v_c8_(j, i, kz-1) = v_odzp_(kz-1) * c2dtc_times_aidif;
+      v_e8_(j, i, kz) = 0.0;
+      v_f8_(j, i, kz) = 0.0;
+      v_d8_(j, i, kz-1) = v_wk(iblock, kz-1, j, i) 
           - v_bombc(iblock, j, i) * v_odzp_(kz-1) * c2dtc_times_aidif;
       //NOW INVERT
       for (k = kz - 1; k >= 0; --k) {
-        const double g0 = 1.0 / (b8[k] - c8[k] * e8[k+1]);
-        e8[k] = a8[k] * g0;
-        f8[k] = (d8[k] + c8[k] * f8[k+1]) * g0;
+        const double g0 = 1.0 / (v_b8_(j, i, k) - v_c8_(j, i, k) * v_e8_(j, i, k+1));
+        v_e8_(j, i, k) = v_a8_(j, i, k) * g0;
+        v_f8_(j, i, k) = (v_d8_(j, i, k) + v_c8_(j, i, k) * v_f8_(j, i, k+1)) * g0;
       }
      //B.C. AT SURFACE 
       k = 0;
-      double wk = (e8[k] * v_topbc(iblock, j, i) + f8[k]) 
+      double wk = (v_e8_(j, i, k) * v_topbc(iblock, j, i) + v_f8_(j, i, k)) 
           * v_viv_(iblock, k, j, i); 
       v_wk(iblock, k, j, i) = wk;
       for (k = 1; k < kz ; ++k) {
-        wk = (e8[k] * wk + f8[k]) * v_viv_(iblock, k, j, i);
+        wk = (v_e8_(j, i, k) * wk + v_f8_(j, i, k)) * v_viv_(iblock, k, j, i);
         v_wk(iblock, k, j, i) = wk;
       } 
     }
@@ -519,12 +441,22 @@ class FunctorBclinc11 {
   const ViewInt3D    v_kmu_  = *p_v_kmu;
   const ViewDouble1D v_odzt_ = *p_v_odzt;
   const ViewDouble1D v_odzp_ = *p_v_odzp;
+  const ViewDouble3D v_a8_   = *p_v_wp1;
+  const ViewDouble3D v_b8_   = *p_v_wp2;
+  const ViewDouble3D v_c8_   = *p_v_wp3;
+  const ViewDouble3D v_d8_   = *p_v_wp4;
+  const ViewDouble3D v_e8_   = *p_v_wk1;
+  const ViewDouble3D v_f8_   = *p_v_wk2;
+  const ViewDouble3D v_sbcx_ = *p_v_sbcx;
+  const ViewDouble3D v_bbcx_ = *p_v_bbcx;
   const ViewDouble3D v_sbcy_ = *p_v_sbcy;
   const ViewDouble3D v_bbcy_ = *p_v_bbcy;
+  const ViewDouble4D v_u_    = *p_v_u;
   const ViewDouble4D v_v_    = *p_v_v;
   const ViewDouble4D v_viv_  = *p_v_viv;
   const ViewDouble4D v_akmu_ = *p_v_akmu;
 };
+
 // !---------------------------------------------------------------------
 // !@@@  INTERACTION BETWEEN BAROTROPIC AND BAROCLINIC MODES
 // !---------------------------------------------------------------------
@@ -627,7 +559,7 @@ class FunctorBclinc15 {
     invtriu(j, i, v_wka_, v_sbcy_, v_bbcy_, v_akmu_, aidif, dtc2_);
     return ;
   }
-  KOKKOS_INLINE_FUNCTION void invtriu(const int &j, const int &i,
+  KOKKOS_INLINE_FUNCTION void invtriu (const int &j, const int &i,
       const ViewDouble4D &v_wk,
       const ViewDouble3D &v_topbc,
       const ViewDouble3D &v_bombc,
@@ -635,53 +567,52 @@ class FunctorBclinc15 {
       const double &aidif, const double &c2dtc) const {
     int k;
     const int iblock = 0;
-    double a8[KM], b8[KM], c8[KM], d8[KM];
-    double e8[KM+1], f8[KM+1];
+
     const double c2dtc_times_aidif = c2dtc * aidif;
 
     if (v_kmu_(iblock, j, i) > 0) {
       const int kz = v_kmu_(iblock, j, i);
       for (k = 1; k < kz; ++k) {
-        a8[k] = v_dcb(iblock, k-1, j, i) * v_odzt_(k) 
+        v_a8_(j, i, k) = v_dcb(iblock, k-1, j, i) * v_odzt_(k) 
             * v_odzp_(k) * c2dtc_times_aidif;
-        d8[k] = v_wk(iblock, k, j, i);
+        v_d8_(j, i, k) = v_wk(iblock, k, j, i);
       }
       for (k = 1; k < kz - 1 ; ++k) { 
-        c8[k] = v_dcb(iblock, k, j, i) * v_odzt_(k + 1) 
+        v_c8_(j, i, k) = v_dcb(iblock, k, j, i) * v_odzt_(k + 1) 
             * v_odzp_(k) * c2dtc_times_aidif;
-        b8[k] = 1.0 +  a8[k] + c8[k];
-        e8[k] = 0.0;
-        f8[k] = 0.0;
+        v_b8_(j, i, k) = 1.0 +  v_a8_(j, i, k) + v_c8_(j, i, k);
+        v_e8_(j, i, k) = 0.0;
+        v_f8_(j, i, k) = 0.0;
       }
       //B.C. AT TOP
       k = 0;
-      a8[k] = v_odzp_(k) * c2dtc_times_aidif;
-      c8[k] = v_dcb(iblock, k, j, i) * v_odzt_(k+1) * v_odzp_(k) 
+      v_a8_(j, i, k) = v_odzp_(k) * c2dtc_times_aidif;
+      v_c8_(j, i, k) = v_dcb(iblock, k, j, i) * v_odzt_(k+1) * v_odzp_(k) 
           * c2dtc_times_aidif;
-      b8[k] = 1.0 + c8[k];
-      d8[k] = v_wk(iblock, k, j, i);
-      e8[k] = 0.0;
-      f8[k] = 0.0;
+      v_b8_(j, i, k) = 1.0 + v_c8_(j, i, k);
+      v_d8_(j, i, k) = v_wk(iblock, k, j, i);
+      v_e8_(j, i, k) = 0.0;
+      v_f8_(j, i, k) = 0.0;
       //B.C. AT BOTTOM
-      b8[kz-1] = 1.0 + a8[kz-1];
-      c8[kz-1] = v_odzp_[kz-1] * c2dtc_times_aidif;
-      e8[kz] = 0.0;
-      f8[kz] = 0.0;
-      d8[kz-1] = v_wk(iblock, kz-1, j, i) 
+      v_b8_(j, i, kz-1) = 1.0 + v_a8_(j, i, kz-1);
+      v_c8_(j, i, kz-1) = v_odzp_(kz-1) * c2dtc_times_aidif;
+      v_e8_(j, i, kz) = 0.0;
+      v_f8_(j, i, kz) = 0.0;
+      v_d8_(j, i, kz-1) = v_wk(iblock, kz-1, j, i) 
           - v_bombc(iblock, j, i) * v_odzp_(kz-1) * c2dtc_times_aidif;
       //NOW INVERT
       for (k = kz - 1; k >= 0; --k) {
-        const double g0 = 1.0 / (b8[k] - c8[k] * e8[k+1]);
-        e8[k] = a8[k] * g0;
-        f8[k] = (d8[k] + c8[k] * f8[k+1]) * g0;
+        const double g0 = 1.0 / (v_b8_(j, i, k) - v_c8_(j, i, k) * v_e8_(j, i, k+1));
+        v_e8_(j, i, k) = v_a8_(j, i, k) * g0;
+        v_f8_(j, i, k) = (v_d8_(j, i, k) + v_c8_(j, i, k) * v_f8_(j, i, k+1)) * g0;
       }
      //B.C. AT SURFACE 
       k = 0;
-      double wk = (e8[k] * v_topbc(iblock, j, i) + f8[k]) 
+      double wk = (v_e8_(j, i, k) * v_topbc(iblock, j, i) + v_f8_(j, i, k)) 
           * v_viv_(iblock, k, j, i); 
       v_wk(iblock, k, j, i) = wk;
       for (k = 1; k < kz ; ++k) {
-        wk = (e8[k] * wk + f8[k]) * v_viv_(iblock, k, j, i);
+        wk = (v_e8_(j, i, k) * wk + v_f8_(j, i, k)) * v_viv_(iblock, k, j, i);
         v_wk(iblock, k, j, i) = wk;
       } 
     }
@@ -692,6 +623,12 @@ class FunctorBclinc15 {
   const ViewInt3D    v_kmu_  = *p_v_kmu;
   const ViewDouble1D v_odzt_ = *p_v_odzt;
   const ViewDouble1D v_odzp_ = *p_v_odzp;
+  const ViewDouble3D v_a8_   = *p_v_wp1;
+  const ViewDouble3D v_b8_   = *p_v_wp2;
+  const ViewDouble3D v_c8_   = *p_v_wp3;
+  const ViewDouble3D v_d8_   = *p_v_wp4;
+  const ViewDouble3D v_e8_   = *p_v_wk1;
+  const ViewDouble3D v_f8_   = *p_v_wk2;
   const ViewDouble3D v_sbcy_ = *p_v_sbcy;
   const ViewDouble3D v_bbcy_ = *p_v_bbcy;
   const ViewDouble4D v_wka_  = *p_v_wka;
@@ -774,7 +711,7 @@ class FunctorBclinc18 {
     invtriu(j, i, v_wka_, v_sbcx_, v_bbcx_, v_akmu_, aidif, dtc2_);
     return ;
   }
-  KOKKOS_INLINE_FUNCTION void invtriu(const int &j, const int &i,
+  KOKKOS_INLINE_FUNCTION void invtriu (const int &j, const int &i,
       const ViewDouble4D &v_wk,
       const ViewDouble3D &v_topbc,
       const ViewDouble3D &v_bombc,
@@ -782,53 +719,52 @@ class FunctorBclinc18 {
       const double &aidif, const double &c2dtc) const {
     int k;
     const int iblock = 0;
-    double a8[KM], b8[KM], c8[KM], d8[KM];
-    double e8[KM+1], f8[KM+1];
+
     const double c2dtc_times_aidif = c2dtc * aidif;
 
     if (v_kmu_(iblock, j, i) > 0) {
       const int kz = v_kmu_(iblock, j, i);
       for (k = 1; k < kz; ++k) {
-        a8[k] = v_dcb(iblock, k-1, j, i) * v_odzt_(k) 
+        v_a8_(j, i, k) = v_dcb(iblock, k-1, j, i) * v_odzt_(k) 
             * v_odzp_(k) * c2dtc_times_aidif;
-        d8[k] = v_wk(iblock, k, j, i);
+        v_d8_(j, i, k) = v_wk(iblock, k, j, i);
       }
       for (k = 1; k < kz - 1 ; ++k) { 
-        c8[k] = v_dcb(iblock, k, j, i) * v_odzt_(k + 1) 
+        v_c8_(j, i, k) = v_dcb(iblock, k, j, i) * v_odzt_(k + 1) 
             * v_odzp_(k) * c2dtc_times_aidif;
-        b8[k] = 1.0 +  a8[k] + c8[k];
-        e8[k] = 0.0;
-        f8[k] = 0.0;
+        v_b8_(j, i, k) = 1.0 +  v_a8_(j, i, k) + v_c8_(j, i, k);
+        v_e8_(j, i, k) = 0.0;
+        v_f8_(j, i, k) = 0.0;
       }
       //B.C. AT TOP
       k = 0;
-      a8[k] = v_odzp_(k) * c2dtc_times_aidif;
-      c8[k] = v_dcb(iblock, k, j, i) * v_odzt_(k+1) * v_odzp_(k) 
+      v_a8_(j, i, k) = v_odzp_(k) * c2dtc_times_aidif;
+      v_c8_(j, i, k) = v_dcb(iblock, k, j, i) * v_odzt_(k+1) * v_odzp_(k) 
           * c2dtc_times_aidif;
-      b8[k] = 1.0 + c8[k];
-      d8[k] = v_wk(iblock, k, j, i);
-      e8[k] = 0.0;
-      f8[k] = 0.0;
+      v_b8_(j, i, k) = 1.0 + v_c8_(j, i, k);
+      v_d8_(j, i, k) = v_wk(iblock, k, j, i);
+      v_e8_(j, i, k) = 0.0;
+      v_f8_(j, i, k) = 0.0;
       //B.C. AT BOTTOM
-      b8[kz-1] = 1.0 + a8[kz-1];
-      c8[kz-1] = v_odzp_[kz-1] * c2dtc_times_aidif;
-      e8[kz] = 0.0;
-      f8[kz] = 0.0;
-      d8[kz-1] = v_wk(iblock, kz-1, j, i) 
+      v_b8_(j, i, kz-1) = 1.0 + v_a8_(j, i, kz-1);
+      v_c8_(j, i, kz-1) = v_odzp_(kz-1) * c2dtc_times_aidif;
+      v_e8_(j, i, kz) = 0.0;
+      v_f8_(j, i, kz) = 0.0;
+      v_d8_(j, i, kz-1) = v_wk(iblock, kz-1, j, i) 
           - v_bombc(iblock, j, i) * v_odzp_(kz-1) * c2dtc_times_aidif;
       //NOW INVERT
       for (k = kz - 1; k >= 0; --k) {
-        const double g0 = 1.0 / (b8[k] - c8[k] * e8[k+1]);
-        e8[k] = a8[k] * g0;
-        f8[k] = (d8[k] + c8[k] * f8[k+1]) * g0;
+        const double g0 = 1.0 / (v_b8_(j, i, k) - v_c8_(j, i, k) * v_e8_(j, i, k+1));
+        v_e8_(j, i, k) = v_a8_(j, i, k) * g0;
+        v_f8_(j, i, k) = (v_d8_(j, i, k) + v_c8_(j, i, k) * v_f8_(j, i, k+1)) * g0;
       }
      //B.C. AT SURFACE 
       k = 0;
-      double wk = (e8[k] * v_topbc(iblock, j, i) + f8[k]) 
+      double wk = (v_e8_(j, i, k) * v_topbc(iblock, j, i) + v_f8_(j, i, k)) 
           * v_viv_(iblock, k, j, i); 
       v_wk(iblock, k, j, i) = wk;
       for (k = 1; k < kz ; ++k) {
-        wk = (e8[k] * wk + f8[k]) * v_viv_(iblock, k, j, i);
+        wk = (v_e8_(j, i, k) * wk + v_f8_(j, i, k)) * v_viv_(iblock, k, j, i);
         v_wk(iblock, k, j, i) = wk;
       } 
     }
@@ -839,6 +775,12 @@ class FunctorBclinc18 {
   const ViewInt3D    v_kmu_  = *p_v_kmu;
   const ViewDouble1D v_odzp_ = *p_v_odzp;
   const ViewDouble1D v_odzt_ = *p_v_odzt;
+  const ViewDouble3D v_a8_   = *p_v_wp1;
+  const ViewDouble3D v_b8_   = *p_v_wp2;
+  const ViewDouble3D v_c8_   = *p_v_wp3;
+  const ViewDouble3D v_d8_   = *p_v_wp4;
+  const ViewDouble3D v_e8_   = *p_v_wk1;
+  const ViewDouble3D v_f8_   = *p_v_wk2;
   const ViewDouble3D v_sbcx_ = *p_v_sbcx;
   const ViewDouble3D v_bbcx_ = *p_v_bbcx;
   const ViewDouble4D v_viv_  = *p_v_viv;
