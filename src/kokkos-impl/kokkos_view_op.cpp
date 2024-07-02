@@ -3538,8 +3538,9 @@ static void kokkos_init_tmp_var() {
   new (p_v_wp13) ViewDouble4D("pointer_view_wp13",
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
-  new (p_v_wk1) ViewDouble3D("pointer_view_wk1", JMT, IMT, KM);
-  new (p_v_wk2) ViewDouble3D("pointer_view_wk2", JMT, IMT, KM);
+  // KM + 1, for invtrit
+  new (p_v_wk1) ViewDouble3D("pointer_view_wk1", JMT, IMT, KM + 1);
+  new (p_v_wk2) ViewDouble3D("pointer_view_wk2", JMT, IMT, KM + 1);
   new (p_v_wk3) ViewDouble3D("pointer_view_wk3", JMT, IMT, KM);
   new (p_v_wk4) ViewDouble3D("pointer_view_wk4", JMT, IMT, KM);
   new (p_v_wp1) ViewDouble3D("pointer_view_wp1", JMT, IMT, KM);
@@ -3646,8 +3647,9 @@ static void kokkos_init_tmp_var() {
   new (p_v_wp13) ViewDouble4D(wp13,
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
-  double* wk1 = new double[KM * JMT * IMT];
-  double* wk2 = new double[KM * JMT * IMT];
+  // KM + 1, for invtrit
+  double* wk1 = new double[(KM+1) * JMT * IMT];
+  double* wk2 = new double[(KM+1) * JMT * IMT];
   double* wk3 = new double[KM * JMT * IMT];
   double* wk4 = new double[KM * JMT * IMT];
   double* wp1 = new double[KM * JMT * IMT];
@@ -3658,8 +3660,8 @@ static void kokkos_init_tmp_var() {
   double* wp6 = new double[KM * JMT * IMT];
   double* wp7 = new double[KM * JMT * IMT];
   double* wp8 = new double[KM * JMT * IMT];
-  new (p_v_wk1) ViewDouble3D(wk1, JMT, IMT, KM);
-  new (p_v_wk2) ViewDouble3D(wk2, JMT, IMT, KM);
+  new (p_v_wk1) ViewDouble3D(wk1, JMT, IMT, KM + 1);
+  new (p_v_wk2) ViewDouble3D(wk2, JMT, IMT, KM + 1);
   new (p_v_wk3) ViewDouble3D(wk3, JMT, IMT, KM);
   new (p_v_wk4) ViewDouble3D(wk4, JMT, IMT, KM);
 

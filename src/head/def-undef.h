@@ -9,7 +9,7 @@
 #define FRC_CORE
 #define SOLAR
 #define ACOS
-#undef BIHAR
+#define BIHAR
 #undef  SMAG_FZ
 #undef  SMAG_OUT
 #define NETCDF
@@ -53,6 +53,6 @@
 
 #define LICOM_ENABLE_FORTRAN_COMPILER_INTEL
 
-#define LICOM_ENABLE_FORTRAN
+#define LICOM_ENABLE_KOKKOS
 
 #endif
