@@ -35,6 +35,7 @@
 #include <sstream>
 
 #include <string>
+#include "spawn.h"
 /*--------------------------------------------------------------------------*/
 extern "C" void launch_register_kernel();
 
@@ -56,8 +57,11 @@ bool AthreadInternal::is_initialized() { return m_is_initialized; }
 void AthreadInternal::initialize() {
   if (is_initialized()) return;
 
-  athread_init();
-
+//#if 1 // Kokkos_ATHREAD_FAST
+    spawn_proxy_init();
+//#else
+//    athread_init();
+//#endif
   // TODO
   // get_current_max_cores();
 
@@ -83,7 +87,13 @@ void AthreadInternal::finalize() {
 
   Kokkos::Profiling::finalize();
 
-  athread_halt();
+
+//#if 1 // Kokkos_ATHREAD_FAST
+    spawn_proxy_finalize();
+//#else
+//    athread_halt();
+//#endif
+
   m_is_initialized = false;
 }
 

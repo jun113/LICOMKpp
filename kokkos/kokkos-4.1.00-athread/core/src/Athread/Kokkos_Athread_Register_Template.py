@@ -10,6 +10,7 @@ def athread_search_user_functor (search_dir):
 					user_hpp_code = f.read()
 					if (user_hpp_code.find("KOKKOS_REGISTER_FOR_") != -1):
 						list_functor_path.append(os.path.join(root, file))
+						continue
 					if (user_hpp_code.find("KOKKOS_REGISTER_REDUCE_") != -1):
 						list_functor_path.append(os.path.join(root, file))
 	return list_functor_path

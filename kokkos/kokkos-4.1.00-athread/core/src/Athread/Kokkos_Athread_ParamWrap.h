@@ -2,9 +2,10 @@
 #define KOKKOS_ATHREAD_PARAMWRAP_H_
 
 struct AthreadParamWrap {
-	int         range[6][2];
-	int         tile[6];
-	int         index[6];
+  int         my_athread_tid;
+  int         num_athread_cores;
+	int         range[4][2];
+	int         tile[4];
 	const void* functor;
 	double      reduce_result;
 	int         num_intv16;

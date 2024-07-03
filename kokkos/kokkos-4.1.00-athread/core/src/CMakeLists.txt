@@ -102,7 +102,10 @@ IF (KOKKOS_ENABLE_ATHREAD)
   APPEND_GLOB(KOKKOS_CORE_SRCS_C 
       ${CMAKE_CURRENT_SOURCE_DIR}/Athread/Kokkos_Athread_KernelLaunch.c)
 
+  APPEND_GLOB(KOKKOS_CORE_SRCS_C 
+	  ${CMAKE_CURRENT_SOURCE_DIR}/Athread/spawn.c)
   APPEND_GLOB(KOKKOS_CORE_SRCS ${KOKKOS_CORE_SRCS_C})
+
   set_source_files_properties(${KOKKOS_CORE_SRCS} PROPERTIES COMPILE_FLAGS "-mhost -fPIC -msimd -faddress_align=64")
 
   # /usr/sw/yyzlib/xMath-SACA

@@ -1,15 +1,13 @@
 // __INCLUDE_FUNCTOR_HPP_START__
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_readyc.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_bclinc.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_icesnow.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_convadj.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_barotr.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_readyt.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_jra_daily.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_nextstep.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_tracer.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/kokkos-impl/kokkos_tracer.hpp"
-#include "/home/export/base/shisuan/swiap/online/2024-SC/LICOMKpp-SC/src/util/pop_haloupdate.hpp"
+#include "/home/export/base/shisuan/swiap/online/2024-GB/finalist/bk/wjl-dev/Gitlab/km-scale/20240703/licom_kokkos/src/kokkos-impl/kokkos_readyc.hpp"
+#include "/home/export/base/shisuan/swiap/online/2024-GB/finalist/bk/wjl-dev/Gitlab/km-scale/20240703/licom_kokkos/src/kokkos-impl/kokkos_bclinc.hpp"
+#include "/home/export/base/shisuan/swiap/online/2024-GB/finalist/bk/wjl-dev/Gitlab/km-scale/20240703/licom_kokkos/src/kokkos-impl/kokkos_icesnow.hpp"
+#include "/home/export/base/shisuan/swiap/online/2024-GB/finalist/bk/wjl-dev/Gitlab/km-scale/20240703/licom_kokkos/src/kokkos-impl/kokkos_convadj.hpp"
+#include "/home/export/base/shisuan/swiap/online/2024-GB/finalist/bk/wjl-dev/Gitlab/km-scale/20240703/licom_kokkos/src/kokkos-impl/kokkos_barotr.hpp"
+#include "/home/export/base/shisuan/swiap/online/2024-GB/finalist/bk/wjl-dev/Gitlab/km-scale/20240703/licom_kokkos/src/kokkos-impl/kokkos_readyt.hpp"
+#include "/home/export/base/shisuan/swiap/online/2024-GB/finalist/bk/wjl-dev/Gitlab/km-scale/20240703/licom_kokkos/src/kokkos-impl/kokkos_jra_daily.hpp"
+#include "/home/export/base/shisuan/swiap/online/2024-GB/finalist/bk/wjl-dev/Gitlab/km-scale/20240703/licom_kokkos/src/kokkos-impl/kokkos_nextstep.hpp"
+#include "/home/export/base/shisuan/swiap/online/2024-GB/finalist/bk/wjl-dev/Gitlab/km-scale/20240703/licom_kokkos/src/kokkos-impl/kokkos_tracer.hpp"
 // __INCLUDE_FUNCTOR_HPP_END__
 #include "Kokkos_Athread_RegisterFunction.hpp"
 #include "Kokkos_Athread_ParamWrap.h"
@@ -20,6 +18,8 @@
 #include <string>
 
 #include <time.h>
+
+#include "spawn.h"
 
 extern "C" void slave_cores_reduce(void* src_addr, void* dest_addr, 
 		int units, int dtype, int optype, void *buf, int buf_item);
@@ -87,9 +87,18 @@ inline static bool str_cmp(char* const str1, char* const str2) {
   }
   return false;
 }
+
 extern int* g_athread_functor_key __attribute__ ((aligned(64)));
 
-inline static bool str_cmp_intv16 (const intv16 &str1_simd, const intv16 &str2_simd, intv16 &result_simd) {
+extern AthradRegisterFunctionListNode* reg_func_list_node;
+typedef void (*FunctionPointer)(AthreadParamWrap *);
+
+__thread_local_fix intv16 result_simd;
+__thread_local_fix intv16 node_key_simd;
+__thread_local_fix intv16 curr_key1_simd;
+__thread_local_fix intv16 curr_key2_simd;
+
+inline static bool str_cmp_intv16 (const intv16 &str1_simd, const intv16 &str2_simd) {
 
   // about 1 cycle
   result_simd = simd_vcmpeqw(str1_simd, str2_simd);
@@ -102,28 +111,21 @@ inline static bool str_cmp_intv16 (const intv16 &str1_simd, const intv16 &str2_s
   }
 }
 
-extern AthradRegisterFunctionListNode* reg_func_list_node;
-typedef void (*FunctionPointer)(AthreadParamWrap *);
-
 static FunctionPointer lookup_fp () {
   using node = AthradRegisterFunctionListNode;
-
-  intv16 *result_simd    = (intv16*)ldm_malloc(sizeof(intv16));
-  intv16 *node_key_simd  = (intv16*)ldm_malloc(sizeof(intv16));
-  intv16 *curr_key1_simd = (intv16*)ldm_malloc(sizeof(intv16));
 
   node* target_node = reg_func_list_node;
 
   if (kokkos_athread_local_param.num_intv16 == 1) {
 
-    simd_load(curr_key1_simd[0], g_athread_functor_key);
+    simd_load(curr_key1_simd, g_athread_functor_key);
 
     while (target_node != nullptr) {
       if (target_node->num_intv16 != kokkos_athread_local_param.num_intv16) {
         target_node = target_node->next;
       }
-      simd_load(node_key_simd[0], target_node->key);
-      if (str_cmp_intv16(node_key_simd[0], curr_key1_simd[0], result_simd[0])) {
+      simd_load(node_key_simd, target_node->key);
+      if (str_cmp_intv16(node_key_simd, curr_key1_simd)) {
         break;
       } else {
         target_node = target_node->next;
@@ -131,10 +133,8 @@ static FunctionPointer lookup_fp () {
     }
   } else if (kokkos_athread_local_param.num_intv16 == 2) {
 
-    intv16 *curr_key2_simd = (intv16*)ldm_malloc(sizeof(intv16));
-
-    simd_load(curr_key1_simd[0],   g_athread_functor_key);
-    simd_load(curr_key2_simd[0], &(g_athread_functor_key[16]));
+    simd_load(curr_key1_simd,   g_athread_functor_key);
+    simd_load(curr_key2_simd, &(g_athread_functor_key[16]));
 
     while (target_node != nullptr) {
 
@@ -142,24 +142,23 @@ static FunctionPointer lookup_fp () {
         target_node = target_node->next;
       }
 
-      simd_load(node_key_simd[0], target_node->key);
+      simd_load(node_key_simd, target_node->key);
 
-      if (!str_cmp_intv16(node_key_simd[0], curr_key1_simd[0], result_simd[0])) {
+      if (!str_cmp_intv16(node_key_simd, curr_key1_simd)) {
         // compare first intv16
         target_node = target_node->next;
         continue;
       }
 
-      simd_load(node_key_simd[0], &(target_node->key[16]));
+      simd_load(node_key_simd, &(target_node->key[16]));
 
-      if (str_cmp_intv16(node_key_simd[0], curr_key2_simd[0], result_simd[0])) {
+      if (str_cmp_intv16(node_key_simd, curr_key2_simd)) {
         // compare second intv16
         break;
       } else {
         target_node = target_node->next;
       }
     } // End while
-    ldm_free(curr_key2_simd, sizeof(intv16));
   } else {
     printf ("error in %s, num_intv16 = %d\n", __PRETTY_FUNCTION__, kokkos_athread_local_param.num_intv16);
     exit(EXIT_FAILURE);
@@ -178,11 +177,30 @@ static FunctionPointer lookup_fp () {
     exit(EXIT_FAILURE);
   }
 
-  ldm_free(result_simd,    sizeof(intv16));
-  ldm_free(node_key_simd,  sizeof(intv16));
-  ldm_free(curr_key1_simd, sizeof(intv16));
-
   return target_node->fp;
+}
+
+extern "C" void spawn_proxy_stub(void *_) {
+    while (1) {
+        struct spawn_args l_spawn_arg;
+        l_spawn_arg.flag = 0;
+        if (CRTS_tid == 0) {
+            while (l_spawn_arg.flag == 0)
+                l_spawn_arg.flag = g_spawn_args[0].flag;
+            asm volatile ("memb");
+            l_spawn_arg.fnptr = g_spawn_args[0].fnptr;
+            l_spawn_arg.arg = g_spawn_args[0].arg;
+        }
+        CRTS_rma_bcast_coll(&l_spawn_arg, &l_spawn_arg, sizeof l_spawn_arg, 0);
+        if (l_spawn_arg.flag == -1)
+            break;
+        ((void (*)(void *))l_spawn_arg.fnptr)(l_spawn_arg.arg);
+        flush_slave_cache();
+        CRTS_ssync_array();
+        asm volatile ("memb");
+        if (CRTS_tid == 0)
+            g_spawn_args[0].flag = 0;
+    }
 }
 
 extern "C" void register_kernel() {
@@ -194,12 +212,6 @@ extern "C" void register_kernel() {
   curr_node->key  = arr_char_to_arr_int (
       "FunctorReadyc12", curr_node->num_intv16);
   curr_node->fp   = FunctorReadyc1_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc23", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc2_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -218,36 +230,6 @@ extern "C" void register_kernel() {
   curr_node->key  = arr_char_to_arr_int (
       "FunctorReadyc52", curr_node->num_intv16);
   curr_node->fp   = FunctorReadyc5_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc513", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc51_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc522", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc52_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc533", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc53_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc542", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc54_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc553", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc55_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -276,12 +258,6 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc102", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc10_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
       "FunctorReadyc113", curr_node->num_intv16);
   curr_node->fp   = FunctorReadyc11_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
@@ -294,50 +270,20 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvMomFlu13", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvMomFlu1_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
       "FuncAdvMomCen23", curr_node->num_intv16);
   curr_node->fp   = FuncAdvMomCen2_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvMomFlu23", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvMomFlu2_3D;
+      "FuncReadyc15Del23", curr_node->num_intv16);
+  curr_node->fp   = FuncReadyc15Del2_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc143", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc14_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc153", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc15_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc163", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc16_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc173", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc17_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc192", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc19_2D;
+      "FunctorReadyc193", curr_node->num_intv16);
+  curr_node->fp   = FunctorReadyc19_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -348,32 +294,14 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc212", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc21_2D;
+      "FunctorReadyc213", curr_node->num_intv16);
+  curr_node->fp   = FunctorReadyc21_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc222", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc22_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc233", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc23_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc243", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc24_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyc253", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyc25_3D;
+      "FunctorReadyc223", curr_node->num_intv16);
+  curr_node->fp   = FunctorReadyc22_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -392,12 +320,6 @@ extern "C" void register_kernel() {
   curr_node->key  = arr_char_to_arr_int (
       "FunctorBclinc33", curr_node->num_intv16);
   curr_node->fp   = FunctorBclinc3_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBclinc42", curr_node->num_intv16);
-  curr_node->fp   = FunctorBclinc4_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -432,18 +354,6 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorBclinc102", curr_node->num_intv16);
-  curr_node->fp   = FunctorBclinc10_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBclinc112", curr_node->num_intv16);
-  curr_node->fp   = FunctorBclinc11_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
       "FunctorBclinc122", curr_node->num_intv16);
   curr_node->fp   = FunctorBclinc12_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
@@ -456,38 +366,14 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorBclinc142", curr_node->num_intv16);
-  curr_node->fp   = FunctorBclinc14_2D;
+      "FunctorBclinc173", curr_node->num_intv16);
+  curr_node->fp   = FunctorBclinc17_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorBclinc152", curr_node->num_intv16);
-  curr_node->fp   = FunctorBclinc15_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBclinc163", curr_node->num_intv16);
-  curr_node->fp   = FunctorBclinc16_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBclinc172", curr_node->num_intv16);
-  curr_node->fp   = FunctorBclinc17_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBclinc182", curr_node->num_intv16);
-  curr_node->fp   = FunctorBclinc18_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBclinc193", curr_node->num_intv16);
-  curr_node->fp   = FunctorBclinc19_3D;
+      "FunctorBclinc203", curr_node->num_intv16);
+  curr_node->fp   = FunctorBclinc20_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -516,12 +402,6 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorConvadj32", curr_node->num_intv16);
-  curr_node->fp   = FunctorConvadj3_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
       "FunctorBarotr13", curr_node->num_intv16);
   curr_node->fp   = FunctorBarotr1_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
@@ -546,32 +426,20 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorBarotr52", curr_node->num_intv16);
-  curr_node->fp   = FunctorBarotr5_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBarotr62", curr_node->num_intv16);
-  curr_node->fp   = FunctorBarotr6_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBarotr72", curr_node->num_intv16);
-  curr_node->fp   = FunctorBarotr7_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBarotr82", curr_node->num_intv16);
-  curr_node->fp   = FunctorBarotr8_2D;
+      "FunctorBarotr6Del22", curr_node->num_intv16);
+  curr_node->fp   = FunctorBarotr6Del2_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
       "FunctorBarotr92", curr_node->num_intv16);
   curr_node->fp   = FunctorBarotr9_2D;
+  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
+
+  curr_node       = curr_node->next;
+  curr_node->key  = arr_char_to_arr_int (
+      "FunctorBarotr102", curr_node->num_intv16);
+  curr_node->fp   = FunctorBarotr10_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -600,14 +468,8 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorBarotr152", curr_node->num_intv16);
-  curr_node->fp   = FunctorBarotr15_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBarotr162", curr_node->num_intv16);
-  curr_node->fp   = FunctorBarotr16_2D;
+      "FunctorBarotr15Del22", curr_node->num_intv16);
+  curr_node->fp   = FunctorBarotr15Del2_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -620,24 +482,6 @@ extern "C" void register_kernel() {
   curr_node->key  = arr_char_to_arr_int (
       "FunctorBarotr182", curr_node->num_intv16);
   curr_node->fp   = FunctorBarotr18_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBarotr192", curr_node->num_intv16);
-  curr_node->fp   = FunctorBarotr19_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBarotr202", curr_node->num_intv16);
-  curr_node->fp   = FunctorBarotr20_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorBarotr212", curr_node->num_intv16);
-  curr_node->fp   = FunctorBarotr21_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -656,12 +500,6 @@ extern "C" void register_kernel() {
   curr_node->key  = arr_char_to_arr_int (
       "FunctorReadyt33", curr_node->num_intv16);
   curr_node->fp   = FunctorReadyt3_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyt42", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyt4_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -690,12 +528,6 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorReadyt92", curr_node->num_intv16);
-  curr_node->fp   = FunctorReadyt9_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
       "FunctorReadyt102", curr_node->num_intv16);
   curr_node->fp   = FunctorReadyt10_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
@@ -720,60 +552,6 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorInterplationNearest2", curr_node->num_intv16);
-  curr_node->fp   = FunctorInterplationNearest_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorNear12", curr_node->num_intv16);
-  curr_node->fp   = FunctorNear1_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorNear21", curr_node->num_intv16);
-  curr_node->fp   = FunctorNear2_1D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorJRADaily12", curr_node->num_intv16);
-  curr_node->fp   = FunctorJRADaily1_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorJRADaily22", curr_node->num_intv16);
-  curr_node->fp   = FunctorJRADaily2_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorJRADaily32", curr_node->num_intv16);
-  curr_node->fp   = FunctorJRADaily3_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorNcarOceanFluxesJra2", curr_node->num_intv16);
-  curr_node->fp   = FunctorNcarOceanFluxesJra_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorNextStep13", curr_node->num_intv16);
-  curr_node->fp   = FunctorNextStep1_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorNextStep22", curr_node->num_intv16);
-  curr_node->fp   = FunctorNextStep2_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
       "FunctorTracer12", curr_node->num_intv16);
   curr_node->fp   = FunctorTracer1_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
@@ -804,12 +582,6 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer62", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer6_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
       "FunctorTracer73", curr_node->num_intv16);
   curr_node->fp   = FunctorTracer7_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
@@ -818,42 +590,6 @@ extern "C" void register_kernel() {
   curr_node->key  = arr_char_to_arr_int (
       "FunctorTracer83", curr_node->num_intv16);
   curr_node->fp   = FunctorTracer8_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraCenTsp13", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraCenTsp1_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp23", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp2_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp33", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp3_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp42", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp4_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp53", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp5_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp62", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp6_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -870,14 +606,8 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer173", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer17_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer183", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer18_3D;
+      "FunctorTracer17Del23", curr_node->num_intv16);
+  curr_node->fp   = FunctorTracer17Del2_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -924,12 +654,6 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer262", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer26_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
       "FunctorTracer272", curr_node->num_intv16);
   curr_node->fp   = FunctorTracer27_2D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
@@ -954,236 +678,8 @@ extern "C" void register_kernel() {
 
   curr_node       = curr_node->next;
   curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer313", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer31_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
       "FunctorTracer322", curr_node->num_intv16);
   curr_node->fp   = FunctorTracer32_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer332", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer33_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer343", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer34_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer353", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer35_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer12", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer1_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer23", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer2_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer32", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer3_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer43", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer4_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer53", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer5_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer62", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer6_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer73", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer7_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer83", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer8_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraCenTsp13", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraCenTsp1_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp23", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp2_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp33", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp3_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp42", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp4_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp53", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp5_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FuncAdvTraTsp62", curr_node->num_intv16);
-  curr_node->fp   = FuncAdvTraTsp6_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer153", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer15_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer163", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer16_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer173", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer17_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer183", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer18_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer192", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer19_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer203", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer20_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer212", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer21_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer222", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer22_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer233", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer23_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer242", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer24_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer252", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer25_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer262", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer26_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer272", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer27_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer282", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer28_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer292", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer29_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer303", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer30_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer313", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer31_3D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer322", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer32_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer332", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer33_2D;
-  curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
-
-  curr_node       = curr_node->next;
-  curr_node->key  = arr_char_to_arr_int (
-      "FunctorTracer343", curr_node->num_intv16);
-  curr_node->fp   = FunctorTracer34_3D;
   curr_node->next = (node*)libc_aligned_malloc(sizeof(node));
 
   curr_node       = curr_node->next;
@@ -1203,20 +699,11 @@ extern "C" void parallel_for_1D(AthreadParamWrap* host_param) {
 
   const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
 
-  const int ATHREAD_SLAVE_CORES = 64;
+  kokkos_athread_local_param.my_athread_tid    = athread_tid;
+  kokkos_athread_local_param.num_athread_cores = 64;
 
-  const int start = kokkos_athread_local_param.range[0][0];
-  const int end   = kokkos_athread_local_param.range[0][1];
-  const int len   = end - start;
-  const int times = (len + ATHREAD_SLAVE_CORES - 1) / ATHREAD_SLAVE_CORES;
+  fp(&kokkos_athread_local_param);
 
-  for (int i = 0; i < times; ++i) {
-    int index = start + athread_tid * times + i;
-    if (index < end) {
-      kokkos_athread_local_param.index[0] = index;
-      fp(&kokkos_athread_local_param);
-    }
-  }
   return ;
 }
 
@@ -1228,37 +715,11 @@ extern "C" void parallel_for_2D(AthreadParamWrap* host_param) {
 
   const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
 
-  const int ATHREAD_SLAVE_CORES = 64;
+  kokkos_athread_local_param.my_athread_tid    = athread_tid;
+  kokkos_athread_local_param.num_athread_cores = 64;
 
-  const int start0 = kokkos_athread_local_param.range[0][0];
-  const int end0   = kokkos_athread_local_param.range[0][1];
-  const int start1 = kokkos_athread_local_param.range[1][0];
-  const int end1   = kokkos_athread_local_param.range[1][1];
-  const int tile0  = kokkos_athread_local_param.tile[0];
-  const int tile1  = kokkos_athread_local_param.tile[1];
+  fp(&kokkos_athread_local_param);
 
-  const int num_tiles0 = (end0 - start0 + tile0 - 1) / tile0;
-  const int num_tiles1 = (end1 - start1 + tile1 - 1) / tile1;
-
-  const int num_tiles = num_tiles0 * num_tiles1;
-  
-  for (int index_tile = athread_tid; index_tile < num_tiles; 
-      index_tile += ATHREAD_SLAVE_CORES) {
-    const int index_tile0 = index_tile / num_tiles1;
-    const int index_tile1 = index_tile % num_tiles1;
-
-    for (int index00 = 0; index00 < tile0; ++ index00) {
-      const int index0 = start0 + index_tile0 * tile0 + index00;
-      if (index0 >= end0) { break; }
-      for (int index_11 = 0; index_11 < tile1; ++ index_11) {
-        const int index1 = start1 + index_tile1 * tile1 + index_11;
-        if (index1 >= end1) { break; }
-        kokkos_athread_local_param.index[0] = index0;
-        kokkos_athread_local_param.index[1] = index1;
-        fp(&kokkos_athread_local_param);
-      }
-    }
-  }
   return ;
 }
 
@@ -1270,44 +731,11 @@ extern "C" void parallel_for_3D(AthreadParamWrap* host_param) {
 
   const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
 
-  const int ATHREAD_SLAVE_CORES = 64;
+  kokkos_athread_local_param.my_athread_tid    = athread_tid;
+  kokkos_athread_local_param.num_athread_cores = 64;
 
-  const int start[3] = {kokkos_athread_local_param.range[0][0], kokkos_athread_local_param.range[1][0], kokkos_athread_local_param.range[2][0]};
-  const int end[3]   = {kokkos_athread_local_param.range[0][1], kokkos_athread_local_param.range[1][1], kokkos_athread_local_param.range[2][1]};
-  const int tile[3]  = {kokkos_athread_local_param.tile[0],     kokkos_athread_local_param.tile[1],     kokkos_athread_local_param.tile[2]};
+  fp(&kokkos_athread_local_param);
 
-  const int num_tiles0 = (end[0] - start[0] + tile[0] - 1) / tile[0];
-  const int num_tiles1 = (end[1] - start[1] + tile[1] - 1) / tile[1];
-  const int num_tiles2 = (end[2] - start[2] + tile[2] - 1) / tile[2];
-
-  const int tmp0 = num_tiles1 * num_tiles2;
-  const int num_tiles = num_tiles0 * tmp0;
-  
-  for (int index_tile = athread_tid; index_tile < num_tiles; index_tile += ATHREAD_SLAVE_CORES) {
-
-    const int index_tile0 = index_tile / tmp0;
-    const int tmp1        = index_tile % tmp0;
-    const int index_tile1 = tmp1      / num_tiles2;
-    const int index_tile2 = tmp1      % num_tiles2;
-
-    for (int index_00 = 0; index_00 < tile[0]; ++ index_00) {
-      const int index0 = start[0] + index_tile0 * tile[0] + index_00;
-      if (index0 >= end[0]) { break; }
-      for (int index_11 = 0; index_11 < tile[1]; ++ index_11) {
-        const int index1 = start[1] + index_tile1 * tile[1] + index_11;
-        if (index1 >= end[1]) { break; }
-        for (int index_22 = 0; index_22 < tile[2]; ++ index_22) {
-          const int index2 = start[2] + index_tile2 * tile[2] + index_22;
-          if (index2 >= end[2]) { break; }
-
-          kokkos_athread_local_param.index[0] = index0;
-          kokkos_athread_local_param.index[1] = index1;
-          kokkos_athread_local_param.index[2] = index2;
-          fp(&kokkos_athread_local_param);
-        }
-      }
-    }
-  }
   return ;
 }
 
@@ -1319,189 +747,144 @@ extern "C" void parallel_for_4D(AthreadParamWrap* host_param) {
 
   const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
 
-  const int ATHREAD_SLAVE_CORES = 64;
+  kokkos_athread_local_param.my_athread_tid    = athread_tid;
+  kokkos_athread_local_param.num_athread_cores = 64;
 
-  const int start[4] = {kokkos_athread_local_param.range[0][0], kokkos_athread_local_param.range[1][0], 
-      kokkos_athread_local_param.range[2][0], kokkos_athread_local_param.range[3][0]};
-  const int end[4]   = {kokkos_athread_local_param.range[0][1], kokkos_athread_local_param.range[1][1], 
-      kokkos_athread_local_param.range[2][1], kokkos_athread_local_param.range[3][1]};
-  const int tile[4]  = {kokkos_athread_local_param.tile[0],     kokkos_athread_local_param.tile[1],     
-      kokkos_athread_local_param.tile[2],     kokkos_athread_local_param.tile[3]};
+  fp(&kokkos_athread_local_param);
 
-  const int num_tiles0 = (end[0] - start[0] + tile[0] - 1) / tile[0];
-  const int num_tiles1 = (end[1] - start[1] + tile[1] - 1) / tile[1];
-  const int num_tiles2 = (end[2] - start[2] + tile[2] - 1) / tile[2];
-  const int num_tiles3 = (end[3] - start[3] + tile[3] - 1) / tile[3];
+  return ;
+}
 
-  const int tmp0      = num_tiles2 * num_tiles3;
-  const int tmp1      = num_tiles1 * tmp0;
-  const int num_tiles = num_tiles0 * tmp1;
+// extern "C" void parallel_reduce_1D(AthreadParamWrap* host_param) {
+
+//   athread_dma_iget(&kokkos_athread_local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+//   D_COUNT++;
+//   athread_dma_wait_value(&dma_rply, D_COUNT);
+
+//   const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+
+//   const int ATHREAD_SLAVE_CORES = 64;
+
+//   const int start = kokkos_athread_local_param.range[0][0];
+//   const int end   = kokkos_athread_local_param.range[0][1];
+//   const int len   = end - start;
+//   const int times = (len + ATHREAD_SLAVE_CORES - 1) / ATHREAD_SLAVE_CORES;
+
+//   for (int i = 0; i < times; ++i) {
+//     int index = start + athread_tid * times + i;
+//     if (index < end) {
+//       kokkos_athread_local_param.index[0] = index;
+//       fp(&kokkos_athread_local_param);
+//     }
+//   }
+//   // reduce from all slave cores
+//   slave_cores_reduce(&(kokkos_athread_local_param.reduce_result),
+//       &(kokkos_athread_local_param.reduce_result), 1, athread_double, OP_add, &buf_reduce, 1);
+//   if (athread_tid == 0) {
+//     host_param->reduce_result = kokkos_athread_local_param.reduce_result;
+//   }
+//   return ;
+// }
+
+// extern "C" void parallel_reduce_2D(AthreadParamWrap* host_param) {
+
+//   athread_dma_iget(&kokkos_athread_local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+//   D_COUNT++;
+//   athread_dma_wait_value(&dma_rply, D_COUNT);
+
+//   const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+
+//   const int ATHREAD_SLAVE_CORES = 64;
+
+//   const int start0 = kokkos_athread_local_param.range[0][0];
+//   const int end0   = kokkos_athread_local_param.range[0][1];
+//   const int start1 = kokkos_athread_local_param.range[1][0];
+//   const int end1   = kokkos_athread_local_param.range[1][1];
+//   const int tile0  = kokkos_athread_local_param.tile[0];
+//   const int tile1  = kokkos_athread_local_param.tile[1];
+
+//   const int num_tiles0 = (end0 - start0 + tile0 - 1) / tile0;
+//   const int num_tiles1 = (end1 - start1 + tile1 - 1) / tile1;
+
+//   const int num_tiles = num_tiles0 * num_tiles1;
   
-  for (int index_tile = athread_tid; index_tile < num_tiles; index_tile += ATHREAD_SLAVE_CORES) {
+//   for (int index_tile = athread_tid; index_tile < num_tiles; 
+//       index_tile += ATHREAD_SLAVE_CORES) {
+//     const int index_tile0 = index_tile / num_tiles1;
+//     const int index_tile1 = index_tile % num_tiles1;
 
-    const int index_tile0 = index_tile / tmp1;
-    const int tmp2        = index_tile % tmp1;
-    const int index_tile1 = tmp2       / tmp0;
-    const int tmp3        = tmp2       % tmp0;
-    const int index_tile2 = tmp3       / num_tiles3;
-    const int index_tile3 = tmp3       % num_tiles3;
+//     for (int index00 = 0; index00 < tile0; ++ index00) {
+//       const int index0 = start0 + index_tile0 * tile0 + index00;
+//       if (index0 >= end0) { break; }
+//       for (int index_11 = 0; index_11 < tile1; ++ index_11) {
+//         const int index1 = start1 + index_tile1 * tile1 + index_11;
+//         if (index1 >= end1) { break; }
+//         kokkos_athread_local_param.index[0] = index0;
+//         kokkos_athread_local_param.index[1] = index1;
+//         fp(&kokkos_athread_local_param);
+//       }
+//     }
+//   }
+//   // reduce from all slave cores
+//   slave_cores_reduce(&(kokkos_athread_local_param.reduce_result),
+//       &(kokkos_athread_local_param.reduce_result), 1, athread_double, OP_add, &buf_reduce, 1);
+//   if (athread_tid == 0) {
+//     host_param->reduce_result = kokkos_athread_local_param.reduce_result;
+//   }
+//   return ;
+// }
 
-    for (int index_00 = 0; index_00 < tile[0]; ++ index_00) {
-      const int index0 = start[0] + index_tile0 * tile[0] + index_00;
-      if (index0 >= end[0]) { break; }
-      for (int index_11 = 0; index_11 < tile[1]; ++ index_11) {
-        const int index1 = start[1] + index_tile1 * tile[1] + index_11;
-        if (index1 >= end[1]) { break; }
-        for (int index_22 = 0; index_22 < tile[2]; ++ index_22) {
-          const int index2 = start[2] + index_tile2 * tile[2] + index_22;
-          if (index2 >= end[2]) { break; }
-          for (int index_33 = 0; index_33 < tile[3]; ++ index_33) {
-            const int index3 = start[3] + index_tile3 * tile[3] + index_33;
-            if (index3 >= end[3]) { break; }
+// extern "C" void parallel_reduce_3D(AthreadParamWrap* host_param) {
 
-            kokkos_athread_local_param.index[0] = index0;
-            kokkos_athread_local_param.index[1] = index1;
-            kokkos_athread_local_param.index[2] = index2;
-            kokkos_athread_local_param.index[3] = index3;
-            fp(&kokkos_athread_local_param);
-          }
-        }
-      }
-    }
-  }
-  return ;
-}
+//   athread_dma_iget(&kokkos_athread_local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
+//   D_COUNT++;
+//   athread_dma_wait_value(&dma_rply, D_COUNT);
 
-extern "C" void parallel_reduce_1D(AthreadParamWrap* host_param) {
+//   const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
 
-  athread_dma_iget(&kokkos_athread_local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
-  D_COUNT++;
-  athread_dma_wait_value(&dma_rply, D_COUNT);
+//   const int ATHREAD_SLAVE_CORES = 64;
 
-  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
+//   const int start[3] = {kokkos_athread_local_param.range[0][0], kokkos_athread_local_param.range[1][0], kokkos_athread_local_param.range[2][0]};
+//   const int end[3]   = {kokkos_athread_local_param.range[0][1], kokkos_athread_local_param.range[1][1], kokkos_athread_local_param.range[2][1]};
+//   const int tile[3]  = {kokkos_athread_local_param.tile[0],     kokkos_athread_local_param.tile[1],     kokkos_athread_local_param.tile[2]};
 
-  const int ATHREAD_SLAVE_CORES = 64;
+//   const int num_tiles0 = (end[0] - start[0] + tile[0] - 1) / tile[0];
+//   const int num_tiles1 = (end[1] - start[1] + tile[1] - 1) / tile[1];
+//   const int num_tiles2 = (end[2] - start[2] + tile[2] - 1) / tile[2];
 
-  const int start = kokkos_athread_local_param.range[0][0];
-  const int end   = kokkos_athread_local_param.range[0][1];
-  const int len   = end - start;
-  const int times = (len + ATHREAD_SLAVE_CORES - 1) / ATHREAD_SLAVE_CORES;
-
-  for (int i = 0; i < times; ++i) {
-    int index = start + athread_tid * times + i;
-    if (index < end) {
-      kokkos_athread_local_param.index[0] = index;
-      fp(&kokkos_athread_local_param);
-    }
-  }
-  // reduce from all slave cores
-  slave_cores_reduce(&(kokkos_athread_local_param.reduce_result),
-      &(kokkos_athread_local_param.reduce_result), 1, athread_double, OP_add, &buf_reduce, 1);
-  if (athread_tid == 0) {
-    host_param->reduce_result = kokkos_athread_local_param.reduce_result;
-  }
-  return ;
-}
-
-extern "C" void parallel_reduce_2D(AthreadParamWrap* host_param) {
-
-  athread_dma_iget(&kokkos_athread_local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
-  D_COUNT++;
-  athread_dma_wait_value(&dma_rply, D_COUNT);
-
-  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
-
-  const int ATHREAD_SLAVE_CORES = 64;
-
-  const int start0 = kokkos_athread_local_param.range[0][0];
-  const int end0   = kokkos_athread_local_param.range[0][1];
-  const int start1 = kokkos_athread_local_param.range[1][0];
-  const int end1   = kokkos_athread_local_param.range[1][1];
-  const int tile0  = kokkos_athread_local_param.tile[0];
-  const int tile1  = kokkos_athread_local_param.tile[1];
-
-  const int num_tiles0 = (end0 - start0 + tile0 - 1) / tile0;
-  const int num_tiles1 = (end1 - start1 + tile1 - 1) / tile1;
-
-  const int num_tiles = num_tiles0 * num_tiles1;
+//   const int tmp0 = num_tiles1 * num_tiles2;
+//   const int num_tiles = num_tiles0 * tmp0;
   
-  for (int index_tile = athread_tid; index_tile < num_tiles; 
-      index_tile += ATHREAD_SLAVE_CORES) {
-    const int index_tile0 = index_tile / num_tiles1;
-    const int index_tile1 = index_tile % num_tiles1;
+//   for (int index_tile = athread_tid; index_tile < num_tiles; index_tile += ATHREAD_SLAVE_CORES) {
 
-    for (int index00 = 0; index00 < tile0; ++ index00) {
-      const int index0 = start0 + index_tile0 * tile0 + index00;
-      if (index0 >= end0) { break; }
-      for (int index_11 = 0; index_11 < tile1; ++ index_11) {
-        const int index1 = start1 + index_tile1 * tile1 + index_11;
-        if (index1 >= end1) { break; }
-        kokkos_athread_local_param.index[0] = index0;
-        kokkos_athread_local_param.index[1] = index1;
-        fp(&kokkos_athread_local_param);
-      }
-    }
-  }
-  // reduce from all slave cores
-  slave_cores_reduce(&(kokkos_athread_local_param.reduce_result),
-      &(kokkos_athread_local_param.reduce_result), 1, athread_double, OP_add, &buf_reduce, 1);
-  if (athread_tid == 0) {
-    host_param->reduce_result = kokkos_athread_local_param.reduce_result;
-  }
-  return ;
-}
+//     const int index_tile0 = index_tile / tmp0;
+//     const int tmp1        = index_tile % tmp0;
+//     const int index_tile1 = tmp1      / num_tiles2;
+//     const int index_tile2 = tmp1      % num_tiles2;
 
-extern "C" void parallel_reduce_3D(AthreadParamWrap* host_param) {
+//     for (int index_00 = 0; index_00 < tile[0]; ++ index_00) {
+//       const int index0 = start[0] + index_tile0 * tile[0] + index_00;
+//       if (index0 >= end[0]) { break; }
+//       for (int index_11 = 0; index_11 < tile[1]; ++ index_11) {
+//         const int index1 = start[1] + index_tile1 * tile[1] + index_11;
+//         if (index1 >= end[1]) { break; }
+//         for (int index_22 = 0; index_22 < tile[2]; ++ index_22) {
+//           const int index2 = start[2] + index_tile2 * tile[2] + index_22;
+//           if (index2 >= end[2]) { break; }
 
-  athread_dma_iget(&kokkos_athread_local_param, host_param, sizeof(AthreadParamWrap), &dma_rply);
-  D_COUNT++;
-  athread_dma_wait_value(&dma_rply, D_COUNT);
-
-  const FunctionPointer fp __attribute__ ((aligned(64))) = lookup_fp();
-
-  const int ATHREAD_SLAVE_CORES = 64;
-
-  const int start[3] = {kokkos_athread_local_param.range[0][0], kokkos_athread_local_param.range[1][0], kokkos_athread_local_param.range[2][0]};
-  const int end[3]   = {kokkos_athread_local_param.range[0][1], kokkos_athread_local_param.range[1][1], kokkos_athread_local_param.range[2][1]};
-  const int tile[3]  = {kokkos_athread_local_param.tile[0],     kokkos_athread_local_param.tile[1],     kokkos_athread_local_param.tile[2]};
-
-  const int num_tiles0 = (end[0] - start[0] + tile[0] - 1) / tile[0];
-  const int num_tiles1 = (end[1] - start[1] + tile[1] - 1) / tile[1];
-  const int num_tiles2 = (end[2] - start[2] + tile[2] - 1) / tile[2];
-
-  const int tmp0 = num_tiles1 * num_tiles2;
-  const int num_tiles = num_tiles0 * tmp0;
-  
-  for (int index_tile = athread_tid; index_tile < num_tiles; index_tile += ATHREAD_SLAVE_CORES) {
-
-    const int index_tile0 = index_tile / tmp0;
-    const int tmp1        = index_tile % tmp0;
-    const int index_tile1 = tmp1      / num_tiles2;
-    const int index_tile2 = tmp1      % num_tiles2;
-
-    for (int index_00 = 0; index_00 < tile[0]; ++ index_00) {
-      const int index0 = start[0] + index_tile0 * tile[0] + index_00;
-      if (index0 >= end[0]) { break; }
-      for (int index_11 = 0; index_11 < tile[1]; ++ index_11) {
-        const int index1 = start[1] + index_tile1 * tile[1] + index_11;
-        if (index1 >= end[1]) { break; }
-        for (int index_22 = 0; index_22 < tile[2]; ++ index_22) {
-          const int index2 = start[2] + index_tile2 * tile[2] + index_22;
-          if (index2 >= end[2]) { break; }
-
-          kokkos_athread_local_param.index[0] = index0;
-          kokkos_athread_local_param.index[1] = index1;
-          kokkos_athread_local_param.index[2] = index2;
-          fp(&kokkos_athread_local_param);
-        }
-      }
-    }
-  }
-  // reduce from all slave cores
-  slave_cores_reduce(&(kokkos_athread_local_param.reduce_result),
-      &(kokkos_athread_local_param.reduce_result), 1, athread_double, OP_add, &buf_reduce, 1);
-  if (athread_tid == 0) {
-    host_param->reduce_result = kokkos_athread_local_param.reduce_result;
-  }
-  return ;
-}
+//           kokkos_athread_local_param.index[0] = index0;
+//           kokkos_athread_local_param.index[1] = index1;
+//           kokkos_athread_local_param.index[2] = index2;
+//           fp(&kokkos_athread_local_param);
+//         }
+//       }
+//     }
+//   }
+//   // reduce from all slave cores
+//   slave_cores_reduce(&(kokkos_athread_local_param.reduce_result),
+//       &(kokkos_athread_local_param.reduce_result), 1, athread_double, OP_add, &buf_reduce, 1);
+//   if (athread_tid == 0) {
+//     host_param->reduce_result = kokkos_athread_local_param.reduce_result;
+//   }
+//   return ;
+// }
