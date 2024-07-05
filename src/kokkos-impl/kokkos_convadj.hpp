@@ -38,8 +38,8 @@ class FunctorConvadj1 {
 #endif // LOWRES   
     int lcon  = - 1;
     for (int k = 0; k < KM; ++k) {
-      v_rholo_(j, i, k) = 0.0;
-      v_rhoup_(j, i, k) = 0.0;
+      v_rholo_(k, j, i) = 0.0;
+      v_rhoup_(k, j, i) = 0.0;
     }
     for (int l = 0; l < KM - 1; ++l) {
       int l1 = l + 1;
@@ -47,11 +47,11 @@ class FunctorConvadj1 {
       const double sup = v_at_(iblock, 1, l1, j, i) - v_so_(l1);
       const double tlo = v_at_(iblock, 0, l, j, i) - v_to_(l1);
       const double slo = v_at_(iblock, 1, l, j, i) - v_so_(l1);
-      v_rhoup_(j, i, l1) = dens(tup, sup, l1);
-      v_rholo_(j, i, l)  = dens(tlo, slo, l1);
+      v_rhoup_(l1, j, i)  = dens(tup, sup, l1);
+      v_rholo_(l,  j, i)  = dens(tlo, slo, l1);
     }
     for (int k = kcon-1; k >= 1; --k) {
-      if (v_rholo_(j, i, k-1) > v_rhoup_(j, i, k)) {
+      if (v_rholo_(k-1, j, i) > v_rhoup_(k, j, i)) {
         lcon = k - 1;
       }
     }
@@ -78,11 +78,11 @@ class FunctorConvadj1 {
       for (;;) { //start conv_2
         if (lconb != (kcon - 1)) {
           int l1 = lconb + 1;
-          v_rholo_(j, i, lconb) = dens(
+          v_rholo_(lconb, j, i) = dens(
               v_at_(iblock, 0, lconb, j, i) - v_to_(l1),
               v_at_(iblock, 1, lconb, j, i) - v_so_(l1), l1);
 
-          if (v_rholo_(j, i, lconb) > v_rhoup_(j, i, l1)) {
+          if (v_rholo_(lconb, j, i) > v_rhoup_(l1, j, i)) {
             ++lconb;
             dztsum += v_dzp_(lconb);  
             for (int n = 0; n < 2; ++n) {
@@ -99,16 +99,16 @@ class FunctorConvadj1 {
         }   //end if
         if (lcona > 0) {
           int l1 = lcona - 1;
-          v_rholo_(j, i, l1) = dens(
+          v_rholo_(l1, j, i) = dens(
               v_at_(iblock, 0, l1, j, i) - v_to_(lcona),
               v_at_(iblock, 1, l1, j, i) - v_so_(lcona),
                   lcona);
-          v_rhoup_(j, i, lcona) = dens(
+          v_rhoup_(lcona, j, i) = dens(
               v_at_(iblock, 0, lcona, j, i) - v_to_(lcona), 
               v_at_(iblock, 1, lcona, j, i) - v_so_(lcona), 
                   lcona);
 
-          if (v_rholo_(j, i, lcona - 1) > v_rhoup_(j, i, lcona)) {
+          if (v_rholo_(lcona - 1, j, i) > v_rhoup_(lcona, j, i)) {
             --lcona;
             dztsum += v_dzp_(lcona);
             for (int n = 0; n < 2; ++n) {
@@ -150,7 +150,7 @@ class FunctorConvadj1 {
         if (lcon == (KM-1)) {
           break ;
         }
-        if (v_rholo_(j, i, lcon) <= v_rhoup_(j, i, lcon + 1)) {
+        if (v_rholo_(lcon, j, i) <= v_rhoup_(lcon + 1, j, i)) {
           continue ;
         }
         break;
@@ -172,8 +172,8 @@ class FunctorConvadj1 {
   const ViewDouble1D v_to_    = *KokkosPconstMod::p_v_to;
   const ViewDouble1D v_dzp_   = *KokkosPconstMod::p_v_dzp;
   const ViewDouble2D v_c_     = *KokkosPconstMod::p_v_c;
-  const ViewDouble3D v_rhoup_ = *KokkosTmpVar::p_v_wp1;
-  const ViewDouble3D v_rholo_ = *KokkosTmpVar::p_v_wp2;
+  const ViewDouble3D v_rhoup_ = *KokkosTmpVar::p_v_wk1;
+  const ViewDouble3D v_rholo_ = *KokkosTmpVar::p_v_wk2;
 #ifdef LOWRES               
   const ViewFloat4D v_icmon_  = *KokkosOutputMod::p_v_icmon;
 #endif                      

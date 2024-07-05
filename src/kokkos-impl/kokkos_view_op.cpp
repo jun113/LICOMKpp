@@ -3454,7 +3454,6 @@ static void kokkos_init_tmp_var() {
   p_v_wk1  = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_wk2  = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_wk3  = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
-  p_v_wk4  = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_wp1  = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_wp2  = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_wp3  = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
@@ -3491,7 +3490,7 @@ static void kokkos_init_tmp_var() {
 #endif // SMAG
 
   // TRACER
-  p_v_vtl_ori = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
+  // p_v_vtl_ori = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
 
   p_v_adv_tt = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
 
@@ -3539,27 +3538,22 @@ static void kokkos_init_tmp_var() {
   new (p_v_wp13) ViewDouble4D("pointer_view_wp13",
       MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
-  new (p_v_wk1) ViewDouble3D("pointer_view_wk1", JMT, IMT, KM + 1);
-  new (p_v_wk2) ViewDouble3D("pointer_view_wk2", JMT, IMT, KM + 1);
-  new (p_v_wk3) ViewDouble3D("pointer_view_wk3", JMT, IMT, KM);
-  new (p_v_wk4) ViewDouble3D("pointer_view_wk4", JMT, IMT, KM);
-  new (p_v_wp1) ViewDouble3D("pointer_view_wp1", JMT, IMT, KM);
-  new (p_v_wp2) ViewDouble3D("pointer_view_wp2", JMT, IMT, KM);
-  new (p_v_wp3) ViewDouble3D("pointer_view_wp3", JMT, IMT, KM);
-  new (p_v_wp4) ViewDouble3D("pointer_view_wp4", JMT, IMT, KM);
-  new (p_v_wp5) ViewDouble3D("pointer_view_wp5", JMT, IMT, KM);
-  new (p_v_wp6) ViewDouble3D("pointer_view_wp6", JMT, IMT, KM);
-  new (p_v_wp7) ViewDouble3D("pointer_view_wp7", JMT, IMT, KM);
-  new (p_v_wp8) ViewDouble3D("pointer_view_wp8", JMT, IMT, KM);
-  new (p_v_zlev) ViewDouble3D("pointer_view_zlev", JMT, IMT, KM);
+  new (p_v_wk1) ViewDouble3D("pointer_view_wk1", KM + 1, JMT, IMT);
+  new (p_v_wk2) ViewDouble3D("pointer_view_wk2", KM + 1, JMT, IMT);
+  new (p_v_wk3) ViewDouble3D("pointer_view_wk3", KM, JMT, IMT);
+  new (p_v_wp3) ViewDouble3D("pointer_view_wp3", KM, JMT, IMT);
+  new (p_v_wp4) ViewDouble3D("pointer_view_wp4", KM, JMT, IMT);
+  new (p_v_wp5) ViewDouble3D("pointer_view_wp5", KM, JMT, IMT);
+  new (p_v_wp6) ViewDouble3D("pointer_view_wp6", KM, JMT, IMT);
+  new (p_v_wp7) ViewDouble3D("pointer_view_wp7", KM, JMT, IMT);
+  new (p_v_wp8) ViewDouble3D("pointer_view_wp8", KM, JMT, IMT);
+  new (p_v_zlev) ViewDouble3D("pointer_view_zlev", KM, JMT, IMT);
   new (p_v_ak_tide_mixing) ViewDouble3D("pointer_view_ak_tide_mixing",
-      JMT, IMT, KM);
+      KM, JMT, IMT);
 
-  new (p_v_Ri)   ViewDouble3D("pointer_view_Ri",   JMT, IMT, KM);
-  new (p_v_Rrho) ViewDouble3D("pointer_view_Rrho", JMT, IMT, KM);
-  // new (p_v_Gm) ViewDouble3D("pointer_view_Gm",     JMT, IMT, KM);
+  new (p_v_Ri)   ViewDouble3D("pointer_view_Ri",   KM, JMT, IMT);
+  new (p_v_Rrho) ViewDouble3D("pointer_view_Rrho", KM, JMT, IMT);
 
-//   new (p_v_mld_lev) ViewInt2D ("pointer_view_mld_lev", JMT, IMT);
 #ifdef BCKMEX
   ViewDouble3D *p_v_diff_back    = nullptr;
   ViewDouble3D *p_v_diff_back_sh = nullptr;
@@ -3580,8 +3574,8 @@ static void kokkos_init_tmp_var() {
 #endif // BIHAR
 #endif // SMAG
 
-  new (p_v_vtl_ori) ViewDouble4D("pointer_view_vtl_ori", 
-      MAX_BLOCKS_CLINIC, KM, JMT, IMT);
+  // new (p_v_vtl_ori) ViewDouble4D("pointer_view_vtl_ori", 
+  //     MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
   new (p_v_adv_tt) ViewDouble3D("pointer_view_adv_tt", 
       KM, JMT, IMT);
@@ -3599,8 +3593,6 @@ static void kokkos_init_tmp_var() {
   new (p_v_nn) ViewInt1D("pointer_view_nn", JMT);
   new (p_v_xs) ViewDouble1D("pointer_view_xs", IMT);
 
-  // new (p_v_gradx) ViewDouble2D("pointer_view_gradx", JMT, IMT);
-  // new (p_v_grady) ViewDouble2D("pointer_view_grady", JMT, IMT);
 #ifdef ISO
 #ifdef LDD97
   ViewDouble4D v_f1("view_f1", MAX_BLOCKS_CLINIC, KM, JMT, IMT);
@@ -3652,28 +3644,22 @@ static void kokkos_init_tmp_var() {
   double* wk1 = new double[(KM+1) * JMT * IMT];
   double* wk2 = new double[(KM+1) * JMT * IMT];
   double* wk3 = new double[KM * JMT * IMT];
-  double* wk4 = new double[KM * JMT * IMT];
-  double* wp1 = new double[KM * JMT * IMT];
-  double* wp2 = new double[KM * JMT * IMT];
   double* wp3 = new double[KM * JMT * IMT];
   double* wp4 = new double[KM * JMT * IMT];
   double* wp5 = new double[KM * JMT * IMT];
   double* wp6 = new double[KM * JMT * IMT];
   double* wp7 = new double[KM * JMT * IMT];
   double* wp8 = new double[KM * JMT * IMT];
-  new (p_v_wk1) ViewDouble3D(wk1, JMT, IMT, KM + 1);
-  new (p_v_wk2) ViewDouble3D(wk2, JMT, IMT, KM + 1);
-  new (p_v_wk3) ViewDouble3D(wk3, JMT, IMT, KM);
-  new (p_v_wk4) ViewDouble3D(wk4, JMT, IMT, KM);
+  new (p_v_wk1) ViewDouble3D(wk1, KM+1, JMT, IMT);
+  new (p_v_wk2) ViewDouble3D(wk2, KM+1, JMT, IMT);
+  new (p_v_wk3) ViewDouble3D(wk3, KM,   JMT, IMT);
 
-  new (p_v_wp1) ViewDouble3D(wp1, JMT, IMT, KM);
-  new (p_v_wp2) ViewDouble3D(wp2, JMT, IMT, KM);
-  new (p_v_wp3) ViewDouble3D(wp3, JMT, IMT, KM);
-  new (p_v_wp4) ViewDouble3D(wp4, JMT, IMT, KM);
-  new (p_v_wp5) ViewDouble3D(wp5, JMT, IMT, KM);
-  new (p_v_wp6) ViewDouble3D(wp6, JMT, IMT, KM);
-  new (p_v_wp7) ViewDouble3D(wp7, JMT, IMT, KM);
-  new (p_v_wp8) ViewDouble3D(wp8, JMT, IMT, KM);
+  new (p_v_wp3) ViewDouble3D(wp3, KM, JMT, IMT);
+  new (p_v_wp4) ViewDouble3D(wp4, KM, JMT, IMT);
+  new (p_v_wp5) ViewDouble3D(wp5, KM, JMT, IMT);
+  new (p_v_wp6) ViewDouble3D(wp6, KM, JMT, IMT);
+  new (p_v_wp7) ViewDouble3D(wp7, KM, JMT, IMT);
+  new (p_v_wp8) ViewDouble3D(wp8, KM, JMT, IMT);
 
   double* zlev = new double[KM * JMT * IMT];
   double* ak_tide_mixing = new double[KM * JMT * IMT];
@@ -3682,10 +3668,10 @@ static void kokkos_init_tmp_var() {
   // double* Gm      = new double[KM * JMT * IMT];
 //   int*    mld_lev = new int[JMT * IMT];
 
-  new (p_v_zlev) ViewDouble3D(zlev, JMT, IMT, KM);
-  new (p_v_ak_tide_mixing) ViewDouble3D(ak_tide_mixing, JMT, IMT, KM);
-  new (p_v_Ri) ViewDouble3D(Ri, JMT, IMT, KM);
-  new (p_v_Rrho) ViewDouble3D(Rrho, JMT, IMT, KM);
+  new (p_v_zlev) ViewDouble3D(zlev, KM, JMT, IMT);
+  new (p_v_ak_tide_mixing) ViewDouble3D(ak_tide_mixing, KM, JMT, IMT);
+  new (p_v_Ri) ViewDouble3D(Ri, KM, JMT, IMT);
+  new (p_v_Rrho) ViewDouble3D(Rrho, KM, JMT, IMT);
   // new (p_v_Gm) ViewDouble3D(Gm, JMT, IMT, KM);
 //   new (p_v_mld_lev) ViewInt2D(mld_lev, JMT, IMT);
 
@@ -3716,9 +3702,9 @@ static void kokkos_init_tmp_var() {
 #endif // BIHAR
 #endif // SMAG
 
-  vtl_ori = new double[MAX_BLOCKS_CLINIC * KM * JMT * IMT];
-  new (p_v_vtl_ori) ViewDouble4D(vtl_ori, 
-      MAX_BLOCKS_CLINIC, KM, JMT, IMT);
+  // vtl_ori = new double[MAX_BLOCKS_CLINIC * KM * JMT * IMT];
+  // new (p_v_vtl_ori) ViewDouble4D(vtl_ori, 
+  //     MAX_BLOCKS_CLINIC, KM, JMT, IMT);
 
   adv_tt = new double[KM * JMT * IMT];
   new (p_v_adv_tt) ViewDouble3D(adv_tt, KM, JMT, IMT);

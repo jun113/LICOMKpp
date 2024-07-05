@@ -343,75 +343,40 @@ class FunctorReadyc5 {
   void operator () (const int &j, const int &i) const {
     if (v_vit_(0, 0, j, i) > 0.5) {
       const int iblock = 0;
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
-      double* wk1 = &(v_wk1_.data()[j * IMT * KM + i * KM]);
-      double* wk2 = &(v_wk2_.data()[j * IMT * KM + i * KM]);
-      double* wk3 = &(v_wk3_.data()[j * IMT * KM + i * KM]);
-      double* wp3 = &(v_wp3_.data()[j * IMT * KM + i * KM]);
-      double* wp4 = &(v_wp4_.data()[j * IMT * KM + i * KM]);
-      double* wp5 = &(v_wp5_.data()[j * IMT * KM + i * KM]);
-      double* wp6 = &(v_wp6_.data()[j * IMT * KM + i * KM]);
-      double* wp7 = &(v_wp7_.data()[j * IMT * KM + i * KM]);
-      double* wp8 = &(v_wp8_.data()[j * IMT * KM + i * KM]);
-
-      double* ak_tide_mixing = 
-          &(v_ak_tide_mixing_.data()[j * IMT * KM + i * KM]);
-#else
-      double arr_wk1[KM];
-      double arr_wk2[KM];
-      double arr_wk3[KM];
-      double arr_wp3[KM];
-      double arr_wp4[KM];
-      double arr_wp5[KM];
-      double arr_wp6[KM];
-      double arr_wp7[KM];
-      double arr_wp8[KM];
-      double* wk1 = &arr_wk1[0];
-      double* wk2 = &arr_wk2[0];
-      double* wk3 = &arr_wk3[0];
-      double* wp3 = &arr_wp3[0];
-      double* wp4 = &arr_wp4[0];
-      double* wp5 = &arr_wp5[0];
-      double* wp6 = &arr_wp6[0];
-      double* wp7 = &arr_wp7[0];
-      double* wp8 = &arr_wp8[0];
-
-      double arr_ak_tide_mixing[KM];
-      double* ak_tide_mixing = &arr_ak_tide_mixing[0];
-#endif
 
       for (int k = 0; k < KM; ++k) {
-        wk1[k] = 0.0;
-        wk2[k] = 0.0;
-        wk3[k] = 0.0;
-        wp3[k] = 0.0;
-        wp4[k] = 0.0;
-        wp5[k] = 0.0;
-        wp6[k] = 0.0;
-        wp7[k] = 0.0;
-        wp8[k] = 0.0;
+        v_wk1_(k, j, i) = 0.0;
+        v_wk2_(k, j, i) = 0.0;
+        v_wk3_(k, j, i) = 0.0;
+        v_wp3_(k, j, i) = 0.0;
+        v_wp4_(k, j, i) = 0.0;
+        v_wp5_(k, j, i) = 0.0;
+        v_wp6_(k, j, i) = 0.0;
+        v_wp7_(k, j, i) = 0.0;
+        v_wp8_(k, j, i) = 0.0;
       }
       const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
       for (int k = 0; k < KM - 1; ++k) {
-        wp8[k] = - v_vit_(iblock, k+1, j, i) * v_zkp_(k+1);
+        v_wp8_(k, j, i) = - v_vit_(iblock, k+1, j, i) * v_zkp_(k+1);
       }
 
       for (int k = 0; k < kmt_m1; ++k) {
         if (v_vit_(iblock, k+1, j, i) > 0.0) {
-          wp4[k] = v_rit_(iblock, k, j, i);
-          wp5[k] = v_ricdt_(iblock, k, j, i);
-          wp6[k] = v_s2t_(iblock, k, j, i);
-          wp7[k] = v_rict_(iblock, k, j, i);
+          v_wp4_(k, j, i) = v_rit_(iblock, k, j, i);
+          v_wp5_(k, j, i) = v_ricdt_(iblock, k, j, i);
+          v_wp6_(k, j, i) = v_s2t_(iblock, k, j, i);
+          v_wp7_(k, j, i) = v_rict_(iblock, k, j, i);
         }
+
       }
       for (int k = 0; k <= kmt_m1; ++k) {
         const double tq = v_at_(iblock, 0, k, j, i) - v_to_(0);
         const double sq = v_at_(iblock, 1, k, j, i) - v_so_(0);
-        wp3[k] = dens (tq, sq, 0) + 1000.0;
+        v_wp3_(k, j, i) = dens(tq, sq, 0) + 1000.0;
       }
       for (int k = 0; k < KM; ++k) {
-        if (wp7[k] < 0.0) {
-          wp7[k] = 0.0;
+        if (v_wp7_(k, j, i) < 0.0) {
+          v_wp7_(k, j, i) = 0.0;
         }
       }
 
@@ -419,51 +384,56 @@ class FunctorReadyc5 {
       // To do something
 #endif // CANUTOMIXOUT
 #ifdef CANUTO2010
-      canuto_2010_interface (j, i, 
-          wk1, wk2, wk3, v_amld_(iblock, j, i), wp3,
-          wp4, wp5, wp7, wp6, v_ulat_(iblock, j, i) / DegToRad_, 
-          wp8, kmt_m1 + 1);
+      canuto_2010_interface (j, i,
+          v_wk1_, v_wk2_, v_wk3_, v_amld_(iblock, j, i),
+          v_wp3_, v_wp4_, v_wp5_,
+          v_wp7_, v_wp6_, v_ulat_(iblock, j, i) / DegToRad_, 
+          v_wp8_, kmt_m1 + 1);
 #endif // CANUTO2010
 
 #ifdef TIDEMIX
+      //double ak_tide_mixing[KM];
       for (int k = 0; k < KM; ++k) {
-        ak_tide_mixing[k] = 0.0;
+        v_ak_tide_mixing_(k, j, i) = 0.0;
       }
       for (int k = 0; k < kmt_m1; ++k) {
-        ak_tide_mixing[k] = BACK_TIDALMIXING + MIXING_EF * 
+        v_ak_tide_mixing_(k, j, i) = BACK_TIDALMIXING + MIXING_EF * 
             LOCAL_MIXING_FRACTION * v_wave_dis_(iblock, j, i) * 
             v_fz_tide_(iblock, k, j, i) /
-            (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * wp3[k]);
+            (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * v_wp3_(k, j, i));
 
-        ak_tide_mixing[k] = fmin(ak_tide_mixing[k], MAX_TIDALMIXING);
+        v_ak_tide_mixing_(k, j, i) = fmin(v_ak_tide_mixing_(k, j, i),
+            MAX_TIDALMIXING);
       }
 #ifdef CANUTOMIXOUT
 #endif // CANUTOMIXOUT
       for (int k = kmt_m1 - 2; k >= 0; --k) {
-        ak_tide_mixing[k] = fmin(ak_tide_mixing[k], ak_tide_mixing[k+1]);
+        v_ak_tide_mixing_(k, j, i) = fmin(
+            v_ak_tide_mixing_(k, j, i), v_ak_tide_mixing_(k+1, j, i));
       }
 #endif // TIDEMIX
       for (int k = 0; k < KM; ++k) {
-        v_akmt_(iblock, k, j, i)    = wk1[k];
-        v_akt_(iblock, 0, k, j, i) += wk2[k];
-        v_akt_(iblock, 1, k, j, i) += wk3[k];
+        v_akmt_(iblock, k, j, i)    = v_wk1_(k, j, i);
+        v_akt_(iblock, 0, k, j, i) += v_wk2_(k, j, i);
+        v_akt_(iblock, 1, k, j, i) += v_wk3_(k, j, i);
 #ifdef BCKMEX
-        v_akmt_(iblock, k, j, i)   += diff_back[iblock][j][i] * 
+        v_akmt_(iblock, k, j, i) += diff_back[iblock][j][i] * 
             10.0 * 1.0e-4;
         v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] /
-            static_cast<float>(ncc) * 1.0e-4;
+                static_cast<float>(ncc) * 1.0e-4;
         v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] /
-            static_cast<float>(ncc) * 1.0e-4;
+                static_cast<float>(ncc) * 1.0e-4;
 #endif // BCKMEX
 #ifdef TIDEMIX
-        v_akmt_(iblock, k, j, i)   += (ak_tide_mixing[k] * 5.0);
-        v_akt_(iblock, 0, k, j, i) +=  ak_tide_mixing[k];
-        v_akt_(iblock, 1, k, j, i) +=  ak_tide_mixing[k];
+        v_akmt_(iblock, k, j, i)   += (v_ak_tide_mixing_(k, j, i) * 5.0);
+        v_akt_(iblock, 0, k, j, i) += v_ak_tide_mixing_(k, j, i);
+        v_akt_(iblock, 1, k, j, i) += v_ak_tide_mixing_(k, j, i);
 #endif // TIDEMIX
         const double tmp_dzp = 0.008 * v_dzp_(k) * v_dzp_(k);
-        v_akmt_(iblock,   k, j, i)  = fmin(v_akmt_(iblock,    k, j, i), tmp_dzp);
-        v_akt_ (iblock, 0, k, j, i) = fmin(v_akt_ (iblock, 0, k, j, i), tmp_dzp);
-        v_akt_ (iblock, 1, k, j, i) = fmin(v_akt_ (iblock, 1, k, j, i), tmp_dzp);
+        v_akmt_(iblock, k, j, i)   = std::min(v_akmt_(iblock, k, j, i),
+            tmp_dzp);
+        v_akt_(iblock, 0, k, j, i) = std::min(v_akt_(iblock, 0, k, j, i), tmp_dzp);
+        v_akt_(iblock, 1, k, j, i) = std::min(v_akt_(iblock, 1, k, j, i), tmp_dzp);
       }
     }
     return ;
@@ -476,7 +446,6 @@ class FunctorReadyc5 {
   const double KARMAN_     = CppConstantMod::KARMAN;
   const double VERY_SMALL_ = CppConstantMod::VERY_SMALL;
   const ViewInt3D    v_kmt_            = *p_v_kmt;
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
   const ViewDouble3D v_wk1_            = *KokkosTmpVar::p_v_wk1;
   const ViewDouble3D v_wk2_            = *KokkosTmpVar::p_v_wk2;
   const ViewDouble3D v_wk3_            = *KokkosTmpVar::p_v_wk3;
@@ -490,7 +459,6 @@ class FunctorReadyc5 {
   const ViewDouble3D v_ak_tide_mixing_ = *KokkosTmpVar::p_v_ak_tide_mixing;
   const ViewDouble3D v_Ri_             = *KokkosTmpVar::p_v_Ri;
   const ViewDouble3D v_Rrho_           = *KokkosTmpVar::p_v_Rrho;
-#endif
   const ViewDouble1D v_to_             = *p_v_to;
   const ViewDouble1D v_so_             = *p_v_so;
   const ViewDouble1D v_dzp_            = *p_v_dzp;
@@ -871,30 +839,23 @@ class FunctorReadyc5 {
   }
   KOKKOS_INLINE_FUNCTION 
   void find_mix_layer_depth (const int& j, const int &i,
-      double &mld_out, int &mld_lev_out, const double* const den, 
-          const double &delta, const double* const zlev_in, const int &n) const {
+      double &mld_out, int &mld_lev_out, const ViewDouble3D &v_den, 
+          const double &delta, const ViewDouble3D &v_zlev_in, const int &n) const {
     int k;
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
-    double* zlev = &(v_zlev_.data()[j * IMT * KM + i * KM]);
-#else
-    double arr_zlev[KM];
-    double* zlev = &(arr_zlev[0]);
-#endif
-
     for (k = 0; k < n; ++k) {
-      zlev[k] = fabs(zlev_in[k]);
+      v_zlev_(k, j, i) = std::abs(v_zlev_in(k, j, i));
     }
     for (k = 1; k < n; ++k) {
-      if (fabs(den[k] - den[0]) > delta) {
-        const double den_m = den[0] - sign(delta, den[0] - den[k]);
-        mld_out = zlev[k] + (zlev[k-1] - zlev[k]) * (den_m - den[k]) 
-            / (den[k-1] - den[k] + VERY_SMALL_);
+      if (std::abs(v_den(k, j, i) - v_den(0, j, i)) > delta) {
+        const double den_m = v_den(0, j, i) - sign(delta, v_den(0, j, i) - v_den(k, j, i));
+        mld_out = v_zlev_(k, j, i) + (v_zlev_(k-1, j, i) - v_zlev_(k, j, i)) * (den_m - v_den(k, j, i)) 
+            / (v_den(k-1, j, i) - v_den(k, j, i) + VERY_SMALL_);
         mld_lev_out = k + 1;
         break;
       }
     }
     if (k == n) {
-      mld_out     = zlev[n - 1];
+      mld_out     = v_zlev_(n - 1, j, i);
       mld_lev_out = n;
     }
     return ;
@@ -907,57 +868,46 @@ class FunctorReadyc5 {
   }
   KOKKOS_INLINE_FUNCTION 
   void canuto_2010_interface (const int &j, const int &i,
-          double* const Km_out,  // wk1
-          double* const Kh_out,  // wk2
-          double* const Ks_out,  // wk3
-          double       &mld_out, // amld
-    const double* const rho_in,  // wp3
-    const double* const ri_in,   // wp4
-    const double* const rrho_in, // wp5
-    const double* const n2_in,   // wp7
-    const double* const s2_in,   // wp6
-    const double       &lat_in,  // ulat[iblock][j][i] / DegToRad
-    const double* const lev_in,  // wp8
-    const int          &num_lev) /* kmt[iblock][j][i] */ const {
+    const ViewDouble3D &v_Km_out,  // wk1
+    const ViewDouble3D &v_Kh_out,  // wk2
+    const ViewDouble3D &v_Ks_out,  // wk3
+          double       &mld_out,   // amld
+    const ViewDouble3D &v_rho_in,  // wp3
+    const ViewDouble3D &v_ri_in,   // wp4
+    const ViewDouble3D &v_rrho_in, // wp5
+    const ViewDouble3D &v_n2_in,   // wp7
+    const ViewDouble3D &v_s2_in,   // wp6
+    const double       &lat_in,    // ulat[iblock][j][i] / DegToRad
+    const ViewDouble3D &v_lev_in,  // wp8
+    const int          &num_lev)   /* kmt[iblock][j][i] */ const {
 
     int mld_lev = 0;
-    find_mix_layer_depth (j, i, mld_out, mld_lev, rho_in, 0.03, lev_in, num_lev);
+    find_mix_layer_depth (j, i, mld_out, mld_lev, 
+        v_rho_in, 0.03, v_lev_in, num_lev);
  
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
-    double* Ri   = &(v_Ri_.data()  [j * IMT * KM + i * KM]);
-    double* Rrho = &(v_Rrho_.data()[j * IMT * KM + i * KM]);
-
-#else
-    double arr_Ri[KM];
-    double arr_Rrho[KM];
-
-    double* Ri   = &arr_Ri[0];
-    double* Rrho = &arr_Rrho[0];
-#endif
     for (int k = 0; k < KM-1; ++k) {
-      Ri[k]   = ri_in[k];
-      Rrho[k] = rrho_in[k];
+      v_Ri_(k, j, i)   = v_ri_in(k, j, i);
+      v_Rrho_(k, j, i) = v_rrho_in(k, j, i);
     }
  
     const double Ri_low  = - 1.0e+10;
     const double Ri_high =   1.0e+10;
  
     for (int k = 0; k < KM - 1; ++k) {
-      if (Ri[k] > Ri_high) {
-        Ri[k] = Ri_high;
-      } else if (Ri[k] < Ri_low) {
-        Ri[k] = Ri_low;
+      if (v_Ri_(k, j, i) > Ri_high) {
+        v_Ri_(k, j, i) = Ri_high;
+      } else if (v_Ri_(k, j, i) < Ri_low) {
+        v_Ri_(k, j, i) = Ri_low;
       }
     }
  
     const double Rrho_bound = 1.0e-3;
-
     for (int k = 0; k < num_lev - 1; ++k) {
-      if (fabs(Rrho[k] - 1.0) < Rrho_bound) {
-        if (Rrho[k] >= 1.0) {
-          Rrho[k] = 1.001;
-        } else if (Rrho[k] <= 1.0) {
-          Rrho[k] = 0.999;
+      if (std::abs(v_Rrho_(k, j, i) - 1.0) < Rrho_bound) {
+        if (v_Rrho_(k, j, i) >= 1.0) {
+          v_Rrho_(k, j, i) = 1.001;
+        } else if (v_Rrho_(k, j, i) <= 1.0) {
+          v_Rrho_(k, j, i) = 0.999;
         }
       }
     }
@@ -973,62 +923,62 @@ class FunctorReadyc5 {
     double TKE_mld(0.0);
     double Gm(0.0);
     for (int k = 0; k < num_lev - 1; ++k) {
-      prepare_pi (1.0e10, Rrho[k], out_pi);
+      prepare_pi (1.0e10, v_Rrho_(k, j, i), out_pi);
  
-      dyn_time_scale_calc (1.0e10, Rrho[k], out_pi, Gm, cube);
+      dyn_time_scale_calc (1.0e10, v_Rrho_(k, j, i), out_pi, Gm, cube);
  
-      struct_function(1.0e10, Rrho[k], out_pi, Gm, 
+      struct_function(1.0e10, v_Rrho_(k, j, i), out_pi, Gm, 
           struct_m_inf, struct_h_inf, struct_s_inf, R_inf, Rnew_inf);
  
-      Rf_calc(Rf_inf, 1.0e10, Rrho[k], struct_h_inf, struct_m_inf, Rnew_inf);
+      Rf_calc(Rf_inf, 1.0e10, v_Rrho_(k, j, i), struct_h_inf, struct_m_inf, Rnew_inf);
  
-      prepare_pi(Ri[k], Rrho[k], out_pi);
+      prepare_pi(v_Ri_(k, j, i), v_Rrho_(k, j, i), out_pi);
  
-      dyn_time_scale_calc(Ri[k], Rrho[k], out_pi, Gm, cube);
+      dyn_time_scale_calc(v_Ri_(k, j, i), v_Rrho_(k, j, i), out_pi, Gm, cube);
  
-      struct_function(Ri[k], Rrho[k], out_pi, Gm, 
+      struct_function(v_Ri_(k, j, i), v_Rrho_(k, j, i), out_pi, Gm, 
           struct_m, struct_h, struct_s, R, Rnew);
     
-      mixing_efficiency(mix_eff_m,   struct_m,   Ri[k], Gm);
-      mixing_efficiency(mix_eff_h,   struct_h,   Ri[k], Gm);
-      mixing_efficiency(mix_eff_s,   struct_s,   Ri[k], Gm);
+      mixing_efficiency(mix_eff_m,   struct_m,   v_Ri_(k, j, i), Gm);
+      mixing_efficiency(mix_eff_h,   struct_h,   v_Ri_(k, j, i), Gm);
+      mixing_efficiency(mix_eff_s,   struct_s,   v_Ri_(k, j, i), Gm);
  
-      Rf_calc(Rf, Ri[k], Rrho[k], struct_h, struct_m, Rnew);
+      Rf_calc(Rf, v_Ri_(k, j, i), v_Rrho_(k, j, i), struct_h, struct_m, Rnew);
  
       if (k <= (mld_lev - 1)) {
         mixed_layer_TKE_calc (TKE_mld, mld_out, Gm, 
-            s2_in[k], lev_in[k], Rf, Rf_inf);
+            v_s2_in(k, j, i), v_lev_in(k, j, i), Rf, Rf_inf);
       
-        Km_out[k] = mix_eff_m * TKE_mld / (n2_in[k] + VERY_SMALL_);
-        Kh_out[k] = mix_eff_h * TKE_mld / (n2_in[k] + VERY_SMALL_);
-        Ks_out[k] = mix_eff_s * TKE_mld / (n2_in[k] + VERY_SMALL_);
+        v_Km_out(k, j, i) = mix_eff_m   * TKE_mld / (v_n2_in(k, j, i) + VERY_SMALL_);
+        v_Kh_out(k, j, i) = mix_eff_h   * TKE_mld / (v_n2_in(k, j, i) + VERY_SMALL_);
+        v_Ks_out(k, j, i) = mix_eff_s   * TKE_mld / (v_n2_in(k, j, i) + VERY_SMALL_);
       }
  
       if (k > (mld_lev - 1)) {
         thermocline_mixing_coeff_calc(
-            Km_out[k], Kh_out[k], Ks_out[k],
-            mix_eff_m, mix_eff_h, mix_eff_s, n2_in[k], lat_in);
+            v_Km_out(k, j, i), v_Kh_out(k, j, i), v_Ks_out(k, j, i), 
+            mix_eff_m, mix_eff_h, mix_eff_s, v_n2_in(k, j, i), lat_in);
       }
  
       if (k < 3) {
-          Km_out[k] = fmax(1.0e-3, Km_out[k]);
-          Kh_out[k] = fmax(1.0e-3, Kh_out[k]);
-          Ks_out[k] = fmax(1.0e-3, Ks_out[k]);
+          v_Km_out(k, j, i) = std::max(1.0e-3, v_Km_out(k, j, i));
+          v_Kh_out(k, j, i) = std::max(1.0e-3, v_Kh_out(k, j, i));
+          v_Ks_out(k, j, i) = std::max(1.0e-3, v_Ks_out(k, j, i));
       } else {
-          Km_out[k] = fmax(1.0e-4, Km_out[k]);
-          Kh_out[k] = fmax(1.0e-5, Kh_out[k]);
-          Ks_out[k] = fmax(1.0e-5, Ks_out[k]);
+          v_Km_out(k, j, i) = std::max(1.0e-4, v_Km_out(k, j, i));
+          v_Kh_out(k, j, i) = std::max(1.0e-5, v_Kh_out(k, j, i));
+          v_Ks_out(k, j, i) = std::max(1.0e-5, v_Ks_out(k, j, i));
       }
  
-      Km_out[k] = fmin(1.2e-1, Km_out[k]);
-      Kh_out[k] = fmin(1.2e-1, Kh_out[k]);
-      Ks_out[k] = fmin(1.2e-1, Ks_out[k]);
+      v_Km_out(k, j, i) = std::min(1.2e-1, v_Km_out(k, j, i));
+      v_Kh_out(k, j, i) = std::min(1.2e-1, v_Kh_out(k, j, i));
+      v_Ks_out(k, j, i) = std::min(1.2e-1, v_Ks_out(k, j, i));
  
-      if (n2_in[k] < VERY_SMALL_) {
+      if (v_n2_in(k, j, i) < VERY_SMALL_) {
         const double tmp = 8.0e-3 * v_dzp_(k) * v_dzp_(k);
-        Kh_out[k] = fmin(tmp, 8.0);
-        Ks_out[k] = fmin(tmp, 8.0);
-        Km_out[k] = fmin(tmp, 8.0);
+        v_Kh_out(k, j, i) = std::min(tmp, 8.0);
+        v_Ks_out(k, j, i) = std::min(tmp, 8.0);
+        v_Km_out(k, j, i) = std::min(tmp, 8.0);
       }
     }
     return;
