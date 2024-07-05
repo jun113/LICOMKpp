@@ -34,10 +34,10 @@
 #undef  SUPHIGH 
 #undef  DAILYACC
 #undef  DAILYBUGDET
-#define BLCKX   @BLOCK_X@
+#define BLCKX @BLOCK_X@
 #define BLCKY	@BLOCK_Y@
-#define NJMT	218 
-#define NIMT	360
+#define NJMT		218 
+#define NIMT		360
 #define NKM     30 
 #define MXBLCKS 1
 
