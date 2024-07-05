@@ -476,23 +476,23 @@ void turb_2(
             if (ric == 0.0) {
               theta_r = atan(1.0);
             } else {
-              theta_r = PI / 2.0;
+              theta_r = CppConstantMod::PI / 2.0;
             }
           } else {
             theta_r = atan(ric / rit);
           }
-          if (fabs(theta_r) > (PI / 2.0)) {
+          if (fabs(theta_r) > (CppConstantMod::PI / 2.0)) {
             exit(0);
           }
-          if (theta_r < (-PI) / 4.0) {
-            theta_r = theta_r + PI;
+          if (theta_r < (-CppConstantMod::PI) / 4.0) {
+            theta_r = theta_r + CppConstantMod::PI;
           }
           jtheta_r0 = static_cast<int>(
-              (theta_r + (PI / 4.0)) / deltheta_r);
+              (theta_r + (CppConstantMod::PI / 4.0)) / deltheta_r);
           itheta_r0 = jtheta_r0 - N_THETA_R_OCT;
           itheta_r1 = itheta_r0 + 1;
           const double theta_r0  = itheta_r0 * deltheta_r;
-          theta_r_deg = theta_r * 180.0 / PI;
+          theta_r_deg = theta_r * 180.0 / CppConstantMod::PI;
 
           if ((itheta_r1 > 3 * N_THETA_R_OCT) ||
               (itheta_r0 < - N_THETA_R_OCT)) {
@@ -596,24 +596,24 @@ void turb_2(
               if (ric == 0.0) {
                 theta_r = atan(1.0);
               } else {
-                theta_r = PI / 2.0;
+                theta_r = CppConstantMod::PI / 2.0;
               }
             } else {
               theta_r = atan(ric / rit);
             }
-            if (fabs(theta_r) > (PI / 2.0)) {
+            if (fabs(theta_r) > (CppConstantMod::PI / 2.0)) {
               if (mytid == 0) {
                 printf("fabs(theta_r) > (PI / 2.0)\n");
                 printf("err in cpp version of turb_2. line 689\n");
               }
               exit(0);
             }
-            if (theta_r < (-PI) / 4.0) {
-              theta_r += PI;
+            if (theta_r < (-CppConstantMod::PI) / 4.0) {
+              theta_r += CppConstantMod::PI;
             }
 
             jtheta_r0 = static_cast<int>(
-                (theta_r + (PI / 4.0)) / deltheta_r);
+                (theta_r + (CppConstantMod::PI / 4.0)) / deltheta_r);
             jtheta_r1 = jtheta_r0 + 1;
 
             itheta_r0 = jtheta_r0 - N_THETA_R_OCT;
@@ -638,7 +638,7 @@ void turb_2(
               theta_r0  -= deltheta_r;
             }
 
-            theta_r_deg = theta_r * 180 / PI;
+            theta_r_deg = theta_r * 180 / CppConstantMod::PI;
             if ((itheta_r1 > 3 * N_THETA_R_OCT) ||
                 (itheta_r0 < - N_THETA_R_OCT)) {
               if (mytid == 0) {
@@ -655,7 +655,7 @@ void turb_2(
                 printf("itheta_r0 = %d, itheta_r1 = %d\n",
                     itheta_r0, itheta_r1);
                 printf("n_theta_r_oct = %d\n", N_THETA_R_OCT);
-                printf("pi = %f\n", PI);
+                printf("pi = %f\n", CppConstantMod::PI);
                 printf("\n");
                 printf("Program will stop.\n");
                 printf("************************************************\n");

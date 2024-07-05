@@ -31,7 +31,7 @@
 #if (defined (LICOM_ENABLE_KOKKOS)) || (defined (LICOM_ENABLE_CUDA)) || (defined (LICOM_ENABLE_HIP))
 // Max size: bclinc2: u, v
 // 2 * 4 * km * (imt + jmt)
-static double halo_buffer[8 * KM * (IMT + JMT)];
+static double halo_buffer[12 * KM * (IMT + JMT)];
 #endif // (define (LICOM_ENABLE_KOKKOS)) || (define (LICOM_ENABLE_CUDA)) || (define (LICOM_ENABLE_HIP))
 
 

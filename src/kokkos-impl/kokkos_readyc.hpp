@@ -343,49 +343,75 @@ class FunctorReadyc5 {
   void operator () (const int &j, const int &i) const {
     if (v_vit_(0, 0, j, i) > 0.5) {
       const int iblock = 0;
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+      double* wk1 = &(v_wk1_.data()[j * IMT * KM + i * KM]);
+      double* wk2 = &(v_wk2_.data()[j * IMT * KM + i * KM]);
+      double* wk3 = &(v_wk3_.data()[j * IMT * KM + i * KM]);
+      double* wp3 = &(v_wp3_.data()[j * IMT * KM + i * KM]);
+      double* wp4 = &(v_wp4_.data()[j * IMT * KM + i * KM]);
+      double* wp5 = &(v_wp5_.data()[j * IMT * KM + i * KM]);
+      double* wp6 = &(v_wp6_.data()[j * IMT * KM + i * KM]);
+      double* wp7 = &(v_wp7_.data()[j * IMT * KM + i * KM]);
+      double* wp8 = &(v_wp8_.data()[j * IMT * KM + i * KM]);
+
+      double* ak_tide_mixing = 
+          &(v_ak_tide_mixing_.data()[j * IMT * KM + i * KM]);
+#else
+      double arr_wk1[KM];
+      double arr_wk2[KM];
+      double arr_wk3[KM];
+      double arr_wp3[KM];
+      double arr_wp4[KM];
+      double arr_wp5[KM];
+      double arr_wp6[KM];
+      double arr_wp7[KM];
+      double arr_wp8[KM];
+      double* wk1 = &arr_wk1[0];
+      double* wk2 = &arr_wk2[0];
+      double* wk3 = &arr_wk3[0];
+      double* wp3 = &arr_wp3[0];
+      double* wp4 = &arr_wp4[0];
+      double* wp5 = &arr_wp5[0];
+      double* wp6 = &arr_wp6[0];
+      double* wp7 = &arr_wp7[0];
+      double* wp8 = &arr_wp8[0];
+
+      double arr_ak_tide_mixing[KM];
+      double* ak_tide_mixing = &arr_ak_tide_mixing[0];
+#endif
 
       for (int k = 0; k < KM; ++k) {
-        v_wk1_(j, i, k) = 0.0;
-        v_wk2_(j, i, k) = 0.0;
-        v_wk3_(j, i, k) = 0.0;
-        v_wk4_(j, i, k) = 0.0;
-        v_wp1_(j, i, k) = 0.0;
-        v_wp2_(j, i, k) = 0.0;
-        v_wp3_(j, i, k) = 0.0;
-        v_wp4_(j, i, k) = 0.0;
-        v_wp5_(j, i, k) = 0.0;
-        v_wp6_(j, i, k) = 0.0;
-        v_wp7_(j, i, k) = 0.0;
-        v_wp8_(j, i, k) = 0.0;
+        wk1[k] = 0.0;
+        wk2[k] = 0.0;
+        wk3[k] = 0.0;
+        wp3[k] = 0.0;
+        wp4[k] = 0.0;
+        wp5[k] = 0.0;
+        wp6[k] = 0.0;
+        wp7[k] = 0.0;
+        wp8[k] = 0.0;
       }
       const int kmt_m1 = v_kmt_(iblock, j, i) - 1;
       for (int k = 0; k < KM - 1; ++k) {
-        v_wp8_(j, i, k) = - v_vit_(iblock, k+1, j, i) * v_zkp_(k+1);
+        wp8[k] = - v_vit_(iblock, k+1, j, i) * v_zkp_(k+1);
       }
 
       for (int k = 0; k < kmt_m1; ++k) {
         if (v_vit_(iblock, k+1, j, i) > 0.0) {
-          v_wp1_(j, i, k) = v_at_(iblock, 0, k, j, i) - (
-              v_at_(iblock, 0, k, j, i) - v_at_(iblock, 0, k+1, j, i)) 
-                  * v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1));
-          v_wp2_(j, i, k) = (v_at_(iblock, 1, k, j, i) - (
-              v_at_(iblock, 1, k, j, i) - v_at_(iblock, 1, k+1, j, i)) 
-                  * v_dzp_(k) / (v_dzp_(k) + v_dzp_(k+1))) * 1000.0 + 35.0;
-          v_wp4_(j, i, k) = v_rit_(iblock, k, j, i);
-          v_wp5_(j, i, k) = v_ricdt_(iblock, k, j, i);
-          v_wp6_(j, i, k) = v_s2t_(iblock, k, j, i);
-          v_wp7_(j, i, k) = v_rict_(iblock, k, j, i);
+          wp4[k] = v_rit_(iblock, k, j, i);
+          wp5[k] = v_ricdt_(iblock, k, j, i);
+          wp6[k] = v_s2t_(iblock, k, j, i);
+          wp7[k] = v_rict_(iblock, k, j, i);
         }
-
       }
-      for (int k = 0; k < v_kmt_(iblock, j, i); ++k) {
+      for (int k = 0; k <= kmt_m1; ++k) {
         const double tq = v_at_(iblock, 0, k, j, i) - v_to_(0);
         const double sq = v_at_(iblock, 1, k, j, i) - v_so_(0);
-        v_wp3_(j, i, k) = dens(tq, sq, 0) + 1000.0;
+        wp3[k] = dens (tq, sq, 0) + 1000.0;
       }
       for (int k = 0; k < KM; ++k) {
-        if (v_wp7_(j, i, k) < 0.0) {
-          v_wp7_(j, i, k) = 0.0;
+        if (wp7[k] < 0.0) {
+          wp7[k] = 0.0;
         }
       }
 
@@ -393,76 +419,67 @@ class FunctorReadyc5 {
       // To do something
 #endif // CANUTOMIXOUT
 #ifdef CANUTO2010
-      canuto_2010_interface (j, i,
-          v_wk1_, v_wk2_, v_wk3_, v_wk4_, v_amld_(iblock, j, i),
-          v_wp1_, v_wp2_, v_wp3_, v_wp4_, v_wp5_,
-          v_wp7_, v_wp6_, v_ulat_(iblock, j, i) / DegToRad_, 
-          v_wp8_, v_kmt_(iblock, j, i));
+      canuto_2010_interface (j, i, 
+          wk1, wk2, wk3, v_amld_(iblock, j, i), wp3,
+          wp4, wp5, wp7, wp6, v_ulat_(iblock, j, i) / DegToRad_, 
+          wp8, kmt_m1 + 1);
 #endif // CANUTO2010
 
 #ifdef TIDEMIX
-      //double ak_tide_mixing[KM];
       for (int k = 0; k < KM; ++k) {
-        v_ak_tide_mixing_(j, i, k) = 0.0;
+        ak_tide_mixing[k] = 0.0;
       }
       for (int k = 0; k < kmt_m1; ++k) {
-        v_ak_tide_mixing_(j, i, k) = BACK_TIDALMIXING + MIXING_EF * 
+        ak_tide_mixing[k] = BACK_TIDALMIXING + MIXING_EF * 
             LOCAL_MIXING_FRACTION * v_wave_dis_(iblock, j, i) * 
             v_fz_tide_(iblock, k, j, i) /
-            (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * v_wp3_(j, i, k));
+            (fmax(v_rict_(iblock, k, j, i), 1.0e-8) * wp3[k]);
 
-        v_ak_tide_mixing_(j, i, k) = fmin(v_ak_tide_mixing_(j, i, k),
-            MAX_TIDALMIXING);
-
-        // v_richardson_(iblock, k, j, i) = v_rict_(iblock, k, j, i);
-        // v_fztidal_(iblock, k, j, i)    = v_fz_tide_(iblock, k, j, i);
-        // v_wp3_tidal_(iblock, k, j, i)  = v_wp3_(j, i, k);
+        ak_tide_mixing[k] = fmin(ak_tide_mixing[k], MAX_TIDALMIXING);
       }
 #ifdef CANUTOMIXOUT
 #endif // CANUTOMIXOUT
       for (int k = kmt_m1 - 2; k >= 0; --k) {
-        v_ak_tide_mixing_(j, i, k) = fmin(
-            v_ak_tide_mixing_(j, i, k), v_ak_tide_mixing_(j, i, k+1));
+        ak_tide_mixing[k] = fmin(ak_tide_mixing[k], ak_tide_mixing[k+1]);
       }
 #endif // TIDEMIX
       for (int k = 0; k < KM; ++k) {
-        v_akmt_(iblock, k, j, i)    = v_wk1_(j, i, k);
-        v_akt_(iblock, 0, k, j, i) += v_wk2_(j, i, k);
-        v_akt_(iblock, 1, k, j, i) += v_wk3_(j, i, k);
+        v_akmt_(iblock, k, j, i)    = wk1[k];
+        v_akt_(iblock, 0, k, j, i) += wk2[k];
+        v_akt_(iblock, 1, k, j, i) += wk3[k];
 #ifdef BCKMEX
-        v_akmt_(iblock, k, j, i) += diff_back[iblock][j][i] * 
+        v_akmt_(iblock, k, j, i)   += diff_back[iblock][j][i] * 
             10.0 * 1.0e-4;
         v_akt_(iblock, 0, k, j, i) += diff_back[iblock][j][i] /
-                static_cast<float>(ncc) * 1.0e-4;
+            static_cast<float>(ncc) * 1.0e-4;
         v_akt_(iblock, 1, k, j, i) += diff_back[iblock][j][i] /
-                static_cast<float>(ncc) * 1.0e-4;
+            static_cast<float>(ncc) * 1.0e-4;
 #endif // BCKMEX
 #ifdef TIDEMIX
-        v_akmt_(iblock, k, j, i)   += (v_ak_tide_mixing_(j, i, k) * 5.0);
-        v_akt_(iblock, 0, k, j, i) += v_ak_tide_mixing_(j, i, k);
-        v_akt_(iblock, 1, k, j, i) += v_ak_tide_mixing_(j, i, k);
+        v_akmt_(iblock, k, j, i)   += (ak_tide_mixing[k] * 5.0);
+        v_akt_(iblock, 0, k, j, i) +=  ak_tide_mixing[k];
+        v_akt_(iblock, 1, k, j, i) +=  ak_tide_mixing[k];
 #endif // TIDEMIX
         const double tmp_dzp = 0.008 * v_dzp_(k) * v_dzp_(k);
-        v_akmt_(iblock, k, j, i)   = std::min(v_akmt_(iblock, k, j, i),
-            tmp_dzp);
-        v_akt_(iblock, 0, k, j, i) = std::min(v_akt_(iblock, 0, k, j, i), tmp_dzp);
-        v_akt_(iblock, 1, k, j, i) = std::min(v_akt_(iblock, 1, k, j, i), tmp_dzp);
+        v_akmt_(iblock,   k, j, i)  = fmin(v_akmt_(iblock,    k, j, i), tmp_dzp);
+        v_akt_ (iblock, 0, k, j, i) = fmin(v_akt_ (iblock, 0, k, j, i), tmp_dzp);
+        v_akt_ (iblock, 1, k, j, i) = fmin(v_akt_ (iblock, 1, k, j, i), tmp_dzp);
       }
     }
     return ;
   };
  private:
+  const double PI0_1_      = CppConstantMod::PI0_1;
+  const double PI0_2_      = CppConstantMod::PI0_2;
   const double OMEGA_      = CppConstantMod::OMEGA;
   const double DegToRad_   = CppConstantMod::DEGTORAD;
   const double KARMAN_     = CppConstantMod::KARMAN;
   const double VERY_SMALL_ = CppConstantMod::VERY_SMALL;
   const ViewInt3D    v_kmt_            = *p_v_kmt;
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
   const ViewDouble3D v_wk1_            = *KokkosTmpVar::p_v_wk1;
   const ViewDouble3D v_wk2_            = *KokkosTmpVar::p_v_wk2;
   const ViewDouble3D v_wk3_            = *KokkosTmpVar::p_v_wk3;
-  const ViewDouble3D v_wk4_            = *KokkosTmpVar::p_v_wk4;
-  const ViewDouble3D v_wp1_            = *KokkosTmpVar::p_v_wp1;
-  const ViewDouble3D v_wp2_            = *KokkosTmpVar::p_v_wp2;
   const ViewDouble3D v_wp3_            = *KokkosTmpVar::p_v_wp3;
   const ViewDouble3D v_wp4_            = *KokkosTmpVar::p_v_wp4;
   const ViewDouble3D v_wp5_            = *KokkosTmpVar::p_v_wp5;
@@ -473,7 +490,7 @@ class FunctorReadyc5 {
   const ViewDouble3D v_ak_tide_mixing_ = *KokkosTmpVar::p_v_ak_tide_mixing;
   const ViewDouble3D v_Ri_             = *KokkosTmpVar::p_v_Ri;
   const ViewDouble3D v_Rrho_           = *KokkosTmpVar::p_v_Rrho;
-  const ViewDouble3D v_Gm_             = *KokkosTmpVar::p_v_Gm;
+#endif
   const ViewDouble1D v_to_             = *p_v_to;
   const ViewDouble1D v_so_             = *p_v_so;
   const ViewDouble1D v_dzp_            = *p_v_dzp;
@@ -486,9 +503,6 @@ class FunctorReadyc5 {
   const ViewDouble4D v_rict_           = *p_v_rict;
   const ViewDouble4D v_ricdt_          = *p_v_ricdt;
   const ViewDouble4D v_akmt_           = *p_v_akmt;
-  // const ViewDouble4D v_fztidal_        = *p_v_fztidal;
-  // const ViewDouble4D v_wp3_tidal_      = *p_v_wp3_tidal;
-  // const ViewDouble4D v_richardson_     = *p_v_richardson;
   const ViewDouble4D v_fz_tide_        = *p_v_fz_tide;
   const ViewDouble4D v_s2t_            = *p_v_s2t;
   const ViewDouble4D v_vit_            = *p_v_vit;
@@ -504,12 +518,6 @@ class FunctorReadyc5 {
     return dens;
   }
 
-  /*
-  template<typename T> KOKKOS_INLINE_FUNCTION 
-  T sign (const T &x, const T &y) const {
-    return y >= static_cast<T>(0) ? std::abs(x) : -std::abs(x);
-  }
-  */
   KOKKOS_INLINE_FUNCTION 
   double sign (const double &x, const double &y) const {
     return y >= 0.0 ? fabs(x) : - fabs(x);
@@ -526,13 +534,13 @@ class FunctorReadyc5 {
       const double &Gm_in, const double &s2_in, const double &lev_in, 
           const double &Rf_in, const double &Rf_inf_in) const {
     const double l0 = 0.17 * mld_in;
-    const double lB = KARMAN_ * std::abs(lev_in * l0) / (l0 + KARMAN_ * std::abs(lev_in));
+    const double lB = KARMAN_ * fabs(lev_in * l0) / (l0 + KARMAN_ * fabs(lev_in));
 #if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
-    const double tmp = std::pow(std::pow(1.0 - Rf_in / Rf_inf_in, 4.0), 1.0 / 3.0); 
+    const double tmp = pow(pow(1.0 - Rf_in / Rf_inf_in, 4.0), 1.0 / 3.0); 
     const double l = lB * tmp;
     const double B1 = 21.6;
-    TKE_out = B1 * B1 * std::pow(Gm_in, - 3.0 / 2.0)
-        * l * l * std::pow(s2_in, 3.0/2.0);
+    TKE_out = B1 * B1 * pow(Gm_in, - 3.0 / 2.0)
+        * l * l * pow(s2_in, 3.0/2.0);
 #else
     const double tmp = static_cast<double>(
         std::pow(
@@ -549,18 +557,17 @@ class FunctorReadyc5 {
     return ;
   }
   KOKKOS_INLINE_FUNCTION 
-  void thermocline_mixing_coeff_calc (double &Km_out, 
-             double &Kh_out,          double &Ks_out,          double &Kd_out,
+  void thermocline_mixing_coeff_calc (
+             double &Km_out,          double &Kh_out,          double &Ks_out,
        const double &mix_eff_m, const double &mix_eff_h, const double &mix_eff_s, 
-       const double &mix_eff_d, const double &n2_in,     const double &lat_in) 
-          const {
+       const double &n2_in,     const double &lat_in) const {
     const double N0     = 5.24e-3;
-    const double F30    = 2.0 * OMEGA_ * std::sin(30.0 * DegToRad_);
+    const double F30    = 2.0 * OMEGA_ * sin(30.0 * DegToRad_);
     const double Tke_n2 = 0.288e-4;
  
-    const double f_lat = std::abs (2.0 * OMEGA_ * std::sin(lat_in * DegToRad_) + VERY_SMALL_);
+    const double f_lat = fabs (2.0 * OMEGA_ * sin(lat_in * DegToRad_) + VERY_SMALL_);
  
-    const double cond1 = std::max(std::sqrt(n2_in) / f_lat, 1.0);
+    const double cond1 = fmax(sqrt(n2_in) / f_lat, 1.0);
  
     // double L_lat = (f_lat * std::acosh(cond1)) / (F30 * std::acosh(N0 / F30));
     // const double L_lat = (f_lat * std::acosh(cond1)) / (F30 * std::acosh(N0 / F30));
@@ -568,13 +575,11 @@ class FunctorReadyc5 {
     // Km_out = L_lat * Tke_n2 * mix_eff_m;
     // Kh_out = L_lat * Tke_n2 * mix_eff_h;
     // Ks_out = L_lat * Tke_n2 * mix_eff_s;
-    // Kd_out = L_lat * Tke_n2 * mix_eff_d;
     const double L_lat = (f_lat * acosh(cond1)) / (F30 * acosh(N0 / F30)) * Tke_n2;
  
     Km_out = L_lat * mix_eff_m;
     Kh_out = L_lat * mix_eff_h;
     Ks_out = L_lat * mix_eff_s;
-    Kd_out = L_lat * mix_eff_d;
     return ;
   }
   KOKKOS_INLINE_FUNCTION 
@@ -589,7 +594,7 @@ class FunctorReadyc5 {
  
     real_x = 1.0;
  
-    if (std::abs(sa) <= epsln1 && std::abs(sb) <= epsln1) {
+    if (fabs(sa) <= epsln1 && fabs(sb) <= epsln1) {
       if ((-sd / sc) < 0.0) {
         // printf ("No real positive root at position 1\n");
         return;
@@ -602,7 +607,7 @@ class FunctorReadyc5 {
  
     double delta;
     double x[3];
-    if (std::abs(sa) <= epsln1 && std::abs(sb) >= epsln1) {
+    if (fabs(sa) <= epsln1 && fabs(sb) >= epsln1) {
       delta = sc * sc - 4.0 * sb * sd;
       if (delta < 0.0) {
         // printf ("No real roots in this secondary order equation 2!\n");
@@ -617,7 +622,7 @@ class FunctorReadyc5 {
         } else {
           // std::cout << "Two real with one positive at least 2!" << std::endl;
           if (x[0] > 0.0 && x[1] > 0.0) {
-            real_x = std::min(x[0], x[1]);
+            real_x = fmin(x[0], x[1]);
           } else if (x[0] >  0.0 && x[1] <= 0.0) {
             real_x = x[0];
           } else if (x[0] <= 0.0 && x[1]  > 0.0) {
@@ -632,7 +637,7 @@ class FunctorReadyc5 {
     const double B = sb * sc - 9.0 * sa * sd;
     const double C = sc * sc - 3.0 * sb * sd;
  
-    if (std::abs(A) <= epsln1 && std::abs(B) <= epsln1) {
+    if (fabs(A) <= epsln1 && fabs(B) <= epsln1) {
       if ((-sc / sb) < 0.0) {
         // std::cout << "No real positive root at position 3" << std::endl;
         return;
@@ -651,8 +656,8 @@ class FunctorReadyc5 {
       y[0] = A * sb + 3.0 * sa * (-B + tmp) / 2.0;
       y[1] = A * sb + 3.0 * sa * (-B - tmp) / 2.0;
 #if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
-      real_x = (-sb - sign(std::pow(std::abs(y[0]), 1.0 / 3.0), y[0]) 
-                    - sign(std::pow(std::abs(y[1]), 1.0 / 3.0), y[1])) / (3.0 * sa);
+      real_x = (-sb - sign(pow(fabs(y[0]), 1.0 / 3.0), y[0]) 
+                    - sign(pow(fabs(y[1]), 1.0 / 3.0), y[1])) / (3.0 * sa);
 #else
       real_x = (-sb - 
           sign(static_cast<double>(
@@ -672,7 +677,7 @@ class FunctorReadyc5 {
     }
  
 #if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
-    const double T = (2.0 * A * sb - 3.0 * sa * B) / (2.0 * std::pow(A, 1.5));
+    const double T = (2.0 * A * sb - 3.0 * sa * B) / (2.0 * pow(A, 1.5));
 #else
     const double T = (2.0 * A * sb - 3.0 * sa * B) / (2.0 
         * static_cast<double>(std::pow(static_cast<long double>(A), 1.5)));
@@ -697,12 +702,12 @@ class FunctorReadyc5 {
     real_x = std::numeric_limits<double>::max();
     for (int i = 0; i < 3; ++i) {
       if (x[i] > 0.0) {
-        real_x = std::min (real_x, x[i]);
+        real_x = fmin (real_x, x[i]);
       }
     }
  
-    real_x = std::min (real_x, 2.0e3);
-    real_x = std::max (real_x, 1.0);
+    real_x = fmin (real_x, 2.0e3);
+    real_x = fmax (real_x, 1.0);
  
     return ;
   }
@@ -792,26 +797,16 @@ class FunctorReadyc5 {
   void prepare_pi (const double &Ri, const double &Rrho, 
       double* const out_pi) const {
     const double a     = 10.0;
-    const double Ko    = 1.66;
     const double sig_t = 0.72;
     const double zero  = 1.0e-10;
  
-#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
-    const double pi0_1 = 1.0 / (std::sqrt(27.0 / 5.0 * std::pow(Ko, 3)) 
-        * (1.0 + 1.0 / sig_t));
-#else
-    const double pi0_1 = 1.0 / (std::sqrt(27.0 / 5.0 * 
-        static_cast<double>(std::pow(static_cast<long double>(Ko), 3))) 
-            * (1.0 + 1.0 / sig_t));
-#endif
-    const double pi0_2 = 1.0 / 3.0;
     const double pi0_3 = sig_t;
-    const double pi0_4 = pi0_1;
+    const double pi0_4 = PI0_1_;
     const double pi0_5 = sig_t;
  
     if (Ri > zero && Rrho > zero) {
-      out_pi[0] = pi0_1 / (1.0 + Ri * Rrho / (a + Rrho));
-      out_pi[1] = pi0_2 / (1.0 + Ri) * (1.0 + 2.0 * Ri * Rrho 
+      out_pi[0] = PI0_1_ / (1.0 + Ri * Rrho / (a + Rrho));
+      out_pi[1] = PI0_2_ / (1.0 + Ri) * (1.0 + 2.0 * Ri * Rrho 
           / (1.0 + Rrho * Rrho));
       out_pi[2] = pi0_3;
       out_pi[3] = pi0_4 / (1.0 + Ri / (1.0 + a * Rrho));
@@ -819,16 +814,16 @@ class FunctorReadyc5 {
     }
  
     if (Ri > zero && Rrho <= zero) {
-      out_pi[0] = pi0_1 / (1.0 + Ri);
-      out_pi[1] = pi0_2;
+      out_pi[0] = PI0_1_ / (1.0 + Ri);
+      out_pi[1] = PI0_2_;
       out_pi[2] = pi0_3;
       out_pi[3] = pi0_4 / (1.0 + Ri);
       out_pi[4] = pi0_5;
     }
  
     if (Ri <= zero) {
-      out_pi[0] = pi0_1;
-      out_pi[1] = pi0_2;
+      out_pi[0] = PI0_1_;
+      out_pi[1] = PI0_2_;
       out_pi[2] = pi0_3;
       out_pi[3] = pi0_4;
       out_pi[4] = pi0_5;
@@ -838,7 +833,7 @@ class FunctorReadyc5 {
   KOKKOS_INLINE_FUNCTION 
   void struct_function (const double &Ri, const double &Rrho, const double *pi_n, 
       const double &Gm, double &struct_m, double &struct_h, double &struct_s, 
-          double &struct_rho, double &r_out, double &r_out_new) const {
+          double &r_out, double &r_out_new) const {
  
     // hwy_need_check
 #if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP) || (defined KOKKOS_ENABLE_ATHREAD)
@@ -872,28 +867,34 @@ class FunctorReadyc5 {
     struct_m = ratio * Am1 / Am2;
     struct_h = ratio * Ah;
     struct_s = ratio * As;
-    struct_rho = (struct_h - struct_s * Rrho) / (1.0 - Rrho);
     return ;
   }
   KOKKOS_INLINE_FUNCTION 
   void find_mix_layer_depth (const int& j, const int &i,
-      double &mld_out, int &mld_lev_out, const ViewDouble3D &v_den, 
-          const double &delta, const ViewDouble3D &v_zlev_in, const int &n) const {
+      double &mld_out, int &mld_lev_out, const double* const den, 
+          const double &delta, const double* const zlev_in, const int &n) const {
     int k;
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    double* zlev = &(v_zlev_.data()[j * IMT * KM + i * KM]);
+#else
+    double arr_zlev[KM];
+    double* zlev = &(arr_zlev[0]);
+#endif
+
     for (k = 0; k < n; ++k) {
-      v_zlev_(j, i, k) = std::abs(v_zlev_in(j, i, k));
+      zlev[k] = fabs(zlev_in[k]);
     }
     for (k = 1; k < n; ++k) {
-      if (std::abs(v_den(j, i, k) - v_den(j, i, 0)) > delta) {
-        const double den_m = v_den(j, i, 0) - sign(delta, v_den(j, i, 0) - v_den(j, i, k));
-        mld_out = v_zlev_(j, i, k) + (v_zlev_(j, i, k-1) - v_zlev_(j, i, k)) * (den_m - v_den(j, i, k)) 
-            / (v_den(j, i, k-1) - v_den(j, i, k) + VERY_SMALL_);
+      if (fabs(den[k] - den[0]) > delta) {
+        const double den_m = den[0] - sign(delta, den[0] - den[k]);
+        mld_out = zlev[k] + (zlev[k-1] - zlev[k]) * (den_m - den[k]) 
+            / (den[k-1] - den[k] + VERY_SMALL_);
         mld_lev_out = k + 1;
         break;
       }
     }
     if (k == n) {
-      mld_out     = v_zlev_(j, i, n - 1);
+      mld_out     = zlev[n - 1];
       mld_lev_out = n;
     }
     return ;
@@ -906,121 +907,128 @@ class FunctorReadyc5 {
   }
   KOKKOS_INLINE_FUNCTION 
   void canuto_2010_interface (const int &j, const int &i,
-    const ViewDouble3D &v_Km_out,  // wk1
-    const ViewDouble3D &v_Kh_out,  // wk2
-    const ViewDouble3D &v_Ks_out,  // wk3
-    const ViewDouble3D &v_Kd_out,  // wk4
-          double       &mld_out,   // amld
-    const ViewDouble3D &v_ts_in,   // wp1
-    const ViewDouble3D &v_ss_in,   // wp2
-    const ViewDouble3D &v_rho_in,  // wp3
-    const ViewDouble3D &v_ri_in,   // wp4
-    const ViewDouble3D &v_rrho_in, // wp5
-    const ViewDouble3D &v_n2_in,   // wp7
-    const ViewDouble3D &v_s2_in,   // wp6
-    const double       &lat_in,    // ulat[iblock][j][i] / DegToRad
-    const ViewDouble3D &v_lev_in,  // wp8
-    const int          &num_lev)   /* kmt[iblock][j][i] */ const {
+          double* const Km_out,  // wk1
+          double* const Kh_out,  // wk2
+          double* const Ks_out,  // wk3
+          double       &mld_out, // amld
+    const double* const rho_in,  // wp3
+    const double* const ri_in,   // wp4
+    const double* const rrho_in, // wp5
+    const double* const n2_in,   // wp7
+    const double* const s2_in,   // wp6
+    const double       &lat_in,  // ulat[iblock][j][i] / DegToRad
+    const double* const lev_in,  // wp8
+    const int          &num_lev) /* kmt[iblock][j][i] */ const {
 
     int mld_lev = 0;
-    find_mix_layer_depth (j, i, mld_out, mld_lev, 
-        v_rho_in, 0.03, v_lev_in, num_lev);
+    find_mix_layer_depth (j, i, mld_out, mld_lev, rho_in, 0.03, lev_in, num_lev);
  
+#if (defined KOKKOS_ENABLE_CUDA) || (defined KOKKOS_ENABLE_HIP)
+    double* Ri   = &(v_Ri_.data()  [j * IMT * KM + i * KM]);
+    double* Rrho = &(v_Rrho_.data()[j * IMT * KM + i * KM]);
+
+#else
+    double arr_Ri[KM];
+    double arr_Rrho[KM];
+
+    double* Ri   = &arr_Ri[0];
+    double* Rrho = &arr_Rrho[0];
+#endif
     for (int k = 0; k < KM-1; ++k) {
-      v_Ri_(j, i, k)   = v_ri_in(j, i, k);
-      v_Rrho_(j, i, k) = v_rrho_in(j, i, k);
+      Ri[k]   = ri_in[k];
+      Rrho[k] = rrho_in[k];
     }
  
     const double Ri_low  = - 1.0e+10;
     const double Ri_high =   1.0e+10;
  
     for (int k = 0; k < KM - 1; ++k) {
-      if (v_Ri_(j, i, k) > Ri_high) {
-        v_Ri_(j, i, k) = Ri_high;
-      } else if (v_Ri_(j, i, k) < Ri_low) {
-        v_Ri_(j, i, k) = Ri_low;
+      if (Ri[k] > Ri_high) {
+        Ri[k] = Ri_high;
+      } else if (Ri[k] < Ri_low) {
+        Ri[k] = Ri_low;
       }
     }
  
     const double Rrho_bound = 1.0e-3;
+
     for (int k = 0; k < num_lev - 1; ++k) {
-      if (std::abs(v_Rrho_(j, i, k) - 1.0) < Rrho_bound) {
-        if (v_Rrho_(j, i, k) >= 1.0) {
-          v_Rrho_(j, i, k) = 1.001;
-        } else if (v_Rrho_(j, i, k) <= 1.0) {
-          v_Rrho_(j, i, k) = 0.999;
+      if (fabs(Rrho[k] - 1.0) < Rrho_bound) {
+        if (Rrho[k] >= 1.0) {
+          Rrho[k] = 1.001;
+        } else if (Rrho[k] <= 1.0) {
+          Rrho[k] = 0.999;
         }
       }
     }
     double out_pi[5];
     double cube[4];
-    double struct_m_inf(0.0), struct_h_inf(0.0), struct_s_inf(0.0), struct_rho_inf(0.0);
+    double struct_m_inf(0.0), struct_h_inf(0.0), struct_s_inf(0.0);
     double R_inf(0.0), Rnew_inf(0.0);
     double Rf_inf(0.0);
-    double struct_m(0.0), struct_h(0.0), struct_s(0.0), struct_rho(0.0);
+    double struct_m(0.0), struct_h(0.0), struct_s(0.0);
     double R(0.0), Rnew(0.0);
-    double mix_eff_m(0.0), mix_eff_h(0.0), mix_eff_s(0.0), mix_eff_rho(0.0);
+    double mix_eff_m(0.0), mix_eff_h(0.0), mix_eff_s(0.0);
     double Rf(0.0);
     double TKE_mld(0.0);
+    double Gm(0.0);
     for (int k = 0; k < num_lev - 1; ++k) {
-      prepare_pi (1.0e10, v_Rrho_(j, i, k), out_pi);
+      prepare_pi (1.0e10, Rrho[k], out_pi);
  
-      dyn_time_scale_calc (1.0e10, v_Rrho_(j, i, k), out_pi, v_Gm_(j, i, k), cube);
+      dyn_time_scale_calc (1.0e10, Rrho[k], out_pi, Gm, cube);
  
-      struct_function(1.0e10, v_Rrho_(j, i, k), out_pi, v_Gm_(j, i, k), 
-          struct_m_inf, struct_h_inf, struct_s_inf, struct_rho_inf, R_inf, Rnew_inf);
+      struct_function(1.0e10, Rrho[k], out_pi, Gm, 
+          struct_m_inf, struct_h_inf, struct_s_inf, R_inf, Rnew_inf);
  
-      Rf_calc(Rf_inf, 1.0e10, v_Rrho_(j, i, k), struct_h_inf, struct_m_inf, Rnew_inf);
+      Rf_calc(Rf_inf, 1.0e10, Rrho[k], struct_h_inf, struct_m_inf, Rnew_inf);
  
-      prepare_pi(v_Ri_(j, i, k), v_Rrho_(j, i, k), out_pi);
+      prepare_pi(Ri[k], Rrho[k], out_pi);
  
-      dyn_time_scale_calc(v_Ri_(j, i, k), v_Rrho_(j, i, k), out_pi, v_Gm_(j, i, k), cube);
+      dyn_time_scale_calc(Ri[k], Rrho[k], out_pi, Gm, cube);
  
-      struct_function(v_Ri_(j, i, k), v_Rrho_(j, i, k), out_pi, v_Gm_(j, i, k), 
-          struct_m, struct_h, struct_s, struct_rho, R, Rnew);
+      struct_function(Ri[k], Rrho[k], out_pi, Gm, 
+          struct_m, struct_h, struct_s, R, Rnew);
     
-      mixing_efficiency(mix_eff_m,   struct_m,   v_Ri_(j, i, k), v_Gm_(j, i, k));
-      mixing_efficiency(mix_eff_h,   struct_h,   v_Ri_(j, i, k), v_Gm_(j, i, k));
-      mixing_efficiency(mix_eff_s,   struct_s,   v_Ri_(j, i, k), v_Gm_(j, i, k));
-      mixing_efficiency(mix_eff_rho, struct_rho, v_Ri_(j, i, k), v_Gm_(j, i, k));
+      mixing_efficiency(mix_eff_m,   struct_m,   Ri[k], Gm);
+      mixing_efficiency(mix_eff_h,   struct_h,   Ri[k], Gm);
+      mixing_efficiency(mix_eff_s,   struct_s,   Ri[k], Gm);
  
-      Rf_calc(Rf, v_Ri_(j, i, k), v_Rrho_(j, i, k), struct_h, struct_m, Rnew);
+      Rf_calc(Rf, Ri[k], Rrho[k], struct_h, struct_m, Rnew);
  
       if (k <= (mld_lev - 1)) {
-        mixed_layer_TKE_calc (TKE_mld, mld_out, v_Gm_(j, i, k), 
-            v_s2_in(j, i, k), v_lev_in(j, i, k), Rf, Rf_inf);
+        mixed_layer_TKE_calc (TKE_mld, mld_out, Gm, 
+            s2_in[k], lev_in[k], Rf, Rf_inf);
       
-        v_Km_out(j, i, k) = mix_eff_m   * TKE_mld / (v_n2_in(j, i, k) + VERY_SMALL_);
-        v_Kh_out(j, i, k) = mix_eff_h   * TKE_mld / (v_n2_in(j, i, k) + VERY_SMALL_);
-        v_Ks_out(j, i, k) = mix_eff_s   * TKE_mld / (v_n2_in(j, i, k) + VERY_SMALL_);
-        v_Kd_out(j, i, k) = mix_eff_rho * TKE_mld / (v_n2_in(j, i, k) + VERY_SMALL_);
+        Km_out[k] = mix_eff_m * TKE_mld / (n2_in[k] + VERY_SMALL_);
+        Kh_out[k] = mix_eff_h * TKE_mld / (n2_in[k] + VERY_SMALL_);
+        Ks_out[k] = mix_eff_s * TKE_mld / (n2_in[k] + VERY_SMALL_);
       }
  
       if (k > (mld_lev - 1)) {
         thermocline_mixing_coeff_calc(
-            v_Km_out(j, i, k), v_Kh_out(j, i, k), v_Ks_out(j, i, k), v_Kd_out(j, i, k), 
-            mix_eff_m, mix_eff_h, mix_eff_s, mix_eff_rho, v_n2_in(j, i, k), lat_in);
+            Km_out[k], Kh_out[k], Ks_out[k],
+            mix_eff_m, mix_eff_h, mix_eff_s, n2_in[k], lat_in);
       }
  
       if (k < 3) {
-          v_Km_out(j, i, k) = std::max(1.0e-3, v_Km_out(j, i, k));
-          v_Kh_out(j, i, k) = std::max(1.0e-3, v_Kh_out(j, i, k));
-          v_Ks_out(j, i, k) = std::max(1.0e-3, v_Ks_out(j, i, k));
+          Km_out[k] = fmax(1.0e-3, Km_out[k]);
+          Kh_out[k] = fmax(1.0e-3, Kh_out[k]);
+          Ks_out[k] = fmax(1.0e-3, Ks_out[k]);
       } else {
-          v_Km_out(j, i, k) = std::max(1.0e-4, v_Km_out(j, i, k));
-          v_Kh_out(j, i, k) = std::max(1.0e-5, v_Kh_out(j, i, k));
-          v_Ks_out(j, i, k) = std::max(1.0e-5, v_Ks_out(j, i, k));
+          Km_out[k] = fmax(1.0e-4, Km_out[k]);
+          Kh_out[k] = fmax(1.0e-5, Kh_out[k]);
+          Ks_out[k] = fmax(1.0e-5, Ks_out[k]);
       }
  
-      v_Km_out(j, i, k) = std::min(1.2e-1, v_Km_out(j, i, k));
-      v_Kh_out(j, i, k) = std::min(1.2e-1, v_Kh_out(j, i, k));
-      v_Ks_out(j, i, k) = std::min(1.2e-1, v_Ks_out(j, i, k));
+      Km_out[k] = fmin(1.2e-1, Km_out[k]);
+      Kh_out[k] = fmin(1.2e-1, Kh_out[k]);
+      Ks_out[k] = fmin(1.2e-1, Ks_out[k]);
  
-      if (v_n2_in(j, i, k) < VERY_SMALL_) {
+      if (n2_in[k] < VERY_SMALL_) {
         const double tmp = 8.0e-3 * v_dzp_(k) * v_dzp_(k);
-        v_Kh_out(j, i, k) = std::min(tmp, 8.0);
-        v_Ks_out(j, i, k) = std::min(tmp, 8.0);
-        v_Km_out(j, i, k) = std::min(tmp, 8.0);
+        Kh_out[k] = fmin(tmp, 8.0);
+        Ks_out[k] = fmin(tmp, 8.0);
+        Km_out[k] = fmin(tmp, 8.0);
       }
     }
     return;

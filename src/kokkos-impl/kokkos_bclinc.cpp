@@ -62,24 +62,24 @@ using Kokkos::MDRangePolicy;
     // CUDA HIP memcpy
     // pop_haloupdate_bclinc_2(KM, 2);
     gpu_get_halo_transpose_bclinc (*p_v_u, CppPOPHaloMod::arrCommPriorK,
-        2, 2, KM, JMT, IMT);
+        0, 4, KM, JMT, IMT);
     pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
         KM, JMT, IMT, 
         CppDomain::POP_haloClinic_C, 
         CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
     gpu_put_halo_transpose_bclinc (CppPOPHaloMod::arrCommPriorK, *p_v_u,
-        0, 2, KM, JMT, IMT);
+        0, 4, KM, JMT, IMT);
 
     gpu_get_halo_transpose_bclinc (*p_v_v, CppPOPHaloMod::arrCommPriorK,
-        2, 2, KM, JMT, IMT);
+        0, 4, KM, JMT, IMT);
     pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
         KM, JMT, IMT, 
         CppDomain::POP_haloClinic_C, 
         CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
     gpu_put_halo_transpose_bclinc (CppPOPHaloMod::arrCommPriorK, *p_v_v,
-        0, 2, KM, JMT, IMT);
+        0, 4, KM, JMT, IMT);
 // #elif (defined KOKKOS_ENABLE_ATHREAD)
 //     athread_get_halo_transpose_double_host ((*p_v_u).data(), CppPOPHaloMod::arrCommPriorK,
 //         2, 2, KM, JMT, IMT);
@@ -140,7 +140,7 @@ using Kokkos::MDRangePolicy;
     // CUDA HIP memcpy
     // pop_haloupdate_bclinc_3(KM, 2);
     gpu_get_halo_transpose_bclinc (*p_v_wka, CppPOPHaloMod::arrCommPriorK,
-        2, 2, KM, JMT, IMT);
+        0, 4, KM, JMT, IMT);
 
     pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
         KM, JMT, IMT, 
@@ -149,7 +149,7 @@ using Kokkos::MDRangePolicy;
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
 
     gpu_put_halo_transpose_bclinc (CppPOPHaloMod::arrCommPriorK, *p_v_wka,
-        0, 2, KM, JMT, IMT);
+        0, 4, KM, JMT, IMT);
 // #elif (defined KOKKOS_ENABLE_ATHREAD)
 //     // Athread LDM
 //     athread_get_halo_transpose_double_host ((*p_v_wka).data(), CppPOPHaloMod::arrCommPriorK,
@@ -189,7 +189,7 @@ using Kokkos::MDRangePolicy;
     // CUDA HIP memcpy
     // pop_haloupdate_bclinc_3(KM, 2);
     gpu_get_halo_transpose_bclinc (*p_v_wka, CppPOPHaloMod::arrCommPriorK,
-        2, 2, KM, JMT, IMT);
+        0, 4, KM, JMT, IMT);
 
     pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
         KM, JMT, IMT, 
@@ -198,7 +198,7 @@ using Kokkos::MDRangePolicy;
         CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
 
     gpu_put_halo_transpose_bclinc (CppPOPHaloMod::arrCommPriorK, *p_v_wka,
-        0, 2, KM, JMT, IMT);
+        0, 4, KM, JMT, IMT);
 // #elif (defined KOKKOS_ENABLE_ATHREAD)
 //     // Athread LDM
 //     athread_get_halo_transpose_double_host ((*p_v_wka).data(), CppPOPHaloMod::arrCommPriorK,
@@ -232,28 +232,141 @@ using Kokkos::MDRangePolicy;
 #else // BCLINC_MERGED_HALO
   // Merged
   {
-    parallel_for("bclinc_14", MDRangePolicy<Kokkos::Rank<3>> (
-        koArr3D{2, 2, 0}, koArr3D{IMT-2, JMT-2, KM}, tile3D), FunctorBclinc141());
-
-    parallel_for("bclinc_15", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{IMT-2, JMT-2}, tile2D), FunctorBclinc151());
-    parallel_for("bclinc_16", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{IMT-2, JMT-2}, tile2D), FunctorBclinc161());
 #ifdef LICOM_ENABLE_TEST_BCLINC
-    my_time.testTime_start("bclinc haloupdate");
+          my_time.testTime_start("bclinc_merged_14");
 #endif // LICOM_ENABLE_TEST_BCLINC
-    pop_haloupdate_bclinc_33(KM, 2);
+    parallel_for("bclinc_merged_14", MDRangePolicy<Kokkos::Rank<3>> (
+        koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorBclincMer14());
+
 #ifdef LICOM_ENABLE_TEST_BCLINC
-    my_time.testTime_stop("bclinc haloupdate");
+          my_time.testTime_stop ("bclinc_merged_14");
 #endif // LICOM_ENABLE_TEST_BCLINC
 
-    parallel_for ("bclinc_17", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{0, 0}, koArr2D{IMT, JMT}, tile2D), FunctorBclinc171());
+#ifdef LICOM_ENABLE_TEST_BCLINC
+          my_time.testTime_start("bclinc_merged_invtriu");
+#endif // LICOM_ENABLE_TEST_BCLINC
 
-    parallel_for ("bclinc_18", MDRangePolicy<Kokkos::Rank<3>> (
-        koArr3D{0, 0, 0}, koArr3D{IMT, JMT, KM}, tile3D), FunctorBclinc181());
-    parallel_for ("bclinc_19", MDRangePolicy<Kokkos::Rank<3>> (
-        koArr3D{0, 0, 0}, koArr3D{IMT, JMT, KM}, tile3D), FunctorBclinc191());
+#if (!defined KOKKOS_ENABLE_ATHREAD)
+    parallel_for("bclinc_merged_15", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBclincMer15());
+
+    parallel_for("bclinc_merged_16", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorBclincMer16());
+#else
+  athread_invtriu_host (KM, JMT, IMT, 
+      CppPconstMod::dtc2, aidif,
+      (*p_v_kmu).data(), 
+      (*p_v_work_merged).data(),
+      (*p_v_sbcx).data(), 
+      (*p_v_bbcx).data(), 
+      (*p_v_akmu).data(), 
+      (*p_v_odzt).data(), 
+      (*p_v_odzp).data(), 
+      (*p_v_viv).data());
+
+  athread_invtriu_host (KM, JMT, IMT, 
+      CppPconstMod::dtc2, aidif,
+      (*p_v_kmu).data(), 
+      &((*p_v_work_merged).data()[KM * JMT * IMT]),
+      (*p_v_sbcy).data(), 
+      (*p_v_bbcy).data(), 
+      (*p_v_akmu).data(), 
+      (*p_v_odzt).data(), 
+      (*p_v_odzp).data(), 
+      (*p_v_viv).data());
+#endif
+
+#ifdef LICOM_ENABLE_TEST_BCLINC
+          my_time.testTime_stop("bclinc_merged_invtriu");
+#endif // LICOM_ENABLE_TEST_BCLINC
+
+#ifdef LICOM_ENABLE_TEST_BCLINC
+    my_time.testTime_start("bclinc haloupdate merged");
+#endif // LICOM_ENABLE_TEST_BCLINC
+#ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
+    // CUDA HIP memcpy
+    // pop_haloupdate_bclinc_3(KM, 2);
+    // gpu_get_halo_transpose_bclinc (*p_v_wka, CppPOPHaloMod::arrCommPriorK,
+    //     2, 2, KM, JMT, IMT);
+
+    // pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
+    //     KM, JMT, IMT, 
+    //     CppDomain::POP_haloClinic_C, 
+    //     CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
+    //     CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
+
+    // gpu_put_halo_transpose_bclinc (CppPOPHaloMod::arrCommPriorK, *p_v_wka,
+    //     0, 2, KM, JMT, IMT);
+#elif (defined KOKKOS_ENABLE_ATHREAD)
+    // Athread LDM
+    athread_get_halo_transpose_double_host ((*p_v_wka).data(), CppPOPHaloMod::arrCommPriorK,
+        0, 4, 2 * KM, JMT, IMT);
+
+    pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
+        2 * KM, JMT, IMT, 
+        CppDomain::POP_haloClinic_C, 
+        CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
+        CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
+
+    athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_wka).data(), 
+        0, 2, 2 * KM, JMT, IMT);
+#else
+    CppPOPHaloMod::pop_halo_update((*p_v_work_merged).data(), KM << 1, JMT, IMT,
+        CppDomain::POP_haloClinic_C, 
+        CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
+        CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
+#endif
+#ifdef LICOM_ENABLE_TEST_BCLINC
+    my_time.testTime_stop("bclinc haloupdate merged");
+#endif // LICOM_ENABLE_TEST_BCLINC
+
+#ifdef LICOM_ENABLE_TEST_BCLINC
+          my_time.testTime_start("bclinc_merged_vinteg");
+#endif // LICOM_ENABLE_TEST_BCLINC
+
+#if (!defined KOKKOS_ENABLE_ATHREAD)
+    parallel_for ("bclinc_merged_vinteg_17", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorBclincMer17());
+#else
+  athread_vinteg_host (KM, JMT, IMT,
+      (*p_v_work_merged).data(),
+      (*p_v_work1).data(),
+      (*p_v_dzp).data(),
+      (*p_v_viv).data(),
+      (*p_v_ohbu).data());
+  athread_vinteg_host (KM, JMT, IMT,
+      &((*p_v_work_merged).data()[KM * JMT * IMT]),
+      (*p_v_work2).data(),
+      (*p_v_dzp).data(),
+      (*p_v_viv).data(),
+      (*p_v_ohbu).data());
+#endif
+
+#ifdef LICOM_ENABLE_TEST_BCLINC
+          my_time.testTime_stop ("bclinc_merged_vinteg");
+#endif // LICOM_ENABLE_TEST_BCLINC
+
+#ifdef LICOM_ENABLE_TEST_BCLINC
+          my_time.testTime_start("bclinc_merged_18");
+#endif // LICOM_ENABLE_TEST_BCLINC
+
+    parallel_for ("bclinc_merged_18", MDRangePolicy<Kokkos::Rank<3>> (
+        koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorBclincMer18());
+
+#ifdef LICOM_ENABLE_TEST_BCLINC
+          my_time.testTime_stop ("bclinc_merged_18");
+#endif // LICOM_ENABLE_TEST_BCLINC
+
+#ifdef LICOM_ENABLE_TEST_BCLINC
+          my_time.testTime_start("bclinc_merged_19");
+#endif // LICOM_ENABLE_TEST_BCLINC
+
+    parallel_for ("bclinc_merged_19", MDRangePolicy<Kokkos::Rank<3>> (
+        koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorBclincMer19());
+
+#ifdef LICOM_ENABLE_TEST_BCLINC
+          my_time.testTime_stop ("bclinc_merged_19");
+#endif // LICOM_ENABLE_TEST_BCLINC
   }
 #endif // BCLINC_MERGED_HALO
 

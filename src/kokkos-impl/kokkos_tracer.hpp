@@ -4092,6 +4092,7 @@ class functor_tracer_smts_2 {
   }
  private:
   const double fil_lat_;
+  const double PI_ = CppConstantMod::PI;
 
   const ViewInt1D v_nn_ = *p_v_nn;
 
@@ -4099,7 +4100,7 @@ class functor_tracer_smts_2 {
 
   KOKKOS_INLINE_FUNCTION 
       double DEGtoRAD(const double &degree) const {
-    return (degree * (PI / 180));
+    return (degree * (PI_ / 180));
   }
 };
 

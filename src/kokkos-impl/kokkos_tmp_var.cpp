@@ -88,6 +88,9 @@ ViewDouble4D *p_v_f2 = nullptr;
 ViewDouble2D *p_v_gradx = nullptr;
 ViewDouble2D *p_v_grady = nullptr;
 
+// BCLINC
+ViewDouble4D *p_v_work_merged = nullptr;
+
 // POP Halo Update
 ViewDouble1D *p_v_halo_buffer = nullptr;
 } // namespace KokkosTmpVar

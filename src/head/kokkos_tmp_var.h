@@ -84,6 +84,9 @@ extern ViewDouble4D *p_v_f2;
 extern ViewDouble2D *p_v_gradx;
 extern ViewDouble2D *p_v_grady;
 
+// BCLINC
+extern ViewDouble4D *p_v_work_merged;
+
 // POP Halo Update
 extern ViewDouble1D *p_v_halo_buffer;
 } // namespace KokkosTmpVar

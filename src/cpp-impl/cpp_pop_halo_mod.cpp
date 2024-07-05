@@ -27,8 +27,7 @@ using namespace::std;
 
 namespace CppPOPHaloMod {
 
-double* arrCommPriorK = new double[CppParamMod::KM 
-		* CppParamMod::JMT * CppParamMod::IMT];
+double* arrCommPriorK = nullptr;
 
 #ifdef LICOM_ENABLE_FORTRAN_COMPILER_INTEL
 int &bufSizeSend        = pop_halomod_mp_bufsizesend_;
@@ -1783,14 +1782,20 @@ void pop_halo_create_from_fortran(CppPOPHaloMod::POPHalo &halo) {
 	// max 3D double in POP_HaloUpdate
 	using CppParamMod::KM;
 	if (bufTripole == nullptr) {
-		bufTripole = new double[(POP_HALO_WIDTH + 1) * IMT_GLOBAL * KM];
+		bufTripole = new double[(POP_HALO_WIDTH + 1) * IMT_GLOBAL * KM * 2];
 	}
 	if (bufSend == nullptr) {
-		bufSend = new double[bufSizeSend * halo.numMsgSend * KM];
+		bufSend = new double[bufSizeSend * halo.numMsgSend * KM * 2];
 	}
 	if (bufRecv == nullptr) {
-		bufRecv = new double[bufSizeRecv * halo.numMsgRecv * KM];
+		bufRecv = new double[bufSizeRecv * halo.numMsgRecv * KM * 2];
 	}
+  arrCommPriorK = new double[2 * CppParamMod::KM 
+	    * CppParamMod::JMT * CppParamMod::IMT];
+  for (int i = 0; 
+      i < 2 * CppParamMod::KM * CppParamMod::JMT * CppParamMod::IMT; ++i) {
+    arrCommPriorK[i] = 0.0;
+  }
 
   // printf("c mytid %d, communicator %d, numMsgSend %d, numMsgRecv %d, numLocalCopies %d, bufSizeSend %d, bufSizeRecv %d\n", 
   // CppParamMod::mytid, halo.communicator, halo.numMsgSend, halo.numMsgRecv, halo.numLocalCopies, bufSizeSend, bufSizeRecv);

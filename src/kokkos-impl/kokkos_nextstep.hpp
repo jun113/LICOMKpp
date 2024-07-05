@@ -106,7 +106,7 @@ class FunctorNextStep2 {
   }
 };
 
-KOKKOS_REGISTER_FOR_3D(FunctorNextStep1,  FunctorNextStep1)
-KOKKOS_REGISTER_FOR_2D(FunctorNextStep2,  FunctorNextStep2)
+// KOKKOS_REGISTER_FOR_3D(FunctorNextStep1,  FunctorNextStep1)
+// KOKKOS_REGISTER_FOR_2D(FunctorNextStep2,  FunctorNextStep2)
 
 #endif // LICOM3_KOKKKOS_SRC_KOKKOS_IMPL_KOKKOS_NEXTSTEP_HPP_

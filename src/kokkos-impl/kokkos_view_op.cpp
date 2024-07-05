@@ -2205,11 +2205,11 @@ static void kokkos_init_pconst_mod() {
       // MAX_BLOCKS_CLINIC * JMT * IMT);
 
 #if (defined NETCDF) || (defined ALL)
-  p_v_lon = (ViewFloat1D *) malloc(sizeof(ViewFloat1D));
-  p_v_lat = (ViewFloat1D *) malloc(sizeof(ViewFloat1D));
+  // p_v_lon = (ViewFloat1D *) malloc(sizeof(ViewFloat1D));
+  // p_v_lat = (ViewFloat1D *) malloc(sizeof(ViewFloat1D));
 
-  p_v_lon_o = (ViewFloat2D *) malloc(sizeof(ViewFloat2D));
-  p_v_lat_o = (ViewFloat2D *) malloc(sizeof(ViewFloat2D));
+  // p_v_lon_o = (ViewFloat2D *) malloc(sizeof(ViewFloat2D));
+  // p_v_lat_o = (ViewFloat2D *) malloc(sizeof(ViewFloat2D));
 
   // p_v_ulon_o = (ViewFloat2D *) malloc(sizeof(ViewFloat2D) * 
   //     IMT_GLOBAL * JMT_GLOBAL);
@@ -2596,10 +2596,10 @@ static void kokkos_init_pconst_mod() {
   deep_copy(dev, *p_v_vit,          h_v_vit);
   deep_copy(dev, *p_v_viv,          h_v_viv);
 #if (defined NETCDF) || (defined ALL)
-  deep_copy(dev, *p_v_lon,          h_v_lon);
-  deep_copy(dev, *p_v_lat,          h_v_lat);
-  deep_copy(dev, *p_v_lon_o,        h_v_lon_o);
-  deep_copy(dev, *p_v_lat_o,        h_v_lat_o);
+  // deep_copy(dev, *p_v_lon,          h_v_lon);
+  // deep_copy(dev, *p_v_lat,          h_v_lat);
+  // deep_copy(dev, *p_v_lon_o,        h_v_lon_o);
+  // deep_copy(dev, *p_v_lat_o,        h_v_lat_o);
 #endif // NETCDF || ALL
   deep_copy(dev, *p_v_zkt,          h_v_zkt);
   deep_copy(dev, *p_v_dzp,          h_v_dzp);
@@ -3468,7 +3468,7 @@ static void kokkos_init_tmp_var() {
 
   p_v_Ri   = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_Rrho = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
-  p_v_Gm   = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
+  // p_v_Gm   = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
 #ifdef BCKMEX
   ViewDouble3D *p_v_diff_back    = nullptr;
   ViewDouble3D *p_v_diff_back_sh = nullptr;
@@ -3507,8 +3507,9 @@ static void kokkos_init_tmp_var() {
   p_v_c_cnsew = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
 
 // BAROTR
-  p_v_gradx = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
-  p_v_grady = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
+
+// BCLINC
+  p_v_work_merged = (ViewDouble4D *) malloc (sizeof(ViewDouble4D));
 
 // POP Halo Update
   p_v_halo_buffer = (ViewDouble1D *) malloc(sizeof(ViewDouble1D));
@@ -3556,7 +3557,7 @@ static void kokkos_init_tmp_var() {
 
   new (p_v_Ri)   ViewDouble3D("pointer_view_Ri",   JMT, IMT, KM);
   new (p_v_Rrho) ViewDouble3D("pointer_view_Rrho", JMT, IMT, KM);
-  new (p_v_Gm) ViewDouble3D("pointer_view_Gm",     JMT, IMT, KM);
+  // new (p_v_Gm) ViewDouble3D("pointer_view_Gm",     JMT, IMT, KM);
 
 //   new (p_v_mld_lev) ViewInt2D ("pointer_view_mld_lev", JMT, IMT);
 #ifdef BCKMEX
@@ -3598,8 +3599,8 @@ static void kokkos_init_tmp_var() {
   new (p_v_nn) ViewInt1D("pointer_view_nn", JMT);
   new (p_v_xs) ViewDouble1D("pointer_view_xs", IMT);
 
-  new (p_v_gradx) ViewDouble2D("pointer_view_gradx", JMT, IMT);
-  new (p_v_grady) ViewDouble2D("pointer_view_grady", JMT, IMT);
+  // new (p_v_gradx) ViewDouble2D("pointer_view_gradx", JMT, IMT);
+  // new (p_v_grady) ViewDouble2D("pointer_view_grady", JMT, IMT);
 #ifdef ISO
 #ifdef LDD97
   ViewDouble4D v_f1("view_f1", MAX_BLOCKS_CLINIC, KM, JMT, IMT);
@@ -3607,8 +3608,10 @@ static void kokkos_init_tmp_var() {
 #endif // LDD97
 #endif // ISO
 
+  new (p_v_work_merged) ViewDouble4D("pointer_view_work_merged", 2, KM, JMT, IMT);
+
   new (p_v_halo_buffer) ViewDouble1D("pointer_view_halo_buffer", 
-      8 * KM * (IMT + JMT));
+      12 * KM * (IMT + JMT));
 #else  // KOKKOS_ENABLE_DEVICE_MEM_SPACE
 
   // READYT
@@ -3676,14 +3679,14 @@ static void kokkos_init_tmp_var() {
   double* ak_tide_mixing = new double[KM * JMT * IMT];
   double* Ri      = new double[KM * JMT * IMT];
   double* Rrho    = new double[KM * JMT * IMT];
-  double* Gm      = new double[KM * JMT * IMT];
+  // double* Gm      = new double[KM * JMT * IMT];
 //   int*    mld_lev = new int[JMT * IMT];
 
   new (p_v_zlev) ViewDouble3D(zlev, JMT, IMT, KM);
   new (p_v_ak_tide_mixing) ViewDouble3D(ak_tide_mixing, JMT, IMT, KM);
   new (p_v_Ri) ViewDouble3D(Ri, JMT, IMT, KM);
   new (p_v_Rrho) ViewDouble3D(Rrho, JMT, IMT, KM);
-  new (p_v_Gm) ViewDouble3D(Gm, JMT, IMT, KM);
+  // new (p_v_Gm) ViewDouble3D(Gm, JMT, IMT, KM);
 //   new (p_v_mld_lev) ViewInt2D(mld_lev, JMT, IMT);
 
 #ifdef BCKMEX
@@ -3743,14 +3746,12 @@ static void kokkos_init_tmp_var() {
 #endif // LDD97
 #endif // ISO
 
-  gradx = new double[JMT * IMT];
-  grady = new double[JMT * IMT];
-  new (p_v_gradx) ViewDouble2D(gradx, JMT, IMT);
-  new (p_v_grady) ViewDouble2D(grady, JMT, IMT);
+  // reuse at_00_max_min
+  new (p_v_work_merged) ViewDouble4D (at_00_max_min, 2, KM, JMT, IMT);
 
-  halo_buffer = new double[8 * KM * (IMT + JMT)];
+  halo_buffer = new double[12 * KM * (IMT + JMT)];
   new (p_v_halo_buffer) ViewDouble1D(halo_buffer, 
-      8 * KM * (IMT + JMT));
+      12 * KM * (IMT + JMT));
 #endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
   return ;
 }

@@ -263,8 +263,8 @@ extern "C" void licom_core_() {
         // }
         stepon(mm);
         // if (ii % 10 == 0) {
-        //   energy_d2h ();
-        //   energy_();
+          energy_d2h ();
+          energy_();
         // }
       } // loop ii
 #ifdef LICOM_ENABLE_TEST_TIME

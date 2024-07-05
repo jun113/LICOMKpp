@@ -51,7 +51,7 @@ static void smts(double (&)[MAX_BLOCKS_CLINIC][KM][JMT][IMT],
     const double (&)[MAX_BLOCKS_CLINIC][KM][JMT][IMT], const double &); 
 
 inline double DEGtoRAD(const double &degree) {
-  return (degree * (PI / 180));
+  return (degree * (CppConstantMod::PI / 180));
 }
 
 // TRACER

@@ -565,14 +565,14 @@ void kokkos_tracer() {
     // CUDA HIP memcpy
     // pop_haloupdate_tracer_2(KM);
   gpu_get_halo_transpose_tracer (*p_v_vtl, CppPOPHaloMod::arrCommPriorK,
-      2, 3, KM, JMT, IMT);
+      0, 6, KM, JMT, IMT);
   pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
       KM, JMT, IMT, 
       CppDomain::POP_haloClinic_C, 
       CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
       CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
   gpu_put_halo_transpose_tracer (CppPOPHaloMod::arrCommPriorK, *p_v_vtl,
-      0, 3, KM, JMT, IMT);
+      0, 6, KM, JMT, IMT);
 // #elif (defined KOKKOS_ENABLE_ATHREAD)
 
 //   athread_get_halo_transpose_double_host ((*p_v_vtl).data(), CppPOPHaloMod::arrCommPriorK,
