@@ -17,8 +17,8 @@
 #define LICOM_ENABLE_RCU
 #undef  LICOM_ENABLE_RCU
 
-#undef  LICOM_ENABLE_DIAG
 #define LICOM_ENABLE_DIAG
+#undef  LICOM_ENABLE_DIAG
 
 #ifdef LICOM_ENABLE_NCU
 #include "nvToolsExt.h"
@@ -95,7 +95,8 @@ void stepon(const int &mm) {
   hip_readyt();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
-  kokkos_readyt();
+  readyt_();
+  // kokkos_readyt();
 #endif // LICOM_ENABLE_KOKKOS
 
 #ifdef LICOM_ENABLE_NCU
@@ -155,7 +156,8 @@ void stepon(const int &mm) {
     hip_readyc();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
-    kokkos_readyc();
+    readyc_();
+    // kokkos_readyc();
 #endif // LICOM_ENABLE_KOKKOS
 
 #ifdef LICOM_ENABLE_NCU
@@ -207,7 +209,8 @@ void stepon(const int &mm) {
     hip_barotr();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
-    kokkos_barotr();
+    barotr_();
+    // kokkos_barotr();
 #endif // LICOM_ENABLE_KOKKOS
 
 #ifdef LICOM_ENABLE_NCU
@@ -259,7 +262,8 @@ void stepon(const int &mm) {
     hip_bclinc();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
-    kokkos_bclinc();
+    bclinc_();
+    // kokkos_bclinc();
 #endif // LICOM_ENABLE_KOKKOS
 
 #ifdef LICOM_ENABLE_NCU
@@ -319,7 +323,8 @@ void stepon(const int &mm) {
   hip_tracer();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
-  kokkos_tracer();
+  tracer_();
+  // kokkos_tracer();
 #endif // LICOM_ENABLE_KOKKOS
 
 #ifdef LICOM_ENABLE_NCU
@@ -371,7 +376,8 @@ void stepon(const int &mm) {
   hip_icesnow();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
-  kokkos_icesnow();
+  icesnow_();
+  // kokkos_icesnow();
 #endif // LICOM_ENABLE_KOKKOS
 
 #ifdef LICOM_ENABLE_NCU
@@ -435,7 +441,8 @@ void stepon(const int &mm) {
     hip_convadj();
 #endif // LICOM_ENABLE_HIP
 #ifdef LICOM_ENABLE_KOKKOS
-    kokkos_convadj();
+    convadj_();
+    // kokkos_convadj();
 #endif // LICOM_ENABLE_KOKKOS
 
 #ifdef LICOM_ENABLE_NCU
