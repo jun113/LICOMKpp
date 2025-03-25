@@ -13,6 +13,12 @@ extern "C" void convadj_();
 extern "C" void energy_();
 extern "C" void accumm_();
 
+extern "C" void readyt_debug_();
+extern "C" void readyc_debug_();
+extern "C" void barotr_debug_();
+extern "C" void bclinc_debug_();
+extern "C" void tracer_debug_();
+
 extern "C" void allocate_readyt_();
 extern "C" void allocate_readyc_();
 extern "C" void allocate_tracer_();
