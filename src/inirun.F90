@@ -563,16 +563,16 @@ use diag_mod
          DO K = 1,KM
             DO J = 1,JMT
                DO I = 1,IMT
-                   if(VIT(I,J,K,IBLOCK).gt.0.5) then
-                   if( AT(I,J,K,1,IBLOCK).gt.50.or.AT (I,J,K,1,IBLOCK).lt.-5.0  ) &
-                     write(16,*) 'AT (I,J,K,1,IBLOCK)=',i,j,k,AT (I,J,K,1,IBLOCK) 
-                   if( AT(I,J,K,2,IBLOCK).gt.70.or.AT (I,J,K,2,IBLOCK).lt.0  ) &
-                     write(16,*) 'AT (I,J,K,2,IBLOCK)=',i,j,k,AT (I,J,K,2,IBLOCK) 
+                   !if(VIT(I,J,K,IBLOCK).gt.0.5) then
+                   !if( AT(I,J,K,1,IBLOCK).gt.50.or.AT (I,J,K,1,IBLOCK).lt.-5.0  ) &
+                   !  write(16,*) 'AT (I,J,K,1,IBLOCK)=',i,j,k,AT (I,J,K,1,IBLOCK) 
+                   !if( AT(I,J,K,2,IBLOCK).gt.70.or.AT (I,J,K,2,IBLOCK).lt.0  ) &
+                   !  write(16,*) 'AT (I,J,K,2,IBLOCK)=',i,j,k,AT (I,J,K,2,IBLOCK) 
                    !if( AT(I,J,K,1,IBLOCK).gt.50.) AT (I,J,K,1,IBLOCK) =0.0
                    !if( AT(I,J,K,1,IBLOCK).lt.-5.) AT (I,J,K,1,IBLOCK) =0.0
                    !if( AT(I,J,K,2,IBLOCK).gt.70.) AT (I,J,K,2,IBLOCK) =35.0
                    !if( AT(I,J,K,2,IBLOCK).lt.0) AT (I,J,K,2,IBLOCK) =35.0
-                   endif
+                   !endif
                   AT (I,J,K,1,IBLOCK) = AT (I,J,K,1,IBLOCK)*VIT(I,J,K,IBLOCK)
                   AT (I,J,K,2,IBLOCK) = (AT (I,J,K,2,IBLOCK)- 35.0D0)*0.001D0*VIT(I,J,K,IBLOCK)
                END DO

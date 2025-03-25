@@ -29,6 +29,7 @@ LICOM_ENABLE_VERSION="LICOM_ENABLE_CPP"
 LICOM_ENABLE_VERSION="LICOM_ENABLE_KOKKOS"
 
 # Default log dir
+mkdir -p ../logfile
 cd ../logfile
 LOG_DIR=$PWD
 
@@ -37,12 +38,11 @@ LOG_DIR=$PWD
 
 CUR_DATE=$(date +'%Y%m%d-%H%M%S')
 
-
-if [ ! -d "${LOG_DIR}/${LICOM_RES}" ]; then
-    mkdir "${LOG_DIR}/${LICOM_RES}"
-fi
+mkdir -p ${LOG_DIR}/${LICOM_RES}
 
 LICOM_GPTL_OUT_FILE="${LOG_DIR}/${LICOM_RES}/${CUR_DATE}-${MACHINE}-gptl.out"
+
+mkdir -p ../run
 
 cd ../run/
 
@@ -54,6 +54,7 @@ chmod 777 ./../scripts/cp-${LICOM_RES}-data
 
 cd -
 
+mkdir -p ../build
 cd ../build
 
 echo Currently machine:
