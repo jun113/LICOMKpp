@@ -17,6 +17,9 @@
 #define LICOM_ENABLE_RCU
 #undef  LICOM_ENABLE_RCU
 
+#undef  LICOM_ENABLE_DIAG
+#define LICOM_ENABLE_DIAG
+
 #ifdef LICOM_ENABLE_NCU
 #include "nvToolsExt.h"
 #endif // LICOM_ENABLE_NCU
@@ -72,6 +75,13 @@ void stepon(const int &mm) {
   roctxRangePushA ("readyt");
 #endif // LICOM_ENABLE_RCU
 
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("readyt 1\n");
+  }
+#endif // LICOM_ENABLE_DIAR
+
 #ifdef LICOM_ENABLE_FORTRAN
   readyt_();
 #endif // LICOM_ENABLE_FORTRAN
@@ -101,12 +111,22 @@ void stepon(const int &mm) {
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.readyt_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
-//   fortran_mpi_barrier_();
-// if (CppParamMod::mytid == 0) {
-//   printf("wjl readyt ok\n");
-// }
+
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("readyt 2\n");
+  }
+#endif // LICOM_ENABLE_DIAR
 
   for (jj = 1; jj <= ncc; ++jj) {
+
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("readyc 1\n");
+  }
+#endif // LICOM_ENABLE_DIAR
 
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.readyc_start();
@@ -152,10 +172,13 @@ void stepon(const int &mm) {
   my_time.readyc_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-//   fortran_mpi_barrier_();
-// if (CppParamMod::mytid == 0) {
-//   printf("wjl readyc ok\n");
-// }
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("readyc 2\n");
+    printf ("barotr 1\n");
+  }
+#endif // LICOM_ENABLE_DIAR
 
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.barotr_start();
@@ -201,10 +224,13 @@ void stepon(const int &mm) {
   my_time.barotr_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-//   fortran_mpi_barrier_();
-// if (CppParamMod::mytid == 0) {
-//   printf("wjl barotr ok\n");
-// }
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("barotr 2\n");
+    printf ("bclinc 1\n");
+  }
+#endif // LICOM_ENABLE_DIAR
 
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.bclinc_start();
@@ -250,12 +276,21 @@ void stepon(const int &mm) {
   my_time.bclinc_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-//   fortran_mpi_barrier_();
-// if (CppParamMod::mytid == 0) {
-//   printf("wjl bclinc ok\n");
-// }
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("bclinc 2\n");
+  }
+#endif // LICOM_ENABLE_DIAR
   // -----------------------
 } // End for (jj = 1; jj <= ncc; ++jj)
+
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("tracer 1\n");
+  }
+#endif // LICOM_ENABLE_DIAR
 
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.tracer_start();
@@ -301,10 +336,13 @@ void stepon(const int &mm) {
   my_time.tracer_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-//   fortran_mpi_barrier_();
-// if (CppParamMod::mytid == 0) {
-//   printf("wjl tracer ok\n");
-// }
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("tracer 2\n");
+    printf ("icesnow 1\n");
+  }
+#endif // LICOM_ENABLE_DIAR
 
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.icesnow_start();
@@ -350,11 +388,26 @@ void stepon(const int &mm) {
   my_time.icesnow_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
 
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("icesnow 2\n");
+  }
+#endif // LICOM_ENABLE_DIAR
+
   energy_d2h();
   energy_();
 //**********************
 
   if (ii == 1) {
+
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("convadj 1\n");
+  }
+#endif // LICOM_ENABLE_DIAR
+
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.convadj_start();
 #endif // LICOM_ENABLE_TEST_TIME 
@@ -398,6 +451,14 @@ void stepon(const int &mm) {
 #ifdef LICOM_ENABLE_TEST_TIME
   my_time.convadj_stop();
 #endif // LICOM_ENABLE_TEST_TIME 
+
+#ifdef LICOM_ENABLE_DIAG
+  fortran_mpi_barrier_();
+  if (CppParamMod::mytid == 0) {
+    printf ("convadj 2\n");
+  }
+#endif // LICOM_ENABLE_DIAR
+
   }
   if (dts_accum) {
     accumm_();

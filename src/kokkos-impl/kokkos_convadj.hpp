@@ -38,20 +38,24 @@ class FunctorConvadj1 {
 #endif // LOWRES   
     int lcon  = - 1;
     for (int k = 0; k < KM; ++k) {
-      v_rholo_(j, i, k) = 0.0;
-      v_rhoup_(j, i, k) = 0.0;
+      v_rholo_(k, j, i) = 0.0;
+      v_rhoup_(k, j, i) = 0.0;
     }
+
+    // FIND DENSITY OF ENTIRE ROW FOR STABILITY DETERMINATION
     for (int l = 0; l < KM - 1; ++l) {
       int l1 = l + 1;
       const double tup = v_at_(iblock, 0, l1, j, i) - v_to_(l1);
       const double sup = v_at_(iblock, 1, l1, j, i) - v_so_(l1);
       const double tlo = v_at_(iblock, 0, l, j, i) - v_to_(l1);
       const double slo = v_at_(iblock, 1, l, j, i) - v_so_(l1);
-      v_rhoup_(j, i, l1) = dens(tup, sup, l1);
-      v_rholo_(j, i, l)  = dens(tlo, slo, l1);
+      v_rhoup_(l1, j, i) = dens(tup, sup, l1);
+      v_rholo_(l,  j, i) = dens(tlo, slo, l1);
     }
+    // 1. INITIAL SEARCH FOR UPPERMOST UNSTABLE PAIR; IF NONE IS
+    //    FOUND, MOVE ON TO NEXT COLUMN
     for (int k = kcon-1; k >= 1; --k) {
-      if (v_rholo_(j, i, k-1) > v_rhoup_(j, i, k)) {
+      if (v_rholo_(k-1, j, i) > v_rhoup_(k, j, i)) {
         lcon = k - 1;
       }
     }
@@ -66,6 +70,7 @@ class FunctorConvadj1 {
     for (;;) { //start conv_1
       lcona = lcon;
       lconb = lcon + 1;
+      // 2. MIX THE FIRST TWO UNSTABLE LAYERS
       dztsum = v_dzp_(lcona) + v_dzp_(lconb);
       for (int n = 0; n < 2; ++n) {
         trasum[n] = v_at_(iblock, n, lcona, j, i) * v_dzp_(lcona)
@@ -75,14 +80,16 @@ class FunctorConvadj1 {
         v_at_(iblock, n, lcona, j, i) = tramix;
         v_at_(iblock, n, lconb, j, i) = tramix;
       } //end for
+
+      // 3. TEST LAYER BELOW LCONB
       for (;;) { //start conv_2
         if (lconb != (kcon - 1)) {
-          int l1 = lconb + 1;
-          v_rholo_(j, i, lconb) = dens(
+          const int l1 = lconb + 1;
+          v_rholo_(lconb, j, i) = dens(
               v_at_(iblock, 0, lconb, j, i) - v_to_(l1),
               v_at_(iblock, 1, lconb, j, i) - v_so_(l1), l1);
 
-          if (v_rholo_(j, i, lconb) > v_rhoup_(j, i, l1)) {
+          if (v_rholo_(lconb, j, i) > v_rhoup_(l1, j, i)) {
             ++lconb;
             dztsum += v_dzp_(lconb);  
             for (int n = 0; n < 2; ++n) {
@@ -97,18 +104,19 @@ class FunctorConvadj1 {
             continue ;
           } //end if
         }   //end if
+        // 4. TEST LAYER ABOVE LCONA
         if (lcona > 0) {
           int l1 = lcona - 1;
-          v_rholo_(j, i, l1) = dens(
+          v_rholo_(l1, j, i) = dens(
               v_at_(iblock, 0, l1, j, i) - v_to_(lcona),
               v_at_(iblock, 1, l1, j, i) - v_so_(lcona),
                   lcona);
-          v_rhoup_(j, i, lcona) = dens(
+          v_rhoup_(lcona, j, i) = dens(
               v_at_(iblock, 0, lcona, j, i) - v_to_(lcona), 
               v_at_(iblock, 1, lcona, j, i) - v_so_(lcona), 
                   lcona);
 
-          if (v_rholo_(j, i, lcona - 1) > v_rhoup_(j, i, lcona)) {
+          if (v_rholo_(lcona - 1, j, i) > v_rhoup_(lcona, j, i)) {
             --lcona;
             dztsum += v_dzp_(lcona);
             for (int n = 0; n < 2; ++n) {
@@ -123,12 +131,17 @@ class FunctorConvadj1 {
         }//end if
         break;
       }//end conv_2
+      // 5. REMEMBER THE TOTAL NUMBER OF LEVELS MIXED BY CONVECTION
+      //    IN THIS WATER COLUMN, AS WELL AS THE VENTILATED COLUMN
       lctot += lconb - lcona + 1;
 #ifdef LOWRES
       if (lcona == 0) {
         lcven = lconb - lcona + 1;
       }
 #endif
+      // 6. RESUME SEARCH IF STEP 3. AND 4. HAVE BEEN PASSED AND THIS
+      //    UNSTABLE PART OF THE WATER COLUMN HAS THUS BEEN REMOVED,
+      //    I.E. FIND FURTHER UNSTABLE AREAS FURTHER DOWN THE COLUMN
       if (lconb == kcon - 1) {
 #ifdef LOWRES
         v_icmon_(iblock, 0, j, i) += lctot;
@@ -150,7 +163,7 @@ class FunctorConvadj1 {
         if (lcon == (KM-1)) {
           break ;
         }
-        if (v_rholo_(j, i, lcon) <= v_rhoup_(j, i, lcon + 1)) {
+        if (v_rholo_(lcon, j, i) <= v_rhoup_(lcon + 1, j, i)) {
           continue ;
         }
         break;

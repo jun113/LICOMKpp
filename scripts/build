@@ -2,9 +2,12 @@
 
 # set -x
 
-NP=120
-BLOCK_X=30
-BLOCK_Y=22
+# NP=120
+# BLOCK_X=30
+# BLOCK_Y=22
+NP=4
+BLOCK_X=180
+BLOCK_Y=109
 
 #419 KUNSHAN IAP_GPU TAISHAN OCEANLIGHT
 MACHINE="IAP_GPU"
@@ -70,14 +73,14 @@ if [ "${MACHINE}" == "IAP_GPU" ]; then
   cmake	.. \
       -D CMAKE_C_COMPILER="gcc" \
       -D CMAKE_CXX_COMPILER="${KOKKOS_SRC}/bin/nvcc_wrapper" \
-      -D CMAKE_Fortran_COMPILER="ifort" \
-      -D Kokkos_ENABLE_CUDA_CONSTEXPR=off \
-      -D Kokkos_ENABLE_CUDA_LAMBDA=off \
-      -D Kokkos_ENABLE_CUDA=off \
-      -D Kokkos_ARCH_VOLTA70=off \
-      -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=off \
+      -D CMAKE_Fortran_COMPILER="/home/wjl/software/oneAPI/compiler/2021.2.0/linux/bin/intel64/ifort" \
+      -D Kokkos_ENABLE_CUDA_CONSTEXPR=on \
+      -D Kokkos_ENABLE_CUDA_LAMBDA=on \
+      -D Kokkos_ENABLE_CUDA=on \
+      -D Kokkos_ARCH_VOLTA70=on \
+      -D Kokkos_ENABLE_DEBUG_BOUNDS_CHECK=on \
       -D Kokkos_ENABLE_PROFILING_LOAD_PRINT=On \
-      -D Kokkos_ENABLE_COMPILER_WARNINGS=off \
+      -D Kokkos_ENABLE_COMPILER_WARNINGS=on \
       -D Kokkos_ENABLE_DEBUG=off \
       -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=on \
       -D Kokkos_ENABLE_SERIAL=on \
@@ -95,6 +98,8 @@ if [ "${MACHINE}" == "IAP_GPU" ]; then
 
       #-D CMAKE_CXX_COMPILER="g++" \
       #-D CMAKE_CXX_COMPILER="${KOKKOS_SRC}/bin/nvcc_wrapper" \
+
+    #   -D CMAKE_Fortran_COMPILER="ifort" \
 elif [ "${MACHINE}" == "419" ]; then
     echo "419"
 
