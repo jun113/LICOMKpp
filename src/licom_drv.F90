@@ -257,6 +257,14 @@
 !----------------------------------------------------------------------
 !   set time 
 !----------------------------------------------------------------------
+   ! wjl 20250306
+   DO iblock = 1, nblocks_clinic
+      DO J = 1,JMT
+         DO I = 1,IMT
+            SSS(I,J,iblock)=(SSS3(I,J,IPT2,iblock)-SSS3(I,J,IPT1,iblock))*FACTOR+SSS3(I,J,IPT1,iblock)
+         END DO
+      END DO
+   END DO
 #if (defined SOLARCHLORO) 
 !!$OMP PARALLEL DO PRIVATE (J,I)
    DO J = JST,JET
