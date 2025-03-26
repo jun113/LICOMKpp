@@ -183,6 +183,11 @@ double (*(&w3d))[JMT_GLOBAL][IMT_GLOBAL]                 = forc_mod_mp_w3d_;
 // double (*(&rain3))[12][JMT][IMT]                     = __forc_mod_MOD_rain3;
 // double (*(&snow3))[12][JMT][IMT]                     = __forc_mod_MOD_snow3;
 
+double (&sss3)[MAX_BLOCKS_CLINIC][12][JMT][IMT]      = __forc_mod_MOD_sss3;
+#if (defined SOLARCHLORO)
+double (&chloro3)[MAX_BLOCKS_CLINIC][12][JMT][IMT]   = __forc_mod_MOD_chloro3;
+#endif // SOLARCHLORO
+
 double (&su)[MAX_BLOCKS_CLINIC][JMT][IMT]            = __forc_mod_MOD_su;
 double (&sv)[MAX_BLOCKS_CLINIC][JMT][IMT]            = __forc_mod_MOD_sv;
 double (&psa)[MAX_BLOCKS_CLINIC][JMT][IMT]           = __forc_mod_MOD_psa;
