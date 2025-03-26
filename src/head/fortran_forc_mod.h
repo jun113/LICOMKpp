@@ -22,7 +22,6 @@ using CppParamMod::S_JMT;
 // extern double (*forc_mod_mp_uva3_)[12][JMT][IMT];
 // extern double (*forc_mod_mp_swv3_)[12][JMT][IMT];
 // extern double (*forc_mod_mp_cld3_)[12][JMT][IMT];
-// extern double (*forc_mod_mp_sss3_)[12][JMT][IMT];
 // extern double (*forc_mod_mp_sst3_)[12][JMT][IMT];
 // extern double (*forc_mod_mp_nswv3_)[12][JMT][IMT];
 // extern double (*forc_mod_mp_dqdt3_)[12][JMT][IMT];
@@ -34,6 +33,11 @@ using CppParamMod::S_JMT;
 // extern double (*forc_mod_mp_seaice3_)[12][JMT][IMT];
 // extern double (*forc_mod_mp_rain3_)[12][JMT][IMT];
 // extern double (*forc_mod_mp_snow3_)[12][JMT][IMT];
+
+extern double forc_mod_mp_sss3_[MAX_BLOCKS_CLINIC][12][JMT][IMT];
+#if (defined SOLARCHLORO)
+extern double forc_mod_mp_chloro3_[MAX_BLOCKS_CLINIC][12][JMT][IMT];
+#endif // SOLARCHLORO
 
 extern double forc_mod_mp_su_[MAX_BLOCKS_CLINIC][JMT][IMT];
 extern double forc_mod_mp_sv_[MAX_BLOCKS_CLINIC][JMT][IMT];
@@ -134,6 +138,11 @@ extern double forc_mod_mp_wave_dis_[MAX_BLOCKS_CLINIC][JMT][IMT];
 // extern double (*__forc_mod_MOD_seaice3)[12][JMT][IMT];
 // extern double (*__forc_mod_MOD_rain3)[12][JMT][IMT];
 // extern double (*__forc_mod_MOD_snow3)[12][JMT][IMT];
+
+extern double __forc_mod_MOD_sss3[MAX_BLOCKS_CLINIC][12][JMT][IMT];
+#if (defined SOLARCHLORO)
+extern double __forc_mod_MOD_chloro3[MAX_BLOCKS_CLINIC][12][JMT][IMT];
+#endif // SOLARCHLORO
 
 extern double __forc_mod_MOD_su[MAX_BLOCKS_CLINIC][JMT][IMT];
 extern double __forc_mod_MOD_sv[MAX_BLOCKS_CLINIC][JMT][IMT];

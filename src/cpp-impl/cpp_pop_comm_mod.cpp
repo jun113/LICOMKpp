@@ -1,5 +1,4 @@
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 #include "../head/fortran_pop_comm_mod.h"
 
 namespace CppPOPCommMod {
@@ -17,5 +16,3 @@ int &POP_masterTask   = __pop_commmod_MOD_pop_mastertask;
 #endif // LICOM_ENABLE_FORTRAN_COMPILER_GNU
 
 } // namespace CppPOPCommMod
-
-#endif // LICOM_ENABLE_FORTRAN

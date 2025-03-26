@@ -253,34 +253,6 @@
    call shr_sys_flush(6)
 #endif
 
-!linpf 2012Jul27
-!----------------------------------------------------------------------
-!   set time 
-!----------------------------------------------------------------------
-   ! wjl 20250306
-   DO iblock = 1, nblocks_clinic
-      DO J = 1,JMT
-         DO I = 1,IMT
-            SSS(I,J,iblock)=(SSS3(I,J,IPT2,iblock)-SSS3(I,J,IPT1,iblock))*FACTOR+SSS3(I,J,IPT1,iblock)
-         END DO
-      END DO
-   END DO
-#if (defined SOLARCHLORO) 
-!!$OMP PARALLEL DO PRIVATE (J,I)
-   DO J = JST,JET
-      DO I = 1,IMT
-         chloro(I,J)= ( (chloro3 (I,J,IPT2) - chloro3 (I,J,IPT1))     &
-            * FACTOR + chloro3 (I,J,IPT1))
-      END DO
-   END DO
-
-   CALL  SW_ABSOR
-#endif
-!LPF20131024
-
-!       if (mytid.eq.0) print*,sss(1,:)
-!       if (mytid.eq.0) print*,sss3(1,:,IPT1)
-!       if (mytid.eq.0) print*,sss3(1,:,IPT2)
    totalday=0 !LPF20200512 
 !---------------------------------------------------------------------
 !     THERMAL CYCLE

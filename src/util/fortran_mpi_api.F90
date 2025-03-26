@@ -8,3 +8,12 @@ use param_mod, only: ierr
    call mpi_barrier(mpi_comm_ocn, ierr)
 
 END SUBROUTINE fortran_mpi_barrier
+
+SUBROUTINE fortran_mpi_finalize
+
+use param_mod, only: ierr
+
+   IMPLICIT NONE
+   call mpi_finalize(ierr)
+
+END SUBROUTINE fortran_mpi_finalize

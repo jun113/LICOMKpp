@@ -122,21 +122,6 @@ static auto tile3D = koArr3D{2, 4, 32};
 // Sunway tile
 //static auto tile2D = koArr2D{6, 16};
 //static auto tile3D = koArr3D{5, 16, 32};
-// SYPD 0.56
-// static auto tile2D = koArr2D{1, 94};
-// static auto tile3D = koArr3D{1, 1, 94};
-// SYPD 0.68
-// static auto tile2D = koArr2D{1, 25};
-// static auto tile3D = koArr3D{1, 1, 25};
-
-// static auto tile2D = koArr2D{1, 124};
-// static auto tile3D = koArr3D{1, 1, 124};
-
-// static auto tile2D = koArr2D{2, 62};
-// static auto tile3D = koArr3D{1, 2, 62};
-
-// static auto tile2D = koArr2D{4, 16};
-// static auto tile3D = koArr3D{4, 4, 64};
 
 
 #endif // LICOM_ENABLE_KOKKOS

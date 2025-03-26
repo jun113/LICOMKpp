@@ -1,5 +1,4 @@
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 #include "../head/cpp_param_mod.h"
 #include "../head/fortran_dyn_mod.h"
 
@@ -101,4 +100,3 @@ double dlv[MAX_BLOCKS_CLINIC][KM][JMT][IMT];
 double dlub[MAX_BLOCKS_CLINIC][JMT][IMT];
 double dlvb[MAX_BLOCKS_CLINIC][JMT][IMT];
 } // namespace CppDynMod
-#endif // LICOM_ENABLE_FORTRAN

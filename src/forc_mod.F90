@@ -10,8 +10,14 @@ use param_mod
 !     Forcing Fields
 !     ------------------------------------------------------------------
       real(r8),allocatable,dimension(:,:,:,:) :: su3,sv3,psa3,tsa3,qar3,uva3, &
-                   swv3,cld3,sss3,sst3 ,nswv3,dqdt3,chloro3,                  &
+                   swv3,cld3,sst3 ,nswv3,dqdt3,                  &
                    wspd3,wspdu3,wspdv3,lwv3,seaice3,rain3,snow3,runoff3
+                   
+! wjl 20250326
+      real(r8),dimension(imt,jmt,12,max_blocks_clinic)::sss3
+#if (defined SOLARCHLORO)
+      real(r8),dimension(imt,jmt,12,max_blocks_clinic)::chloro3
+#endif
 !lhl090730
       real(r8),dimension(imt,jmt,max_blocks_clinic)::su,sv,psa,tsa,sss,swv,uva,qar,cld,&
                     ddd,qqq,sst, nswv,dqdt,chloro,lwv,seaice,rain,snow,fresh,runoff, &
@@ -31,8 +37,8 @@ use param_mod
       real(r8),dimension(imt,jmt,max_blocks_clinic):: wave_dis
 #endif
 ! avoid > 2GB common for 5km version
-!      real(r8),allocatable,dimension(:,:,:) :: t10,u10,v10,slp,q10,swhf,lwhf
-!      real(r8),allocatable,dimension(:,:,:) :: precr,precs,rf,si
+      real(r8),allocatable,dimension(:,:,:) :: t10,u10,v10,slp,q10,swhf,lwhf
+      real(r8),allocatable,dimension(:,:,:) :: precr,precs,rf,si
       real(r8),allocatable,dimension(:,:,:,:) :: buffer3d
       real(r8),allocatable,dimension(:,:,:) :: w3d
 end module forc_mod

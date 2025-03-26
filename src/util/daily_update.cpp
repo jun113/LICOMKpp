@@ -28,7 +28,12 @@ void daily_update_h2d() {
   using CppParamMod::NY_BLOCK;
 
   static auto dev = Kokkos::DefaultExecutionSpace();
+  // time_interplate_chlorophyll
+  static UnManagedViewDouble3D h_v_sss (&CppForcMod::sss[0][0][0],
+      MAX_BLOCKS_CLINIC, JMT, IMT); 
+  Kokkos::deep_copy (dev, *KokkosForcMod::p_v_sss, h_v_sss);
 
+  /*
   // jra daily
   static UnManagedViewDouble3D h_v_su (&CppForcMod::su[0][0][0],
       MAX_BLOCKS_CLINIC, JMT, IMT); 
@@ -107,6 +112,7 @@ void daily_update_h2d() {
   static UnManagedViewDouble3D h_v_h0bf (&CppDynMod::h0bf[0][0][0],
       MAX_BLOCKS_CLINIC, JMT, IMT); 
   Kokkos::deep_copy (dev, *KokkosDynMod::p_v_h0bf, h_v_h0bf);
+  */
 
 #endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
 #endif // LICOM_ENABLE_KOKKOS

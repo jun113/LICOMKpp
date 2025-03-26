@@ -1,6 +1,5 @@
 #include "def-undef.h"
 
-#ifndef LICOM_ENABLE_FORTRAN
 #include "../head/cpp_param_mod.h"
 #include "../head/cpp_pop_blocks_mod.h"
 #include "../head/cpp_extern_functions.h"
@@ -720,5 +719,3 @@ void pop_blocks_get_nbr_id (const int &blockId,
 }
 
 } // namespace CppPOPBlocksMod
-
-#endif // LICOM_ENABLE_FORTRAN

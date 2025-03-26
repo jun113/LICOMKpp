@@ -39,6 +39,8 @@ extern void cpp_tracer();
 extern void cpp_icesnow();
 extern void cpp_convadj();
 
+extern void cpp_time_interplate_chlorophyll ();
+
 extern void kokkos_init_view();
 
 extern void stepon(const int &);

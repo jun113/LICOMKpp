@@ -223,6 +223,6 @@ configure_file(${CMAKE_SOURCE_DIR}/scripts/run-ocean-light.in ${CMAKE_SOURCE_DIR
 configure_file(${CMAKE_SOURCE_DIR}/scripts/submit-ocean-light.in ${CMAKE_SOURCE_DIR}/scripts/submit @ONLY)
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/src/forc_mod.F90-${LICOM_RES}  ${CMAKE_SOURCE_DIR}/src/forc_mod.F90 @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/src/jra_daily.F90-${LICOM_RES} ${CMAKE_SOURCE_DIR}/src/jra_daily.F90 @ONLY)
+# configure_file(${CMAKE_SOURCE_DIR}/src/forc_mod.F90-${LICOM_RES}  ${CMAKE_SOURCE_DIR}/src/forc_mod.F90 @ONLY)
+# configure_file(${CMAKE_SOURCE_DIR}/src/jra_daily.F90-${LICOM_RES} ${CMAKE_SOURCE_DIR}/src/jra_daily.F90 @ONLY)
 #configure_file(${CMAKE_SOURCE_DIR}/src/ssave-cdf-instant.F90-${LICOM_RES} ${CMAKE_SOURCE_DIR}/src/ssave-cdf-instant.F90 @ONLY)

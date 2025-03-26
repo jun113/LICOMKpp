@@ -1,5 +1,4 @@
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 #include "../head/fortran_domain.h"
 #include "../head/cpp_precision_mod.h"
 #include "../head/cpp_pop_halo_mod.hpp"
@@ -102,5 +101,3 @@ int &nprocs_tropic                         = __domain_MOD_nprocs_tropic;
 bool &profile_barrier                      = __domain_MOD_profile_barrier;
 #endif // LICOM_ENABLE_FORTRAN_COMPILER_GNU
 } // namespace CppDomain
-
-#endif // LICOM_ENABLE_FORTRAN

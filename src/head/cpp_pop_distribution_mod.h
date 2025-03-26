@@ -1,7 +1,6 @@
 #ifndef LICOM3_KOKKOS_SRC_HEAD_CPP_POP_DISTRIBUTION_MOD_H_
 #define LICOM3_KOKKOS_SRC_HEAD_CPP_POP_DISTRIBUTION_MOD_H_
 #include "def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 
 namespace CppPOPDistributionMod {
 
@@ -38,7 +37,5 @@ extern void pop_distribution_get_block_loc(
 				const int &, int &, int &);
 
 } // namespace CppPOPDistributionMod
-
-#endif // LICOM_ENABLE_FORTRAN
 
 #endif // LICOM3_KOKKOS_SRC_HEAD_CPP_POP_DISTRIBUTION_MOD_H_

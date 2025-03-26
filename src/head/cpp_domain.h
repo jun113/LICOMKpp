@@ -3,7 +3,6 @@
 
 #include "def-undef.h"
 
-#ifndef LICOM_ENABLE_FORTRAN
 #include "cpp_precision_mod.h"
 #include "cpp_pop_halo_mod.hpp"
 #include "cpp_pop_distribution_mod.h"
@@ -45,5 +44,4 @@ extern int &nprocs_tropic;
 extern bool &profile_barrier;
 } // namespace CppDomain
 
-#endif // LICOM_ENABLE_FORTRAN
 #endif // LICOM3_KOKKOS_SRC_HEAD_CPP_DOMAIN_H_

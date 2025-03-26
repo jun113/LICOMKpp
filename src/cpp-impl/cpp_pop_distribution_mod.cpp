@@ -1,5 +1,4 @@
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 
 #include "../head/cpp_domain.h"
 #include "../head/cpp_pop_blocks_mod.h"
@@ -62,5 +61,3 @@ void pop_distribution_get_block_loc(
 }
 
 } // namespace CppPOPDistributionMod
-
-#endif // LICOM_ENABLE_FORTRAN

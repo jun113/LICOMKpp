@@ -3,7 +3,6 @@
 
 #include "def-undef.h"
 
-#ifndef LICOM_ENABLE_FORTRAN
 #include "cpp_param_mod.h"
 #include "fortran_pop_blocks_mod.h"
 namespace CppPOPBlocksMod {
@@ -55,5 +54,4 @@ extern void(&pop_blocks_get_block_info2)(int *, int *, int *, int *, int *);
 extern void(&pop_blocks_get_block_info3)(int *, int *, int *);
 } // namespace CppPOPBlocksMod
 
-#endif // LICOM_ENABLE_FORTRAN
 #endif // LICOM3_KOKKOS_SRC_HEAD_CPP_POP_VLOCKS_MOD_H_

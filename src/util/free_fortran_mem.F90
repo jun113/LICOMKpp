@@ -2,9 +2,9 @@
 subroutine free_forc_mod
 use forc_mod
 implicit none
-   if (allocated(chloro3)) then
-	    deallocate(chloro3)
-	 endif 
+  !  if (allocated(chloro3)) then
+	!     deallocate(chloro3)
+	!  endif 
    if (allocated(su3_io)) then
 	    deallocate(su3_io)
 	 endif 

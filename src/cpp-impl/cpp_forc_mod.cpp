@@ -1,5 +1,4 @@
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 #include "../head/cpp_param_mod.h"
 #include "../head/fortran_forc_mod.h"
 namespace CppForcMod {
@@ -76,6 +75,11 @@ double* core_tau      = nullptr;
 // double (*(&seaice3))[12][JMT][IMT]                   = forc_mod_mp_seaice3_;
 // double (*(&rain3))[12][JMT][IMT]                     = forc_mod_mp_rain3_;
 // double (*(&snow3))[12][JMT][IMT]                     = forc_mod_mp_snow3_;
+
+double (&sss3)[MAX_BLOCKS_CLINIC][12][JMT][IMT]      = forc_mod_mp_sss3_;
+#if (defined SOLARCHLORO)
+double (&chloro3)[MAX_BLOCKS_CLINIC][12][JMT][IMT]   = forc_mod_mp_chloro3_;
+#endif // SOLARCHLORO
 
 double (&su)[MAX_BLOCKS_CLINIC][JMT][IMT]            = forc_mod_mp_su_;
 double (&sv)[MAX_BLOCKS_CLINIC][JMT][IMT]            = forc_mod_mp_sv_;
@@ -259,4 +263,3 @@ double (*(&w3d))[JMT_GLOBAL][IMT_GLOBAL]                 = __forc_mod_MOD_w3d;
 */
 #endif // LICOM_ENABLE_FORTRAN_COMPILER_GNU
 } // namespace CppForcMod
-#endif // LICOM_ENABLE_FORTRAN

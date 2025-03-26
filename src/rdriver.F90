@@ -63,7 +63,8 @@ use shr_sys_mod
       ! if (mytid==0) write(*,*)'rd-ok1'
       allocate(swv3(imt,jmt,12,max_blocks_clinic),&
                cld3(imt,jmt,12,max_blocks_clinic),&
-               sss3(imt,jmt,12,max_blocks_clinic),&
+            ! wjl 20250326
+            !    sss3(imt,jmt,12,max_blocks_clinic),&
                sst3(imt,jmt,12,max_blocks_clinic),&
                nswv3(imt,jmt,12,max_blocks_clinic),&
                dqdt3(imt,jmt,12,max_blocks_clinic))
@@ -87,9 +88,11 @@ use shr_sys_mod
       ! wjl 20231123
       ! allocate(wave_dis(imt,jmt,max_blocks_clinic))
 #endif
-#if (defined SOLARCHLORO)
-      allocate(chloro3(imt,jmt,12,max_blocks_clinic))
-#endif
+! #if (defined SOLARCHLORO)
+      ! wjl 20250326
+      ! define in forc mod
+!       allocate(chloro3(imt,jmt,12,max_blocks_clinic))
+! #endif
 !
 !
       if (mytid==0)then
@@ -751,7 +754,7 @@ use shr_sys_mod
 ! wjl 20240126
 #ifndef LICOM_ENABLE_FORTRAN
      deallocate(su3,sv3,psa3,tsa3,qar3,uva3)
-     deallocate(swv3,cld3,sss3,sst3,nswv3,dqdt3)
+     deallocate(swv3,cld3,sst3,nswv3,dqdt3)
      deallocate(seaice3,runoff3)
      deallocate(wspd3,wspdu3,wspdv3,lwv3,rain3,snow3)
 #endif

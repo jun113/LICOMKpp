@@ -1,7 +1,6 @@
 #ifndef LICOM3_KOKKOS_SRC_CPP_IMPL_CPP_POP_REDUCTIONS_MOD_HPP_
 #define LICOM3_KOKKOS_SRC_CPP_IMPL_CPP_POP_REDUCTIONS_MOD_HPP_
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 
 #include "../head/cpp_pop_comm_mod.h"
 #include "../head/cpp_pop_distribution_mod.h"
@@ -97,5 +96,4 @@ void pop_global_maxval_scalar_r8(const double &scalar,
 
 } // namespace CppPOPReductionsMod
 
-#endif // LICOM_ENABLE_FORTRAN
 #endif // LICOM3_KOKKOS_SRC_CPP_IMPL_CPP_POP_REDUCTIONS_MOD_HPP_

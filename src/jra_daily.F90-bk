@@ -110,7 +110,41 @@
 !       stop
       endif
        
-      allocate (buffer(imt_global,jmt_global))
+      if (.not. allocated(buffer)) then
+            allocate (buffer(imt_global,jmt_global))
+      end if
+
+      if (.not. allocated(su3)) then
+      allocate(su3(imt,jmt,12,max_blocks_clinic),&
+               sv3(imt,jmt,12,max_blocks_clinic),&
+               psa3(imt,jmt,12,max_blocks_clinic),&
+               tsa3(imt,jmt,12,max_blocks_clinic),&
+               qar3(imt,jmt,12,max_blocks_clinic),&
+               uva3(imt,jmt,12,max_blocks_clinic))
+      end if
+      if (.not. allocated(swv3)) then
+      ! if (mytid==0) write(*,*)'rd-ok1'
+      allocate(swv3(imt,jmt,12,max_blocks_clinic),&
+               cld3(imt,jmt,12,max_blocks_clinic),&
+               sss3(imt,jmt,12,max_blocks_clinic),&
+               sst3(imt,jmt,12,max_blocks_clinic),&
+               nswv3(imt,jmt,12,max_blocks_clinic),&
+               dqdt3(imt,jmt,12,max_blocks_clinic))
+      end if
+      if (.not. allocated(seaice3)) then
+      ! if (mytid==0) write(*,*)'rd-ok2'
+      allocate(seaice3(imt,jmt,12,max_blocks_clinic),&
+               runoff3(imt,jmt,12,max_blocks_clinic))
+      end if
+      ! if (mytid==0) write(*,*)'rd-ok3'
+      if (.not. allocated(wspd3)) then
+      allocate(wspd3(imt,jmt,12,max_blocks_clinic),&
+               wspdu3(imt,jmt,12,max_blocks_clinic),&
+               wspdv3(imt,jmt,12,max_blocks_clinic),&
+               lwv3(imt,jmt,12,max_blocks_clinic),&
+               rain3(imt,jmt,12,max_blocks_clinic),&
+               snow3(imt,jmt,12,max_blocks_clinic))
+      end if
 
 ! interplate to T grid
       if (mytid.eq.0) then

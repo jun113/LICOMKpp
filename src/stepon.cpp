@@ -20,11 +20,9 @@
 #define LICOM_ENABLE_DIAG
 #undef  LICOM_ENABLE_DIAG
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
 #include "nvToolsExt.h"
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
 #include "roctx.h"
 #endif // LICOM_ENABLE_RCU
 
@@ -65,12 +63,10 @@ void stepon(const int &mm) {
   my_time.readyt_start();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePushA ("readyt");
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePushA ("readyt");
 #endif // LICOM_ENABLE_RCU
@@ -82,29 +78,23 @@ void stepon(const int &mm) {
   }
 #endif // LICOM_ENABLE_DIAR
 
-#ifdef LICOM_ENABLE_FORTRAN
+#if defined(LICOM_ENABLE_FORTRAN)
   readyt_();
-#endif // LICOM_ENABLE_FORTRAN
-#ifdef LICOM_ENABLE_CPP
+#elif defined (LICOM_ENABLE_CPP)
   cpp_readyt();
-#endif // LICOM_ENABLE_CPP
-#ifdef LICOM_ENABLE_CUDA
+#elif defined (LICOM_ENABLE_CUDA)
   cuda_readyt();
-#endif // LICOM_ENABLE_CUDA
-#ifdef LICOM_ENABLE_HIP
+#elif defined (LICOM_ENABLE_HIP)
   hip_readyt();
-#endif // LICOM_ENABLE_HIP
-#ifdef LICOM_ENABLE_KOKKOS
-  readyt_();
-  // kokkos_readyt();
-#endif // LICOM_ENABLE_KOKKOS
+#elif defined (LICOM_ENABLE_KOKKOS)
+  // readyt_();
+  kokkos_readyt();
+#endif // LICOM_ENABLE_VERSIONS
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePop();
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePop;
 #endif // LICOM_ENABLE_RCU
@@ -133,39 +123,31 @@ void stepon(const int &mm) {
   my_time.readyc_start();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePushA ("readyc");
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePushA ("readyc");
 #endif // LICOM_ENABLE_RCU
 
-#ifdef LICOM_ENABLE_FORTRAN
+#if defined(LICOM_ENABLE_FORTRAN)
     readyc_();
-#endif // LICOM_ENABLE_FORTRAN
-#ifdef LICOM_ENABLE_CPP
+#elif defined (LICOM_ENABLE_CPP)
     cpp_readyc();
-#endif // LICOM_ENABLE_CPP
-#ifdef LICOM_ENABLE_CUDA
+#elif defined (LICOM_ENABLE_CUDA)
     cuda_readyc();
-#endif // LICOM_ENABLE_CUDA
-#ifdef LICOM_ENABLE_HIP
+#elif defined (LICOM_ENABLE_HIP)
     hip_readyc();
-#endif // LICOM_ENABLE_HIP
-#ifdef LICOM_ENABLE_KOKKOS
-    readyc_();
-    // kokkos_readyc();
-#endif // LICOM_ENABLE_KOKKOS
+#elif defined (LICOM_ENABLE_KOKKOS)
+    // readyc_();
+    kokkos_readyc();
+#endif // LICOM_ENABLE_VERSIONS
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePop();
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePop;
 #endif // LICOM_ENABLE_RCU
@@ -186,39 +168,31 @@ void stepon(const int &mm) {
   my_time.barotr_start();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePushA ("barotr");
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePushA ("barotr");
 #endif // LICOM_ENABLE_RCU
 
-#ifdef LICOM_ENABLE_FORTRAN
+#if defined(LICOM_ENABLE_FORTRAN)
     barotr_();
-#endif // LICOM_ENABLE_FORTRAN
-#ifdef LICOM_ENABLE_CPP
+#elif defined (LICOM_ENABLE_CPP)
     cpp_barotr();
-#endif // LICOM_ENABLE_CPP
-#ifdef LICOM_ENABLE_CUDA
+#elif defined (LICOM_ENABLE_CUDA)
     cuda_barotr();
-#endif // LICOM_ENABLE_CUDA
-#ifdef LICOM_ENABLE_HIP
+#elif defined (LICOM_ENABLE_HIP)
     hip_barotr();
-#endif // LICOM_ENABLE_HIP
-#ifdef LICOM_ENABLE_KOKKOS
-    barotr_();
-    // kokkos_barotr();
-#endif // LICOM_ENABLE_KOKKOS
+#elif defined (LICOM_ENABLE_KOKKOS)
+    // barotr_();
+    kokkos_barotr();
+#endif // LICOM_ENABLE_VERSIONS
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePop();
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePop;
 #endif // LICOM_ENABLE_RCU
@@ -239,39 +213,31 @@ void stepon(const int &mm) {
   my_time.bclinc_start();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePushA ("bclinc");
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePushA ("bclinc");
 #endif // LICOM_ENABLE_RCU
 
-#ifdef LICOM_ENABLE_FORTRAN
+#if defined(LICOM_ENABLE_FORTRAN)
     bclinc_();
-#endif // LICOM_ENABLE_FORTRAN
-#ifdef LICOM_ENABLE_CPP
+#elif defined (LICOM_ENABLE_CPP)
     cpp_bclinc();
-#endif // LICOM_ENABLE_CPP
-#ifdef LICOM_ENABLE_CUDA
+#elif defined (LICOM_ENABLE_CUDA)
     cuda_bclinc();
-#endif // LICOM_ENABLE_CUDA
-#ifdef LICOM_ENABLE_HIP
+#elif defined (LICOM_ENABLE_HIP)
     hip_bclinc();
-#endif // LICOM_ENABLE_HIP
-#ifdef LICOM_ENABLE_KOKKOS
-    bclinc_();
-    // kokkos_bclinc();
-#endif // LICOM_ENABLE_KOKKOS
+#elif defined (LICOM_ENABLE_KOKKOS)
+    // bclinc_();
+    kokkos_bclinc();
+#endif // LICOM_ENABLE_VERSIONS
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePop();
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePop;
 #endif // LICOM_ENABLE_RCU
@@ -300,39 +266,31 @@ void stepon(const int &mm) {
   my_time.tracer_start();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePushA ("tracer");
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePushA ("tracer");
 #endif // LICOM_ENABLE_RCU
 
-#ifdef LICOM_ENABLE_FORTRAN
+#if defined(LICOM_ENABLE_FORTRAN)
   tracer_();
-#endif // LICOM_ENABLE_FORTRAN
-#ifdef LICOM_ENABLE_CPP
+#elif defined (LICOM_ENABLE_CPP)
   cpp_tracer();
-#endif // LICOM_ENABLE_CPP
-#ifdef LICOM_ENABLE_CUDA
+#elif defined (LICOM_ENABLE_CUDA)
   cuda_tracer();
-#endif // LICOM_ENABLE_CUDA
-#ifdef LICOM_ENABLE_HIP
+#elif defined (LICOM_ENABLE_HIP)
   hip_tracer();
-#endif // LICOM_ENABLE_HIP
-#ifdef LICOM_ENABLE_KOKKOS
-  tracer_();
-  // kokkos_tracer();
-#endif // LICOM_ENABLE_KOKKOS
+#elif defined (LICOM_ENABLE_KOKKOS)
+  // tracer_();
+  kokkos_tracer();
+#endif // LICOM_ENABLE_VERSIONS
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePop();
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePop;
 #endif // LICOM_ENABLE_RCU
@@ -353,39 +311,31 @@ void stepon(const int &mm) {
   my_time.icesnow_start();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePushA ("icesnow");
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePushA ("icesnow");
 #endif // LICOM_ENABLE_RCU
 
-#ifdef LICOM_ENABLE_FORTRAN
+#if defined(LICOM_ENABLE_FORTRAN)
   icesnow_();
-#endif // LICOM_ENABLE_FORTRAN
-#ifdef LICOM_ENABLE_CPP
+#elif defined (LICOM_ENABLE_CPP)
   cpp_icesnow();
-#endif // LICOM_ENABLE_CPP
-#ifdef LICOM_ENABLE_CUDA
+#elif defined (LICOM_ENABLE_CUDA)
   cuda_icesnow();
-#endif // LICOM_ENABLE_CUDA
-#ifdef LICOM_ENABLE_HIP
+#elif defined (LICOM_ENABLE_HIP)
   hip_icesnow();
-#endif // LICOM_ENABLE_HIP
-#ifdef LICOM_ENABLE_KOKKOS
-  icesnow_();
-  // kokkos_icesnow();
-#endif // LICOM_ENABLE_KOKKOS
+#elif defined (LICOM_ENABLE_KOKKOS)
+  // icesnow_();
+  kokkos_icesnow();
+#endif // LICOM_ENABLE_VERSIONS
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePop();
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePop;
 #endif // LICOM_ENABLE_RCU
@@ -418,39 +368,31 @@ void stepon(const int &mm) {
   my_time.convadj_start();
 #endif // LICOM_ENABLE_TEST_TIME 
 
-#ifdef LICOM_ENABLE_RCU
+#if defined(LICOM_ENABLE_NCU)
+  cudaDeviceSynchronize();
+  nvtxRangePushA ("convadj");
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePushA ("convadj");
 #endif // LICOM_ENABLE_RCU
 
-#ifdef LICOM_ENABLE_NCU
-  cudaDeviceSynchronize();
-  nvtxRangePushA ("convadj");
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_FORTRAN
+#if defined(LICOM_ENABLE_FORTRAN)
     convadj_();
-#endif // LICOM_ENABLE_FORTRAN
-#ifdef LICOM_ENABLE_CPP
+#elif defined (LICOM_ENABLE_CPP)
     cpp_convadj();
-#endif // LICOM_ENABLE_CPP
-#ifdef LICOM_ENABLE_CUDA
+#elif defined (LICOM_ENABLE_CUDA)
     cuda_convadj();
-#endif // LICOM_ENABLE_CUDA
-#ifdef LICOM_ENABLE_HIP
+#elif defined (LICOM_ENABLE_HIP)
     hip_convadj();
-#endif // LICOM_ENABLE_HIP
-#ifdef LICOM_ENABLE_KOKKOS
-    convadj_();
-    // kokkos_convadj();
-#endif // LICOM_ENABLE_KOKKOS
+#elif defined (LICOM_ENABLE_KOKKOS)
+    // convadj_();
+    kokkos_convadj();
+#endif // LICOM_ENABLE_VERSIONS
 
-#ifdef LICOM_ENABLE_NCU
+#if defined(LICOM_ENABLE_NCU)
   cudaDeviceSynchronize();
   nvtxRangePop();
-#endif // LICOM_ENABLE_NCU
-
-#ifdef LICOM_ENABLE_RCU
+#elif defined (LICOM_ENABLE_RCU)
   hipDeviceSynchronize();
   roctxRangePop;
 #endif // LICOM_ENABLE_RCU
@@ -472,3 +414,7 @@ void stepon(const int &mm) {
   }
   return ;
 }
+
+#undef  LICOM_ENABLE_NCU
+#undef  LICOM_ENABLE_RCU
+#undef  LICOM_ENABLE_DIAG

@@ -32,6 +32,11 @@ double *(&rain3)[12][JMT][IMT]                       = forc_mod_mp_rain3_;
 double *(&snow3)[12][JMT][IMT]                       = forc_mod_mp_snow3_;
 */
 
+extern ViewDouble4D *p_v_sss3;
+#if (defined SOLARCHLORO)
+extern ViewDouble4D *p_v_chloro3;
+#endif // SOLARCHLORO
+
 extern ViewDouble3D *p_v_su;
 extern ViewDouble3D *p_v_sv;
 

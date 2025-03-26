@@ -77,6 +77,7 @@ extern "C" void turb_2_(
     int    *  /* iblock*/);
 
 extern "C" void fortran_mpi_barrier_();
+extern "C" void fortran_mpi_finalize_();
 
 extern "C" void pop_haloupdate_readyc_(int *);
 

@@ -2,7 +2,6 @@
 #define LICOM3_KOKKOS_SRC_HEAD_CPP_POP_HALO_MOD_HPP_
 
 #include "def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 
 #include "cpp_param_mod.h"
 #include "cpp_pop_blocks_mod.h"
@@ -1174,5 +1173,4 @@ void pop_halo_update_priority_k (T* const array,
 
 } // namespace CppPOPHaloMod
 
-#endif // LICOM_ENABLE_FORTRAN
 #endif // LICOM3_KOKKOS_SRC_HEAD_CPP_POP_HALO_MOD_HPP_

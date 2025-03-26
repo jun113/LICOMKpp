@@ -51,23 +51,27 @@ extern "C" void licom_core_() {
   using MyTest::my_time;
   //---------------------------------------------
 
-#ifndef LICOM_ENABLE_FORTRAN
   get_block_info_();
   using CppPOPHaloMod::pop_halo_create_from_fortran;
 
   pop_halo_create_from_fortran(CppDomain::POP_haloClinic_C);
   if (CppParamMod::mytid == 0) {
     printf ("In LICOM core\n");
-    printf ("KM = %d, JMT = %d, IMT = %d\n",
+  }
+  fortran_mpi_barrier_ ();
+  const int num_proc_print = 3;
+  if (CppParamMod::mytid < num_proc_print) {
+    printf ("mytid = %d, KM = %d, JMT = %d, IMT = %d\n", CppParamMod::mytid,
         CppParamMod::KM, CppParamMod::JMT, CppParamMod::IMT);
-    printf ("JST = %d, JET = %d\n",
+    printf ("mytid = %d, JST = %d, JET = %d\n", CppParamMod::mytid,
         CppParamMod::JST, CppParamMod::JET);
-    printf ("NY_BLOCK = %d, NX_BLOCK = %d\n",
+    printf ("mytid = %d, NY_BLOCK = %d, NX_BLOCK = %d\n", CppParamMod::mytid,
         CppParamMod::NY_BLOCK, CppParamMod::NX_BLOCK);
-    printf ("block ib = %d, ie = %d, jb = %d, je = %d\n",
+    printf ("mytid = %d, block ib = %d, ie = %d, jb = %d, je = %d\n", CppParamMod::mytid,
         CppBlocks::ib, CppBlocks::ie,
         CppBlocks::jb, CppBlocks::je);
   }
+  fortran_mpi_barrier_ ();
 
   if (CppParamMod::mytid == 0) {
     printf("Create the data struct of POP Halo in C/C++ code done.\n");
@@ -80,23 +84,28 @@ extern "C" void licom_core_() {
   //         CppParamMod::IMT_GLOBAL, CppDomain::POP_haloClinic);
 
   // ========
-#else
   // allocate_readyt_();
   // allocate_readyc_();
   // allocate_tracer_();
-#endif // LICOM_ENABLE_FORTRAN
 
   int totalday = 0;
 
   my_time.testTime_initialize();
 
   if (mytid == 0) printf("********************************\n");
-#ifdef LICOM_ENABLE_FORTRAN
+#if defined(LICOM_ENABLE_FORTRAN)
   if (mytid == 0) {
     printf("stepon begin, version: %s (Fortran) %d CORES\n", LICOM_RES, nproc);
   }
-#endif // LICOM_ENABLE_FORTRAN
-#ifdef LICOM_ENABLE_CPP
+
+#if defined(LOWRES)
+  cpp_init_jra_daily_low();
+#elif defined(HIGHRES) || defined(SUPHIGH)
+  cpp_init_jra_daily_high();
+#endif // defined(HIGHRES) || defined(SUPHIGH)
+
+#elif defined (LICOM_ENABLE_CPP)
+
   if (mytid == 0) {
     printf("stepon begin, version: %s (CPP)\n", LICOM_RES);
   }
@@ -108,18 +117,15 @@ extern "C" void licom_core_() {
   if (CppParamMod::mytid == 0) {
     printf("Initialize jra daily in C/C++ code done.\n");
   }
-#endif // LICOM_ENABLE_CPP
-#ifdef LICOM_ENABLE_CUDA
+#elif defined (LICOM_ENABLE_CUDA)
   if (mytid == 0) {
     printf("stepon begin, version: %s (CUDA)\n", LICOM_RES);
   }
-#endif // LICOM_ENABLE_CUDA
-#ifdef LICOM_ENABLE_HIP
+#elif defined (LICOM_ENABLE_HIP)
   if (mytid == 0) {
     printf("stepon begin, version: %s (HIP)\n", LICOM_RES);
   }
-#endif // LICOM_ENABLE_HIP
-#ifdef LICOM_ENABLE_KOKKOS
+#elif defined (LICOM_ENABLE_KOKKOS)
   if (mytid==0) {
     printf("stepon begin, version: %s (Kokkos)\n", LICOM_RES);
   }
@@ -210,24 +216,20 @@ extern "C" void licom_core_() {
 #endif // LICOM_ENABLE_TEST_TIME
       my_time.start_daily();
       my_time.start_once();
-#if (defined LICOM_ENABLE_FORTRAN)
-      jra_daily_();
-#endif
-#if (defined LICOM_ENABLE_CPP)
+#if (defined LICOM_ENABLE_FORTRAN) || defined(SUPHIGH)
+      // jra_daily_();
 #if defined(LOWRES)
       cpp_jra_daily_low(iday);
 #elif defined(HIGHRES) || defined(SUPHIGH)
       cpp_jra_daily_high(iday);
 #endif // defined(HIGHRES) || defined(SUPHIGH)
-#endif // (defined LICOM_ENABLE_CPP)
-#if (defined LICOM_ENABLE_KOKKOS)
+#elif defined (LICOM_ENABLE_KOKKOS)
 #if defined(LOWRES)
-      // jra_daily_();
       kokkos_jra_daily_low(iday);
 #elif defined(HIGHRES) || defined(SUPHIGH)
       kokkos_jra_daily_high(iday);
 #endif // defined(HIGHRES) || defined(SUPHIGH)
-#endif // (defined LICOM_ENABLE_KOKKOS)
+#endif // (defined LICOM_ENABLE_VERSION)
 #ifdef LICOM_ENABLE_TEST_TIME
       my_time.testTime_stop("jra daily");
 #endif // LICOM_ENABLE_TEST_TIME
@@ -235,21 +237,25 @@ extern "C" void licom_core_() {
       if (mytid == 0) {
         printf("jra_daily time: %.3f s\n", my_time.t_once);
       }
+      // =======================
+      // time interplate CHLOROPHYLL
+      cpp_time_interplate_chlorophyll ();
+      // =======================
 
 #ifdef LICOM_ENABLE_TEST_TIME
       my_time.testTime_start("stepon");
-      //my_time.testTime_start("daily_h2d");
+      my_time.testTime_start("daily_h2d");
 #endif // LICOM_ENABLE_TEST_TIME
       my_time.start_stepon();
 
-      //my_time.start_daily_h2d();
+      my_time.start_daily_h2d();
 
-      //daily_update_h2d();
+      daily_update_h2d();
 
 #ifdef LICOM_ENABLE_TEST_TIME
-      //my_time.testTime_stop("daily_h2d");
+      my_time.testTime_stop("daily_h2d");
 #endif // LICOM_ENABLE_TEST_TIME
-      //my_time.end_daily_h2d();
+      my_time.end_daily_h2d();
 
       for (ii = 1; ii <= nss; ++ii) {
 #endif // CPUP
@@ -320,6 +326,7 @@ extern "C" void licom_core_() {
           printf("write_file time: %.3f s\n", my_time.t_once);
         }
 #ifdef LICOM_ENABLE_KOKKOS
+        // nextstep_();
         kokkos_nextstep();
 #else
         nextstep_();
@@ -341,15 +348,17 @@ extern "C" void licom_core_() {
       // if (false) {
         my_time.fence();
 #ifdef LICOM_ENABLE_KOKKOS
-        //Kokkos::finalize();
+        // Kokkos::finalize();
 #endif // LICOM_ENABLE_KOKKOS
 #ifdef LICOM_ENABLE_TEST_TIME
         my_time.testTime_finalize();
 #endif // LICOM_ENABLE_TEST_TIME
         my_time.fence();
-        exit(0);
+        fortran_mpi_barrier_();
+        return ;
       }
 //--------------------------
+#ifndef COUP
     } // loop: iday
   }   // loop: mm
 //-----------------------------
@@ -363,6 +372,8 @@ extern "C" void licom_core_() {
 #ifdef LICOM_ENABLE_KOKKOS
   Kokkos::finalize();
 #endif // LICOM_ENABLE_KOKKOS
+
+#endif // ndef COUP
 
   return ;
 }

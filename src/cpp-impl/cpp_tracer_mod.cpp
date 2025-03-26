@@ -1,5 +1,4 @@
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 #include "../head/cpp_param_mod.h"
 #include "../head/fortran_tracer_mod.h"
 
@@ -103,4 +102,3 @@ double (&licomqice)[MAX_BLOCKS_CLINIC][JMT][IMT]            = __tracer_mod_MOD_l
 double &fw_norm2                                            = __tracer_mod_MOD_fw_norm2;
 #endif // LICOM_ENABLE_FORTRAN_COMPILER_GNU
 } // namespace CppTracerMod
-#endif // LICOM_ENABLE_FORTRAN

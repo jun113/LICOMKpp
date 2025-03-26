@@ -585,6 +585,11 @@ void kokkos_init_forc_mod() {
   using namespace CppForcMod;
   using namespace KokkosForcMod;
 
+//   p_v_sss3     = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
+// #if (defined SOLARCHLORO)
+//   p_v_chloro3  = (ViewDouble4D *) malloc(sizeof(ViewDouble4D));
+// #endif // SOLARCHLORO
+
   p_v_su       = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_sv       = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
   p_v_psa      = (ViewDouble3D *) malloc(sizeof(ViewDouble3D));
@@ -655,6 +660,14 @@ void kokkos_init_forc_mod() {
   p_v_core_tau      = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
 
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
+
+//   new (p_v_sss3)     ViewDouble4D("pointer_view_sss3",
+//       MAX_BLOCKS_CLINIC, 12, JMT, IMT);
+// #if (defined SOLARCHLORO)
+//   new (p_v_chloro3)  ViewDouble4D("pointer_view_chloro3",
+//       MAX_BLOCKS_CLINIC, 12, JMT, IMT);
+// #endif // SOLARCHLORO
+
   new (p_v_su)       ViewDouble3D("pointer_view_su",
       MAX_BLOCKS_CLINIC, JMT, IMT);
   new (p_v_sv)       ViewDouble3D("pointer_view_sv",
@@ -826,6 +839,13 @@ void kokkos_init_forc_mod() {
 #endif // TIDEMIX
 
 #else // KOKKOS_ENABLE_DEVICE_MEM_SPACE
+
+//   new (p_v_sss3)     ViewDouble4D(&sss3[12][0][0][0],
+//       MAX_BLOCKS_CLINIC, 12, JMT, IMT);
+// #if (defined SOLARCHLORO)
+//   new (p_v_chloro3)  ViewDouble4D(&chloro3[12][0][0][0],
+//       MAX_BLOCKS_CLINIC, 12, JMT, IMT);
+// #endif // SOLARCHLORO
 
   new (p_v_su)       ViewDouble3D(&su[0][0][0],
       MAX_BLOCKS_CLINIC, JMT, IMT);

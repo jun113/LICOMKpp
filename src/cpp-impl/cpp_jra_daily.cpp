@@ -1,5 +1,4 @@
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 
 #include "../head/cpp_domain.h"
 #include "../head/cpp_dyn_mod.h"
@@ -839,9 +838,9 @@ void cpp_jra_daily_high(const int &iday) {
 	}
 
 	// ! interplate to T grid
-	interplationNearestThenScatterGlobal(0, irec, s_lon, s_lat, 
+	interplationNearestThenScatterGlobal(0,  irec, s_lon, s_lat, 
 			CppForcMod::rf, runoff3, buffer);
-	interplationNearestThenScatterGlobal(1, irec, s_lon, s_lat, 
+	interplationNearestThenScatterGlobal(1,  irec, s_lon, s_lat, 
 			CppForcMod::t10, tsa3, buffer);
 	interplationNearestThenScatterGlobal(2,  irec, s_lon, s_lat, 
 			CppForcMod::u10, wspdu3, buffer);
@@ -957,5 +956,3 @@ void cpp_jra_daily_high(const int &iday) {
 		}
 	}
 }
-
-#endif // LICOM_ENABLE_FORTRAN

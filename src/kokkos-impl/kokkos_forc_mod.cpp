@@ -6,6 +6,11 @@
 
 namespace KokkosForcMod {
 
+ViewDouble4D *p_v_sss3 = nullptr;
+#if (defined SOLARCHLORO)
+ViewDouble4D *p_v_chloro3 = nullptr;
+#endif // SOLARCHLORO
+
 ViewDouble3D *p_v_su = nullptr;
 ViewDouble3D *p_v_sv = nullptr;
 

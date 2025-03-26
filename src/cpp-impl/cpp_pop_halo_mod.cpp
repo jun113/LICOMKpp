@@ -1,5 +1,4 @@
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 
 #include "cpp_pop_reductions_mod.hpp"
 
@@ -3011,5 +3010,3 @@ void pop_halo_update_3dr8(double* const array,
 }
 
 } // namespace CppPOPHaloMod
-
-#endif // LICOM_ENABLE_FORTRAN

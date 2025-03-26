@@ -78,6 +78,11 @@ extern double* core_tau;
 // extern double (*&rain3)[12][JMT][IMT];
 // extern double (*&snow3)[12][JMT][IMT];
 
+extern double (&sss3)[MAX_BLOCKS_CLINIC][12][JMT][IMT];
+#if (defined SOLARCHLORO)
+extern double (&chloro3)[MAX_BLOCKS_CLINIC][12][JMT][IMT];
+#endif // SOLARCHLORO
+
 extern double (&su)[MAX_BLOCKS_CLINIC][JMT][IMT];
 extern double (&sv)[MAX_BLOCKS_CLINIC][JMT][IMT];
 extern double (&psa)[MAX_BLOCKS_CLINIC][JMT][IMT];

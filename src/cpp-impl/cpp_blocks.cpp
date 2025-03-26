@@ -1,5 +1,4 @@
 #include "../head/def-undef.h"
-#ifndef LICOM_ENABLE_FORTRAN
 #include "../head/fortran_blocks.h"
 namespace CppBlocks {
 
@@ -30,4 +29,3 @@ int &je = __blocks_MOD_je;
 #endif // LICOM_ENABLE_FORTRAN_COMPILER_GNU
 
 } // namespace CppBlocks
-#endif // LICOM_ENABLE_FORTRAN
