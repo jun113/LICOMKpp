@@ -139,7 +139,9 @@
       write(111,*)"OK------3.3"
       close(111)
    end if
-   if(.True.) call SSAVELATLON !LPF20200313
+   !if(.True.) call SSAVELATLON !LPF20200313
+   ! wjl 20250326
+   if(.False.) call SSAVELATLON !LPF20200313
 
    CALL GRIDS
    if (mytid == 0) then
