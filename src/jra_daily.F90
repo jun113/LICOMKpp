@@ -1,6 +1,6 @@
 !     =================
 !      SUBROUTINE JRA_DAILY(TNUM)
-      SUBROUTINE JRA_DAILY
+      SUBROUTINE JRA_DAILY_SPLIT
 !     =================
 
 #include <def-undef.h>
@@ -14,19 +14,17 @@
  use gather_scatter
  use POP_GridHorzMod
  use POP_HaloMod
+! use dyn_mod, only: u,v,buffer,buffer_s
  use dyn_mod, only: u,v,buffer
  use tracer_mod, only: at
  use msg_mod
+ use blocks
 
       IMPLICIT NONE
 #include <netcdf.inc>
 
       integer :: mon_day,irec,tnum
       integer ::  ErrorCode
-!========================
-      real(r8),dimension(s_imt,s_jmt) :: t10,u10,v10,slp,q10,swhf,lwhf
-      real(r8),dimension(s_imt,s_jmt) :: precr,precs,rf,si
-!=======================
 
       real(r8),dimension(imt,jmt) :: model_sst,es,qs,zz,uu,vv,windx,windy,theta
       real(r8),dimension(imt,jmt) :: core_sensible,core_latent,core_tau
@@ -34,9 +32,29 @@
       real(r8), parameter :: tok=273.15
       real(r8), parameter :: epsln=1e-25
       real(r8),dimension(imt,jmt) :: tmp1,tmp2
-      real(r8),dimension(imt_global,jmt_global) :: tmp3
       integer,save:: jra_init=0
-
+!xk add 20240623
+#define JRA_SPLIT
+#ifndef JRA_SPLIT
+      real(r8),dimension(imt_global,jmt_global) :: tmp3
+#endif
+!xk add 20240623
+      integer*8 :: data_size, offset
+! xk add 20240623
+#ifndef JRA_SPLIT
+#ifdef READ_GRID_SPLIT
+      real (r8), dimension(:,:), allocatable :: &
+      TLAT_G, TLON_G        ! {latitude,longitude} of U points
+                            ! in global-sized array
+      integer (i4) :: &
+      ioerr             ,&! i/o error flag
+      reclength           ! record length
+#endif
+#endif
+#ifdef JRA_SPLIT
+      integer*4 :: err_status, w_size, rank, &
+            local_block_num, block_start, block_end, err, jra_num
+#endif
 
 !      if ( TNUM.gt.1 ) goto 111
       core_sensible = 0.0     
@@ -53,7 +71,9 @@
       theta = 0.0     
       tmp1= 0.0      
       tmp2= 0.0      
+#ifndef JRA_SPLIT
       tmp3= 0.0
+#endif
 
 ! decide recode number
 !      IYFM,MON0,IDAY
@@ -61,6 +81,155 @@
       do i=1,mon0-1
       mon_day=mon_day+nmonth(i)
       enddo
+!xk add 20240623
+#ifdef JRA_SPLIT
+      local_block_num = 100
+
+      call MPI_comm_size(MPI_COMM_WORLD, w_size, ierr)
+      call MPI_comm_rank(MPI_COMM_WORLD, rank, ierr)
+
+      block_start = (rank/local_block_num) *local_block_num + 1
+
+      block_end = (rank/local_block_num + 1)*local_block_num
+
+
+      if(block_end > w_size) then
+            block_end = w_size
+            local_block_num = w_size - block_start + 1
+      endif
+
+      if(local_block_num > 100 .or. local_block_num < 0) then
+            write(6,*) "error ", local_block_num, rank, w_size, block_start
+      endif
+      irec=mon_day+iday
+      jra_num = 10
+      if (jra_init.eq.0) then
+            jra_init=1
+            allocate(t10(imt,jmt,jra_num))
+            allocate(u10(imt,jmt,jra_num))
+            allocate(v10(imt,jmt,jra_num))
+            allocate(slp(imt,jmt,jra_num))
+            allocate(q10(imt,jmt,jra_num))
+            allocate(swhf(imt,jmt,jra_num))
+            allocate(lwhf(imt,jmt,jra_num))
+            allocate(precr(imt,jmt,jra_num))
+            allocate(precs(imt,jmt,jra_num))
+            allocate(rf(imt,jmt,jra_num))
+            allocate(si(imt,jmt,jra_num))
+            rank = mytid
+            data_size = imt * jmt * sizeof(t10(1,1,1)) * jra_num
+
+            call c_fopen_read("ocn"//CHAR(0), "jra.dir/jra"//CHAR(0), data_size)
+
+            offset = 0
+            call c_seek_fread(t10(1,1,1), offset, data_size)
+
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(u10(1,1,1), offset, data_size)
+
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(v10(1,1,1), offset, data_size)
+
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(slp(1,1,1), offset, data_size)
+ 
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(q10(1,1,1), offset, data_size)
+
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(swhf(1,1,1), offset, data_size)
+
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(lwhf(1,1,1), offset, data_size)
+
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(precr(1,1,1), offset, data_size)
+
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(precs(1,1,1), offset, data_size)
+
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(rf(1,1,1), offset, data_size)
+
+            offset = offset + local_block_num * data_size
+            call c_seek_fread(si(1,1,1), offset, data_size) 
+
+
+            call c_fclose()
+      endif 
+
+      ! if(mytid == 0) write(6, *) "irec is ", irec
+
+      ! call data_check(t10, info_var="t10 1")
+      ! call data_check(u10, info_var="u10 1")
+      ! call data_check(v10, info_var="v10 1")
+      ! call data_check(slp, info_var="slp 1")
+      ! call data_check(q10, info_var="q10 1")
+      ! call data_check(swhf, info_var="swhf 1")
+      ! call data_check(lwhf, info_var="lwhf 1")
+      ! call data_check(precr, info_var="precr 1")
+      ! call data_check(precs, info_var="precs 1")
+      ! call data_check(rf, info_var="rf 1")
+      ! call data_check(si, info_var="si 1")
+      ! if (mytid == 0) then
+      !       do j = 1, jmt
+      !             do i = 1, imt 
+      !                   write(6, *)  t10(i,j,1)
+      !             enddo 
+      !       enddo
+      ! endif
+!second scatter
+      tsa3(:,:,1,1) = t10(:,:, irec)
+      call POP_HaloUpdate(tsa3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      wspdu3(:,:,1,1) = u10(:,:, irec)
+
+      call POP_HaloUpdate(wspdu3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      wspdv3(:,:,1,1) = v10(:,:, irec)
+
+      call POP_HaloUpdate(wspdv3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      psa3(:,:,1,1) = slp(:,:, irec)
+
+      call POP_HaloUpdate(psa3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      qar3(:,:,1,1) = q10(:,:, irec)
+
+      call POP_HaloUpdate(qar3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      swv3(:,:,1,1) = swhf(:,:, irec)
+
+      call POP_HaloUpdate(swv3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      lwv3(:,:,1,1) = lwhf(:,:, irec)
+      call POP_HaloUpdate(lwv3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      rain3(:,:,1,1) = precr(:,:, irec)
+      call POP_HaloUpdate(rain3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      snow3(:,:,1,1) = precs(:,:, irec)
+
+      call POP_HaloUpdate(snow3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      runoff3(:,:,1,1) = rf(:,:, irec)
+
+      call POP_HaloUpdate(runoff3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      seaice3(:,:,1,1) = si(:,:, irec)
+      call POP_HaloUpdate(seaice3 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)      
+
+#else
+! xk add 20240623
+
+      ! wjl 20250327
+      if (.not. allocated (s_lon)) then
+        allocate(s_lon(s_imt, s_jmt))
+      endif
+      if (.not. allocated (s_lat)) then
+        allocate(s_lat(s_imt, s_jmt))
+      endif
 !
 ! start from a 1000-year spinup
 !      irec=(iyfm-1)*365+mon_day+iday-365*(13-1)
@@ -75,20 +244,48 @@
       write(*,*) "irec=",irec
 !      write(*,*) s_imt,s_jmt
       endif
-      if (jra_init.eq.0) then
-         jra_init=1
-         if (.not. allocated(s_lat)) then
-            allocate(s_lat(s_imt, s_jmt), stat = ierr) 
-         end if
-         if (.not. allocated(s_lon)) then
-            allocate(s_lon(s_imt, s_jmt), stat = ierr) 
-         end if
-      endif
 
 ! read in jra data
 ! note the dimensions are s_imt, s_jmt
 !#ifdef SPMD
-      if (mytid.eq.0) then
+      if (jra_init.eq.0) then
+      jra_init=1
+
+#ifdef READ_GRID_SPLIT
+      if (.not. allocated(TLAT_G)) then
+            allocate (TLAT_G(imt_global,jmt_global), &
+                      TLON_G(imt_global,jmt_global))
+         endif
+   
+         INQUIRE(iolength=reclength) TLAT_G
+   
+         if (my_task == master_task) then
+            open(25,file=trim(horiz_grid_file),status='old', &
+                 form='unformatted', access='direct', recl=reclength,iostat=ioerr)
+            read(25,rec=1,iostat=ioerr) TLAT_G
+            read(25,rec=2,iostat=ioerr) TLON_G
+            close (25)
+         endif
+   !ZWP20131030
+         lon_o = TLON_G/DEGtoRAD
+         lat_o = TLAT_G/DEGtoRAD
+   !ZWP20131030
+         deallocate(TLON_G)
+         deallocate(TLAT_G)
+#endif
+
+      if (mytid.eq.master_task) then
+      allocate(t10(s_imt,s_jmt,365))
+      allocate(u10(s_imt,s_jmt,365))
+      allocate(v10(s_imt,s_jmt,365))
+      allocate(slp(s_imt,s_jmt,365))
+      allocate(q10(s_imt,s_jmt,365))
+      allocate(swhf(s_imt,s_jmt,365))
+      allocate(lwhf(s_imt,s_jmt,365))
+      allocate(precr(s_imt,s_jmt,365))
+      allocate(precs(s_imt,s_jmt,365))
+      allocate(rf(s_imt,s_jmt,365))
+      allocate(si(s_imt,s_jmt,365))
       call read_jra(irec,"t_10.2016_daily.nc",t10)
       call read_jra(irec,"u_10.2016_daily.nc",u10)
       call read_jra(irec,"v_10.2016_daily.nc",v10)
@@ -100,152 +297,205 @@
       call read_jra(irec,"snow.2016_daily.nc",precs)
       call read_jra(irec,"runoff_all.2016_daily.nc",rf)
       call read_jra1(irec,"ice.2016_daily.nc",si)
-!      print*,s_lon(:,1)
-!      print*,s_lat(1,:)
-!      stop 888888
-!      print*,lon_o(:,1)
-!      print*,lat_o(1,:)
-!      stop 888888
-!       print*,si
-!       stop
+
+      ! allocate(buffer3d(imt,jmt,km,nblocks_tot))
+
       endif
-       
-      if (.not. allocated(buffer)) then
-            allocate (buffer(imt_global,jmt_global))
+      if(mytid==master_task+1) allocate(t10(s_imt,s_jmt,365))
+      if(mytid==master_task+2) allocate(u10(s_imt,s_jmt,365))
+      if(mytid==master_task+3) allocate(v10(s_imt,s_jmt,365))
+      if(mytid==master_task+4) allocate(slp(s_imt,s_jmt,365))
+      if(mytid==master_task+5) allocate(q10(s_imt,s_jmt,365))
+      if(mytid==master_task+6) allocate(swhf(s_imt,s_jmt,365))
+      if(mytid==master_task+7) allocate(lwhf(s_imt,s_jmt,365))
+      if(mytid==master_task+8) allocate(precr(s_imt,s_jmt,365))
+      if(mytid==master_task+9) allocate(precs(s_imt,s_jmt,365))
+      if(mytid==master_task+10) allocate(rf(s_imt,s_jmt,365))
+      if(mytid==master_task+11) allocate(si(s_imt,s_jmt,365))
+
+      call MPI_Bcast(s_lon,s_imt*s_jmt,MPI_PR,master_task,mpi_comm_ocn,ierr)
+      call MPI_Bcast(s_lat,s_imt*s_jmt,MPI_PR,master_task,mpi_comm_ocn,ierr)
+      call MPI_Bcast(lon_o,imt_global*jmt_global,MPI_real4,master_task,mpi_comm_ocn,ierr)
+      call MPI_Bcast(lat_o,imt_global*jmt_global,MPI_real4,master_task,mpi_comm_ocn,ierr)
+      endif
+
+      if(mytid==master_task) then
+      call MPI_send(t10(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+1,123456,mpi_comm_ocn,ierr)
+      call MPI_send(u10(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+2,123456,mpi_comm_ocn,ierr)
+      call MPI_send(v10(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+3,123456,mpi_comm_ocn,ierr)
+      call MPI_send(slp(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+4,123456,mpi_comm_ocn,ierr)
+      call MPI_send(q10(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+5,123456,mpi_comm_ocn,ierr)
+      call MPI_send(swhf(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+6,123456,mpi_comm_ocn,ierr)
+      call MPI_send(lwhf(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+7,123456,mpi_comm_ocn,ierr)
+      call MPI_send(precr(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+8,123456,mpi_comm_ocn,ierr)
+      call MPI_send(precs(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+9,123456,mpi_comm_ocn,ierr)
+      call MPI_send(rf(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+10,123456,mpi_comm_ocn,ierr)
+      call MPI_send(si(:,:,irec),s_imt*s_jmt,MPI_PR,master_task+11,123456,mpi_comm_ocn,ierr)
       end if
 
-      if (.not. allocated(su3)) then
-      allocate(su3(imt,jmt,12,max_blocks_clinic),&
-               sv3(imt,jmt,12,max_blocks_clinic),&
-               psa3(imt,jmt,12,max_blocks_clinic),&
-               tsa3(imt,jmt,12,max_blocks_clinic),&
-               qar3(imt,jmt,12,max_blocks_clinic),&
-               uva3(imt,jmt,12,max_blocks_clinic))
-      end if
-      if (.not. allocated(swv3)) then
-      ! if (mytid==0) write(*,*)'rd-ok1'
-      allocate(swv3(imt,jmt,12,max_blocks_clinic),&
-               cld3(imt,jmt,12,max_blocks_clinic),&
-               sss3(imt,jmt,12,max_blocks_clinic),&
-               sst3(imt,jmt,12,max_blocks_clinic),&
-               nswv3(imt,jmt,12,max_blocks_clinic),&
-               dqdt3(imt,jmt,12,max_blocks_clinic))
-      end if
-      if (.not. allocated(seaice3)) then
-      ! if (mytid==0) write(*,*)'rd-ok2'
-      allocate(seaice3(imt,jmt,12,max_blocks_clinic),&
-               runoff3(imt,jmt,12,max_blocks_clinic))
-      end if
-      ! if (mytid==0) write(*,*)'rd-ok3'
-      if (.not. allocated(wspd3)) then
-      allocate(wspd3(imt,jmt,12,max_blocks_clinic),&
-               wspdu3(imt,jmt,12,max_blocks_clinic),&
-               wspdv3(imt,jmt,12,max_blocks_clinic),&
-               lwv3(imt,jmt,12,max_blocks_clinic),&
-               rain3(imt,jmt,12,max_blocks_clinic),&
-               snow3(imt,jmt,12,max_blocks_clinic))
-      end if
+       
+      allocate (buffer(imt_global,jmt_global))
 
 ! interplate to T grid
-      if (mytid.eq.0) then
-      call interplation_nearest(t10,tmp3)
+!first parallel interp
+      if (mytid.eq.master_task+1) then
+      call MPI_recv(t10(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+!      call interplation_nearest(t10(:,:,irec),tmp3)
+      call interplation_nearest(t10(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
        buffer=tmp3 !LPF20200321
       endif
-      call scatter_global(tsa3(:,:,1,:),buffer, master_task, distrb_clinic, &
+
+      if (mytid.eq.master_task+2) then
+      call MPI_recv(u10(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(u10(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+      if (mytid.eq.master_task+3) then
+      call MPI_recv(v10(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(v10(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+      if (mytid.eq.master_task+4) then
+      call MPI_recv(slp(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(slp(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+      if (mytid.eq.master_task+5) then
+      call MPI_recv(q10(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(q10(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+      if (mytid.eq.master_task+6) then
+      call MPI_recv(swhf(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(swhf(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+      if (mytid.eq.master_task+7) then
+      call MPI_recv(lwhf(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(lwhf(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+      if (mytid.eq.master_task+8) then
+      call MPI_recv(precr(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(precr(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+      if (mytid.eq.master_task+9) then
+      call MPI_recv(precs(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(precs(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+      if (mytid.eq.master_task+10) then
+      call MPI_recv(rf(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(rf(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+      if (mytid.eq.master_task+11) then
+      call MPI_recv(si(:,:,irec),s_imt*s_jmt,MPI_PR,master_task,123456,mpi_comm_ocn,status,ierr)
+!      if (mytid.eq.master_task) then
+      call interplation_nearest(si(:,:,irec),tmp3)
+!      call interplation_nearest(buffer_s,tmp3)
+       buffer=tmp3 !LPF20200321
+      endif
+
+!second scatter
+      call scatter_global(tsa3(:,:,1,:),buffer, master_task+1, distrb_clinic, &
+!      call scatter_global(tsa3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(tsa3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(u10,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(wspdu3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(wspdu3(:,:,1,:),buffer, master_task+2, distrb_clinic, &
+!      call scatter_global(wspdu3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(wspdu3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(v10,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(wspdv3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(wspdv3(:,:,1,:),buffer, master_task+3, distrb_clinic, &
+!      call scatter_global(wspdv3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(wspdv3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(slp,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(psa3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(psa3(:,:,1,:),buffer, master_task+4, distrb_clinic, &
+!      call scatter_global(psa3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(psa3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(q10,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(qar3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(qar3(:,:,1,:),buffer, master_task+5, distrb_clinic, &
+!      call scatter_global(qar3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(qar3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(swhf,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(swv3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(swv3(:,:,1,:),buffer, master_task+6, distrb_clinic, &
+!      call scatter_global(swv3(:,:,1,:),buffer, master_task, distrb_clinic, &
                       field_loc_center, field_type_scalar)
       call POP_HaloUpdate(swv3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(lwhf,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(lwv3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(lwv3(:,:,1,:),buffer, master_task+7, distrb_clinic, &
+!      call scatter_global(lwv3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(lwv3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(precr,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(rain3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(rain3(:,:,1,:),buffer, master_task+8, distrb_clinic, &
+!      call scatter_global(rain3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(rain3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(precs,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(snow3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(snow3(:,:,1,:),buffer, master_task+9, distrb_clinic, &
+!      call scatter_global(snow3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(snow3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(rf,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(runoff3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(runoff3(:,:,1,:),buffer, master_task+10, distrb_clinic, &
+!      call scatter_global(runoff3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(runoff3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 
-      if (mytid.eq.0) then
-      call interplation_nearest(si,tmp3)
-       buffer=tmp3 !LPF20200321
-      endif
-      call scatter_global(seaice3(:,:,1,:),buffer, master_task, distrb_clinic, &
+      call scatter_global(seaice3(:,:,1,:),buffer, master_task+11, distrb_clinic, &
+!      call scatter_global(seaice3(:,:,1,:),buffer, master_task, distrb_clinic, &
                        field_loc_center, field_type_scalar)
       call POP_HaloUpdate(seaice3 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
-
+!xk add 20240623
+      deallocate(buffer)
+#endif              
 !111    continue
 
          do j = jsm,jem
@@ -304,9 +554,11 @@
            end do
         end do
 
-      deallocate(buffer)
+!      deallocate(buffer)
+!      deallocate(buffer_s)
+#undef JRA_SPLIT
       return
-      end subroutine JRA_DAILY
+      end subroutine JRA_DAILY_SPLIT
 
 !---------------------------------------------
       subroutine read_jra(nnn,fname,var)
@@ -319,13 +571,21 @@ use precision_mod
 
       integer :: start(3),count(3)
       integer :: ncid,iret,nnn,i,j
-      real(r8) :: var(s_imt,s_jmt)
-      real(r4) :: ttmp(s_imt,s_jmt)
+      real(r8) :: var(s_imt,s_jmt,365)
+      real(r4) :: ttmp(s_imt,s_jmt,365)
       character (len=*),intent(in) :: fname
 
       start(1)=1;count(1)=s_imt
       start(2)=1;count(2)=s_jmt
-      start(3)=nnn;count(3)=1
+!      start(3)=nnn;count(3)=1
+      start(3)=1;count(3)=365
+      if (.not. allocated(s_lon)) then
+        allocate(s_lon(s_imt, s_jmt))
+      end if
+      if (.not. allocated(s_lat)) then
+        allocate(s_lat(s_imt, s_jmt))
+      end if
+
       iret=nf_open(fname,nf_nowrite,ncid)
       call check_err (iret)
       iret=nf_get_var_double(ncid,3,s_lon(:,1))
@@ -338,24 +598,22 @@ use precision_mod
       iret=nf_close(ncid)
       call check_err (iret)
 
-!      do j=2,s_jmt
-!      do i=1,s_imt
-!      s_lon(i,j)=s_lon(i,1)
-!      enddo
-!      enddo
-!      do j=1,s_jmt
-!      do i=2,s_imt
-!      s_lat(i,j)=s_lat(1,j)
-!      enddo
-!      enddo
-!      print*,s_lon(:,1)
-!      print*,s_lat(1,:)
-!      stop
+      do j=2,s_jmt
+      do i=1,s_imt
+      s_lon(i,j)=s_lon(i,1)
+      enddo
+      enddo
+      do j=1,s_jmt
+      do i=2,s_imt
+      s_lat(i,j)=s_lat(1,j)
+      enddo
+      enddo
 
       var=ttmp
 
       return
       end subroutine read_jra
+
 !---------------------------------------------
       subroutine read_jra1(nnn,fname,var)
 !---------------------------------------------
@@ -367,13 +625,14 @@ use precision_mod
 
       integer :: start(3),count(3)
       integer :: ncid,iret,nnn,i,j
-      real(r8) :: var(s_imt,s_jmt)
-      real(r4) :: ttmp(s_imt,s_jmt),xt(s_imt),yt(s_jmt)
+      real(r8) :: var(s_imt,s_jmt,365)
+      real(r4) :: ttmp(s_imt,s_jmt,365),xt(s_imt),yt(s_jmt)
       character (len=*),intent(in) :: fname
 
       start(1)=1;count(1)=s_imt
       start(2)=1;count(2)=s_jmt
-      start(3)=nnn;count(3)=1
+!      start(3)=nnn;count(3)=1
+      start(3)=1;count(3)=365
 
       iret=nf_open(fname,nf_nowrite,ncid)
       call check_err (iret)

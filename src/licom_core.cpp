@@ -51,6 +51,10 @@ extern "C" void licom_core_() {
   using MyTest::my_time;
   //---------------------------------------------
 
+  bool split_jra = false;
+  bool jra_from_device = true;
+  bool next_step_from_device = true;
+
   get_block_info_();
   using CppPOPHaloMod::pop_halo_create_from_fortran;
 
@@ -95,17 +99,15 @@ extern "C" void licom_core_() {
   if (mytid == 0) printf("********************************\n");
 #if defined(LICOM_ENABLE_FORTRAN)
   if (mytid == 0) {
-    printf("stepon begin, version: %s (Fortran) %d CORES\n", LICOM_RES, nproc);
+    printf("stepon begin, version: %s (Fortran) %d CORES\n", 
+        LICOM_RES, nproc);
   }
-
 #if defined(LOWRES)
   cpp_init_jra_daily_low();
 #elif defined(HIGHRES) || defined(SUPHIGH)
   cpp_init_jra_daily_high();
 #endif // defined(HIGHRES) || defined(SUPHIGH)
-
 #elif defined (LICOM_ENABLE_CPP)
-
   if (mytid == 0) {
     printf("stepon begin, version: %s (CPP)\n", LICOM_RES);
   }
@@ -164,11 +166,20 @@ extern "C" void licom_core_() {
     printf("Initialize Kokkos Views done.\n");
   }
 
+  if (jra_from_device) {
 #if defined(LOWRES)
-  kokkos_init_jra_daily_low();
+    kokkos_init_jra_daily_low();
 #elif defined(HIGHRES) || defined(SUPHIGH)
-  kokkos_init_jra_daily_high();
+    kokkos_init_jra_daily_high();
 #endif // defined(HIGHRES) || defined(SUPHIGH)
+  } else {
+#if defined(LOWRES)
+    cpp_init_jra_daily_low();
+#elif defined(HIGHRES) || defined(SUPHIGH)
+    cpp_init_jra_daily_high();
+#endif // defined(HIGHRES) || defined(SUPHIGH)
+
+  }
   if (CppParamMod::mytid == 0) {
     printf("Initialize jra daily in Kokkos code done.\n");
   }
@@ -212,50 +223,15 @@ extern "C" void licom_core_() {
       }
 #ifdef LICOM_ENABLE_TEST_TIME
       my_time.testTime_start("daily");
-      my_time.testTime_start("jra daily");
 #endif // LICOM_ENABLE_TEST_TIME
       my_time.start_daily();
-      my_time.start_once();
-#if (defined LICOM_ENABLE_FORTRAN) || defined(SUPHIGH)
-      // jra_daily_();
-#if defined(LOWRES)
-      cpp_jra_daily_low(iday);
-#elif defined(HIGHRES) || defined(SUPHIGH)
-      cpp_jra_daily_high(iday);
-#endif // defined(HIGHRES) || defined(SUPHIGH)
-#elif defined (LICOM_ENABLE_KOKKOS)
-#if defined(LOWRES)
-      kokkos_jra_daily_low(iday);
-#elif defined(HIGHRES) || defined(SUPHIGH)
-      kokkos_jra_daily_high(iday);
-#endif // defined(HIGHRES) || defined(SUPHIGH)
-#endif // (defined LICOM_ENABLE_VERSION)
-#ifdef LICOM_ENABLE_TEST_TIME
-      my_time.testTime_stop("jra daily");
-#endif // LICOM_ENABLE_TEST_TIME
-      my_time.end_once();
-      if (mytid == 0) {
-        printf("jra_daily time: %.3f s\n", my_time.t_once);
-      }
-      // =======================
-      // time interplate CHLOROPHYLL
-      cpp_time_interplate_chlorophyll ();
-      // =======================
+
+      daily_force_input (split_jra, jra_from_device, next_step_from_device);
 
 #ifdef LICOM_ENABLE_TEST_TIME
       my_time.testTime_start("stepon");
-      my_time.testTime_start("daily_h2d");
 #endif // LICOM_ENABLE_TEST_TIME
       my_time.start_stepon();
-
-      my_time.start_daily_h2d();
-
-      daily_update_h2d();
-
-#ifdef LICOM_ENABLE_TEST_TIME
-      my_time.testTime_stop("daily_h2d");
-#endif // LICOM_ENABLE_TEST_TIME
-      my_time.end_daily_h2d();
 
       for (ii = 1; ii <= nss; ++ii) {
 #endif // CPUP
@@ -326,8 +302,11 @@ extern "C" void licom_core_() {
           printf("write_file time: %.3f s\n", my_time.t_once);
         }
 #ifdef LICOM_ENABLE_KOKKOS
-        // nextstep_();
-        kokkos_nextstep();
+        if (next_step_from_device) {
+          kokkos_nextstep();
+        } else {
+          nextstep_();
+        }
 #else
         nextstep_();
 #endif

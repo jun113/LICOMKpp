@@ -1,5 +1,4 @@
-#ifndef LICOM3_KOKKOS_SRC_HEAD_CPP_EXTERN_FUNCTION_H_
-#define LICOM3_KOKKOS_SRC_HEAD_CPP_EXTERN_FUNCTION_H_
+#pragma once
 
 #include "def-undef.h"
 
@@ -25,11 +24,9 @@ using CppParamMod::NY_BLOCK;
 using CppIsopycMod::NRPL;
 #endif // ISO
 
-#ifdef LICOM_ENABLE_TEST_TIME
 namespace MyTest {
 extern TestTime::MyTime my_time;
 } // namespace MyTest
-#endif // LICOM_ENABLE_TEST_TIME
 
 extern void cpp_readyt();
 extern void cpp_readyc();
@@ -65,7 +62,10 @@ extern void kokkos_init_jra_daily_high();
 extern void kokkos_jra_daily_low  (const int &iday);
 extern void kokkos_jra_daily_high (const int &iday);
 
-extern void daily_update_h2d();
+extern void daily_force_input (const bool &split_jra,
+                        const bool &jra_from_device, 
+                        const bool &next_step_from_device);
+// extern void daily_update_h2d();
 extern void daily_update_d2h();
 extern void energy_d2h();
 
@@ -239,6 +239,3 @@ extern "C" void athread_get_halo_transpose_double_host (double* arrSrc, double* 
 extern "C" void athread_put_halo_transpose_double_host (double* arrSrc, double* arrObj,
     int startLayer, int lenLayer, int lenA, int lenB, int lenC);
 #endif // __sw_host__
-
-
-#endif // LICOM3_KOKKOS_SRC_HEAD_CPP_EXTERN_FUNCTION_H_

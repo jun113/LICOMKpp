@@ -1,5 +1,4 @@
-#ifndef LICOM3_KOKKOS_SRC_HEAD_FORTRAN_EXTERN_FUNCTION_H_
-#define LICOM3_KOKKOS_SRC_HEAD_FORTRAN_EXTERN_FUNCTION_H_
+#pragma once
 
 #include "def-undef.h"
 
@@ -39,6 +38,7 @@ extern "C" void scatter_global_jra_r4_(float*, float*, int*);
 extern "C" void scatter_global_jra_r8_(double*, double*, int*);
 
 extern "C" void jra_daily_();
+extern "C" void jra_daily_split_();
 extern "C" void addps_();
 extern "C" void accumm_();
 extern "C" void ssaveins_();
@@ -119,5 +119,3 @@ extern "C" void free_pmix_mod_();
 extern "C" void free_work_mod_();
 extern "C" void free_tracer_mod_();
 extern "C" void free_tmp_var_();
-
-#endif // LICOM3_KOKKOS_SRC_HEAD_FORTRAN_EXTERN_FUNCTION_H_
