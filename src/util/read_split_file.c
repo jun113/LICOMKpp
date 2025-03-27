@@ -53,7 +53,7 @@ static char file_name[256];
 void c_fopen_read_split_(char *prefix,  long* mytask)
 {
      char file_name[256];
-    sprintf(file_name, "%s_%04d", prefix, *mytask);
+    sprintf(file_name, "%s_%04ld", prefix, *mytask);
     c_my_task = *mytask;
     // char *path;
     // path = strdup(file_name);
