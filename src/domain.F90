@@ -305,7 +305,11 @@
 ! !IROUTINE: init_domain_distribution
 ! !INTERFACE:
 
+#ifndef READ_BASIN_TOPO_SPLIT
  subroutine init_domain_distribution(KMTG)
+#else
+ subroutine init_domain_distribution()
+#endif
 
 ! !DESCRIPTION:
 !  This routine calls appropriate setup routines to distribute blocks
@@ -317,9 +321,11 @@
 !  same as module
 
 ! !INPUT PARAMETERS:
-
+!xk add 20240623
+#ifndef READ_BASIN_TOPO_SPLIT
    integer (int_kind), dimension(imt_global,jmt_global), intent(in) :: &
       KMTG             ! global KMT (topography) field
+#endif
 
    integer (i4) :: &
       errorCode
@@ -355,6 +361,8 @@
       this_block         ! block information for current block
 
    integer (int_kind) :: jblock
+!xk add 20240623
+   integer*8 :: data_size
 !----------------------------------------------------------------------
 !
 !  estimate the amount of work per processor using the topography
@@ -362,6 +370,16 @@
 !----------------------------------------------------------------------
 
    allocate(nocn(nblocks_tot))
+!xk add 20240623
+#ifdef READ_BASIN_TOPO_SPLIT
+
+   data_size = 0
+   call c_fopen_read("ocn"//CHAR(0), "nocn.dir/nocn"//CHAR(0), data_size)
+   data_size = nblocks_tot * sizeof(nocn(1))
+   call c_fread(nocn(1), data_size)
+   call c_fclose()
+
+#else
 
    nocn = 0
    do n=1,nblocks_tot
@@ -385,6 +403,7 @@
       ! if ( my_task == master_task) write(*,*) "Points in Blocks", n, nocn(n)
       if (nocn(n) > 0) nocn(n) = nx_block*ny_block
    end do
+#endif
 
    work_unit = maxval(nocn)/max_work_unit + 1
 
