@@ -45,6 +45,8 @@ use shr_sys_mod
    integer (i4) :: numTaskPerGroup
    ! This task is the root task in each group
    logical :: rootTask
+!xk add 20240623
+      integer*8 :: data_size
 
       ! wjl 20240315
       numTaskPerGroup = 25
@@ -118,6 +120,11 @@ use shr_sys_mod
       END DO
 !$OMP END PARALLEL DO
  
+!xk add 20240623
+#ifdef READ_SPLIT_RDRIVER
+      data_size = imt * jmt * 8 * 25
+      call c_fopen_read("ocn"//CHAR(0), "rdriver.dir/rdriver"//CHAR(0), data_size)
+#endif
  
 !-----------------------------------------------------------------------
 !     SU3  : Sea surface zonal wind stress         (N/M**2)
@@ -299,6 +306,14 @@ use shr_sys_mod
 !input phc sss to substitute woa to use for the restoring
 !===============================================
 #if (defined SSSNORM) || (defined BOUNDNORTH)
+!xk add 20240623
+#ifdef READ_SPLIT_RDRIVER
+      data_size = imt * jmt * 12 * 8
+      call c_fread(sss3(1,1,1,1), data_size)
+      do k = 1, 12
+            sss3(:,:,k,:) = sss3(:,:,k,:) * VIT(:,:,1,:)
+      end do
+#else 
       !if(.False.) then !LPF20200308
       ! wjl 20240315
       ! if(mytid==0)then
@@ -362,6 +377,7 @@ use shr_sys_mod
       endif 
       sss3=35.0
       endif !LPF20200312
+#endif
 #endif
 
 !===============================================
@@ -439,6 +455,12 @@ use shr_sys_mod
 #endif
 
 #if ( defined TIDEMIX )
+!xk add 20240623
+#ifdef READ_SPLIT_RDRIVER
+      data_size = imt * jmt * 8
+      call c_fread(wave_dis(1,1,1), data_size)
+      wave_dis(:,:,:)=wave_dis(:,:,:)*VIT(:,:,1,:)
+#else 
 !==============================================
 !input annual mean wave dissipation
       !if(.False.) then !LPF20200307
@@ -507,12 +529,23 @@ use shr_sys_mod
                           field_loc_center, field_type_scalar)
        endif
 #endif
+#endif
 
 
 !===============================================
 !input the chlorophyll concentration
 !===============================================
 #if (defined SOLARCHLORO)
+!xk add 20240623
+#ifdef READ_SPLIT_RDRIVER
+
+      data_size = imt * jmt * 8 * 12
+      call c_fread(chloro3(1,1,1,1), data_size)
+      do k = 1, 12
+            chloro3(:,:,k,:)=chloro3(:,:,k,:)*VIT(:,:,1,:)
+      end do
+#else 
+
       ! wjl 20240315
       ! if (mytid == 0 ) then
       if (rootTask) then
@@ -565,6 +598,12 @@ use shr_sys_mod
       iret = nf_close (ncid1)
         call check_err (iret)
       endif
+#endif
+!xk add 20240623
+#endif
+!xk add 20240623
+#ifdef READ_SPLIT_RDRIVER
+      call c_fclose()
 #endif
 !==============================================
 !
