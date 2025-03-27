@@ -104,10 +104,10 @@ use hmix_del2
       AIDIF = 0.5D0
  
       LAMDA=1.0D0/(15.D0*86400.D0)
-     do k=1,45
+     do k=1,kvt
       LAMDA1(k)=1.0D0/(5.D0*86400.D0)
      enddo
-     do k=46,km
+     do k=kvt+1,km
       LAMDA1(k)=1.0D0/(5.D0*86400.D0)/(k*k/5.0/5.0)
      enddo
 
