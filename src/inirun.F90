@@ -54,11 +54,6 @@ use diag_mod
       integer*4   :: ncid1, iret1
 #if (defined HIGHRES || defined SUPHIGH)
       integer*4 :: ncid,iret !20180928
-      ! wjl 20240315
-      ! Number of tasks per group to parallel reading files
-      integer (i4) :: numTaskPerGroup
-      ! This task is the root task in each group
-      logical :: rootTask
 #endif
       !xk add 20240623
       integer*8 :: io_size 
@@ -68,6 +63,20 @@ use diag_mod
       !         at(imt,jmt,km,ntra,max_blocks_clinic))
 
       !allocate(atzwp(imt,jmt,km,ntra,max_blocks_clinic))
+      ! --------------------------
+      ! wjl 20240626
+      ! Number of tasks per group to parallel reading files
+      integer (i4) :: numTaskPerGroup
+      ! This task is the root task in each group
+      logical :: rootTask
+     
+      numTaskPerGroup = 1
+      if ((mod(my_task, numTaskPerGroup)) .eq. 0) then
+         rootTask = .True.
+      else
+         rootTask = .False.
+      endif
+      ! --------------------------
 
 
       if (mytid==0)then
@@ -177,7 +186,6 @@ use diag_mod
 #ifndef READ_SPLIT_TEMP_SALT
       allocate(buffer(imt_global,jmt_global))
 #endif
- 
      
 !
 
@@ -258,7 +266,24 @@ use diag_mod
          iret = nf_CLOSE (ncid)
 #endif
 
+#ifdef READ_SPLIT_TEMP_SALT
 
+       io_size = nx_block * ny_block * km * 8
+      
+       call c_fopen_read("ocn"//CHAR(0), "temp.dir/temp_initial"//CHAR(0), io_size)
+       call c_fread(at(1,1,1,1,1), io_size)
+       call c_fclose()
+
+       call c_fopen_read("ocn"//CHAR(0), "salt.dir/salt_initial"//CHAR(0), io_size)
+       call c_fread(at(1,1,1,2,1), io_size)
+       call c_fclose() 
+      at(:,:,:,1,1)=at(:,:,:,1,1)*VIT(:,:,:,1)
+      at(:,:,:,2,1)=at(:,:,:,2,1)*VIT(:,:,:,1)
+
+      where (at > 10e34) at = 0.0
+
+
+#else
 #if (defined SUPHIGH)
       ! buffer_real4
       allocate(buffer_real4(imt_global,jmt_global))
@@ -405,34 +430,8 @@ use diag_mod
       
 #endif 
 
-#ifdef READ_SPLIT_TEMP_SALT
-
-       io_size = nx_block * ny_block * km * 8
-      
-       call c_fopen_read("ocn"//CHAR(0), "temp.dir/temp_initial"//CHAR(0), io_size)
-       call c_fread(at(1,1,1,1,1), io_size)
-       call c_fclose()
-
-       call c_fopen_read("ocn"//CHAR(0), "salt.dir/salt_initial"//CHAR(0), io_size)
-       call c_fread(at(1,1,1,2,1), io_size)
-       call c_fclose() 
-      at(:,:,:,1,1)=at(:,:,:,1,1)*VIT(:,:,:,1)
-      at(:,:,:,2,1)=at(:,:,:,2,1)*VIT(:,:,:,1)
-
-      where (at > 10e34) at = 0.0
-
-#else
 
 #if (defined HIGHRES)
-
-      ! wjl 20240315
-     
-      numTaskPerGroup = 25
-      if ((mod(my_task, numTaskPerGroup)) .eq. 0) then
-         rootTask = .True.
-      else
-         rootTask = .False.
-      endif
 
       ! wjl 20240315
       ! if (mytid==0) then
@@ -622,7 +621,11 @@ use diag_mod
 
       RESTORE = AT
 !      RESTORE = ATZWP
-      deallocate(buffer)
+#ifndef READ_SPLIT_TEMP_SALT
+      if (allocated(buffer)) then
+        deallocate(buffer)
+      end if
+#endif
 !      deallocate(ATZWP) !ZWP20170218
 !
       end if
@@ -713,96 +716,112 @@ use diag_mod
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
  
 #else
-       if (mytid==0) then
+       ! wjl 20240626
+      !  if (mytid==0) then
           open (17,file='rpointer.ocn',form='formatted')
           read(17,'(a18)') fname
           close(17)
           open(22,file=trim(out_dir)//fname,form='unformatted')
-       end if
+      !  end if
 !
          allocate (buffer(imt_global,jmt_global))
 !
-         if (mytid==0) then
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 
-       !TODO 
+       ! wjl 20240626
 !        call scatter_global(h0,buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(h0,buffer, master_task, distrb_clinic, &
+      !    call scatter_global(h0,buffer, master_task, distrb_clinic, &
+      !                     field_loc_center, field_type_scalar)
+         call scatter_global_group_dbl(h0,buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_center, field_type_scalar)
 
          call POP_HaloUpdate(h0 , POP_haloClinic, POP_gridHorzLocCenter,&
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 !
          do k=1,km
-         if (mytid==0) then
+       ! wjl 20240626
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 !        call scatter_global(u(:,:,k,:), buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(u(:,:,k,:), buffer, master_task, distrb_clinic, &
+      !    call scatter_global(u(:,:,k,:), buffer, master_task, distrb_clinic, &
+      !                     field_loc_swcorner, field_type_vector)
+         call scatter_global_group_dbl(u(:,:,k,:), buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_swcorner, field_type_vector)
          end do
          call POP_HaloUpdate(u , POP_haloClinic, POP_gridHorzLocSWcorner , &
                        POP_fieldKindVector, errorCode, fillValue = 0.0_r8)
 !
          do k=1,km
-         if (mytid==0) then
+       ! wjl 20240626
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 !        call scatter_global(v(:,:,k,:),buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(v(:,:,k,:),buffer, master_task, distrb_clinic, &
+      !    call scatter_global(v(:,:,k,:),buffer, master_task, distrb_clinic, &
+      !                     field_loc_swcorner, field_type_vector)
+         call scatter_global_group_dbl(v(:,:,k,:),buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_swcorner, field_type_vector)
          end do
          call POP_HaloUpdate(v , POP_haloClinic, POP_gridHorzLocSWcorner , &
                        POP_fieldKindVector, errorCode, fillValue = 0.0_r8)
 !
          do k=1,km
-         if (mytid==0) then
+       ! wjl 20240626
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 !        call scatter_global(at(:,:,k,1,:),buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(at(:,:,k,1,:),buffer, master_task, distrb_clinic, &
+      !    call scatter_global(at(:,:,k,1,:),buffer, master_task, distrb_clinic, &
+      !                     field_loc_center, field_type_scalar)
+         call scatter_global_group_dbl(at(:,:,k,1,:),buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_center, field_type_scalar)
          end do
          call POP_HaloUpdate(at(:,:,:,1,:) , POP_haloClinic, POP_gridHorzLocCenter , &
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 !
          do k=1,km
-         if (mytid==0) then
+       ! wjl 20240626
+      !    if (mytid==0) then
          READ (22)buffer
-         end if
+      !    end if
 !        call scatter_global(at(:,:,k,2,:),buffer(2:imt_global+1,:), master_task, distrb_clinic, &
-         call scatter_global(at(:,:,k,2,:),buffer, master_task, distrb_clinic, &
+      !    call scatter_global(at(:,:,k,2,:),buffer, master_task, distrb_clinic, &
+      !                     field_loc_center, field_type_scalar)
+         call scatter_global_group_dbl(at(:,:,k,2,:),buffer, numTaskPerGroup, distrb_clinic, &
                           field_loc_center, field_type_scalar)
          end do
          call POP_HaloUpdate(at(:,:,:,2,:) , POP_haloClinic, POP_gridHorzLocCenter , &
                        POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
 !lhl20110728 for ws
          do k=1,km
-         if (mytid==0) READ (22)buffer
+         READ (22)buffer
          end do
-         if (mytid==0) READ (22)buffer !su
-         if (mytid==0) READ (22)buffer !sv
-         if (mytid==0) READ (22)buffer !swv
-         if (mytid==0) READ (22)buffer !sshf
-         if (mytid==0) READ (22)buffer !lthf
-         if (mytid==0) READ (22)buffer  !fresh
+         READ (22)buffer !su
+         READ (22)buffer !sv
+         READ (22)buffer !swv
+         READ (22)buffer !sshf
+         READ (22)buffer !lthf
+         READ (22)buffer  !fresh
         ! if (mytid==0) READ (22)buffer
         !if (mytid==0) READ (22)buffer !add lwv !noneed for new
         ! if (mytid==0) READ (22)buffer
         ! if (mytid==0) READ (22)buffer
 !lhl20110728
-         if (mytid == 0) then
+      !    wjl 20240626
+      !    if (mytid == 0) then
           read(22)number_month,number_day
            if(nstart==3) then !for branch run !LPF20170621
              number_month= yearadd*12+number_month 
              number_day= dayadd+number_day
            endif
            month= number_month
-         endif
-      call mpi_bcast(month,1,mpi_integer,0,mpi_comm_ocn,ierr)
-      call mpi_bcast(number_month,1,mpi_integer,0,mpi_comm_ocn,ierr)
-      call mpi_bcast(number_day,1,mpi_integer,0,mpi_comm_ocn,ierr)
+      !    endif
+      ! call mpi_bcast(month,1,mpi_integer,0,mpi_comm_ocn,ierr)
+      ! call mpi_bcast(number_month,1,mpi_integer,0,mpi_comm_ocn,ierr)
+      ! call mpi_bcast(number_day,1,mpi_integer,0,mpi_comm_ocn,ierr)
       ! wjl 20240204
             ! write(*,*) 'number_month =',number_month,'mon0=',mon0,&
             !            'number_day=',number_day,'iday=',iday
@@ -885,8 +904,11 @@ use diag_mod
 !Yu
 
 #endif
+         if (allocated(buffer)) then
           deallocate(buffer)
-          if (mytid == 0) CLOSE(22)
+         end if
+          ! wjl 20240626
+      !     if (mytid == 0) CLOSE(22)
 !xk add 20240626
 #endif
 
@@ -955,5 +977,3 @@ use diag_mod
       RETURN
 
       END SUBROUTINE INIRUN
- 
-
