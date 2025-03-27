@@ -60,6 +60,9 @@ use diag_mod
       ! This task is the root task in each group
       logical :: rootTask
 #endif
+      !xk add 20240623
+      integer*8 :: io_size 
+      integer*4 :: r_month, r_day
       ! wjl 2021/08/03 allocate in dyn_mod
       !allocate(h0(imt,jmt,max_blocks_clinic),u(imt,jmt,km,max_blocks_clinic),v(imt,jmt,km,max_blocks_clinic), &
       !         at(imt,jmt,km,ntra,max_blocks_clinic))
@@ -171,7 +174,9 @@ use diag_mod
       IF (NSTART == 1 .or. boundary_restore > 0 ) THEN
 !
       MONTH = 1
+#ifndef READ_SPLIT_TEMP_SALT
       allocate(buffer(imt_global,jmt_global))
+#endif
  
      
 !
@@ -400,6 +405,23 @@ use diag_mod
       
 #endif 
 
+#ifdef READ_SPLIT_TEMP_SALT
+
+       io_size = nx_block * ny_block * km * 8
+      
+       call c_fopen_read("ocn"//CHAR(0), "temp.dir/temp_initial"//CHAR(0), io_size)
+       call c_fread(at(1,1,1,1,1), io_size)
+       call c_fclose()
+
+       call c_fopen_read("ocn"//CHAR(0), "salt.dir/salt_initial"//CHAR(0), io_size)
+       call c_fread(at(1,1,1,2,1), io_size)
+       call c_fclose() 
+      at(:,:,:,1,1)=at(:,:,:,1,1)*VIT(:,:,:,1)
+      at(:,:,:,2,1)=at(:,:,:,2,1)*VIT(:,:,:,1)
+
+      where (at > 10e34) at = 0.0
+
+#else
 
 #if (defined HIGHRES)
 
@@ -544,6 +566,9 @@ use diag_mod
       iret = nf_CLOSE (ncid)
       iret1 = nf_CLOSE (ncid1)
 #endif
+!xk add 20240623
+#endif
+! READ_SPLIT_TEMP_SALT
 
  
        call POP_HaloUpdate(at(:,:,:,1,:) , POP_haloClinic, POP_gridHorzLocCenter,&
@@ -634,7 +659,60 @@ use diag_mod
 !     ------------------------------------------------------------------
 !     READ INTERMEDIATE RESULTS (fort.22/fort.21)
 !     ------------------------------------------------------------------
+!xk add 20240626
+#ifdef SPLIT_RPT
+      io_size = nx_block * ny_block * (4 * km  + 1)* 8
+      call c_fopen_read("ocn"//CHAR(0), "rpt.dir/rpt"//CHAR(0), io_size)
+
+      io_size = nx_block * ny_block * 1 * 8
+      call c_fread(h0(1,1,1), io_size)
+
+      io_size = nx_block * ny_block * km * 8
+      call c_fread(u(1,1,1,1), io_size)
+      call c_fread(v(1,1,1,1), io_size)
+      call c_fread(at(1,1,1,1,1), io_size)
+      call c_fread(at(1,1,1,2,1), io_size)
+      call c_fclose()
+
+      do n = 1, ntra
+      do k = 1, km
+      do j = 1, jmt
+      do i = 1, imt
+         at(i,j,k,n,1) = at(i,j,k,n,1) * vit(i,j,k,1)
+      enddo
+      enddo
+      enddo
+      enddo
+
+      io_size = 4 * 2
+      call c_fopen_read("ocn"//CHAR(0), "date.dir/date"//CHAR(0), io_size)
+      
+      io_size = 4
+      call c_fread(r_month, io_size)
+      call c_fread(r_day, io_size)
+      call c_fclose()
+      number_month = r_month
+      number_day = r_day
+      if(nstart==3) then !for branch run !LPF20170621
+            number_month= yearadd*12+number_month 
+            number_day= dayadd+number_day
+      endif
+      month= number_month
+
+       if(mytid == 0)     write(*,*) 'number_month =',number_month,'mon0=',mon0,&
+                       'number_day=',number_day,'iday=',iday, r_month, r_day
+       call POP_HaloUpdate(h0 , POP_haloClinic, POP_gridHorzLocCenter,&
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      call POP_HaloUpdate(u , POP_haloClinic, POP_gridHorzLocSWcorner , &
+                  POP_fieldKindVector, errorCode, fillValue = 0.0_r8)
+      call POP_HaloUpdate(v , POP_haloClinic, POP_gridHorzLocSWcorner , &
+                       POP_fieldKindVector, errorCode, fillValue = 0.0_r8)
+      call POP_HaloUpdate(at(:,:,:,1,:) , POP_haloClinic, POP_gridHorzLocCenter , &
+                  POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
+      call POP_HaloUpdate(at(:,:,:,2,:) , POP_haloClinic, POP_gridHorzLocCenter , &
+                       POP_fieldKindScalar, errorCode, fillValue = 0.0_r8)
  
+#else
        if (mytid==0) then
           open (17,file='rpointer.ocn',form='formatted')
           read(17,'(a18)') fname
@@ -809,6 +887,8 @@ use diag_mod
 #endif
           deallocate(buffer)
           if (mytid == 0) CLOSE(22)
+!xk add 20240626
+#endif
 
        if (simple_assm.and.nstart==1) then !LPF20170821 
              number_month= yearadd*12+number_month
