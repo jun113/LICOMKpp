@@ -113,7 +113,12 @@ void pop_haloupdate_barotr_work(const int &len_k, const int &n_layers) {
   //     CppDomain::POP_haloClinic, 
   //     CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
   //     CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
-  CppPOPHaloMod::pop_halo_update_2dr8(work[iblock],
+  // CppPOPHaloMod::pop_halo_update_2dr8(work[iblock],
+  //     CppDomain::POP_haloClinic_C, 
+  //     CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+  //     CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
+
+  CppPOPHaloMod::pop_halo_update(&(work[iblock][0][0]), IMT, 
       CppDomain::POP_haloClinic_C, 
       CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
       CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
@@ -242,6 +247,7 @@ POP Halo Update: wka[3], wka[4]
 #endif // LICOM_ENABLE_TEST_HALO_UPDATE
   // int errorCode;
   // pop_haloupdate_barotr2_(&errorCode, &errorCode);
+  /*
   CppPOPHaloMod::pop_halo_update_2dr8(wka[iblock][2],
       CppDomain::POP_haloClinic_C, 
       CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
@@ -250,12 +256,11 @@ POP Halo Update: wka[3], wka[4]
       CppDomain::POP_haloClinic_C, 
       CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
       CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
-  /*
-  CppPOPHaloMod::pop_halo_update(wka[iblock][2], 2, JMT, IMT,
+  */
+  CppPOPHaloMod::pop_halo_update(&wka[iblock][2][0][0], 2, JMT, IMT,
       CppDomain::POP_haloClinic_C, 
       CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_SW_CORNER,
       CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_VECTOR);
-  */
 #ifdef LICOM_ENABLE_TEST_HALO_UPDATE
   my_time.testTime_stop("barotr halo");
   my_time.testTime_start("barotr memcpy");

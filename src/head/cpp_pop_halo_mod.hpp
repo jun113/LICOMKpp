@@ -353,7 +353,7 @@ void pop_halo_update(T* const array, const int &I0,
 	// !
 	// !-----------------------------------------------------------------------
 
-  if (nxGlobal > 0) {
+  if (nxGlobal > 0 && numLocalCopies > 0) {
     if (fieldKind == FLAG_POP_FIELD_KIND_SCALAR) {
       isign =  1;
     } else if (fieldKind == FLAG_POP_FIELD_KIND_VECTOR) {
@@ -681,7 +681,7 @@ void pop_halo_update(T* const array,
 	// !-----------------------------------------------------------------------
 
 
-  if (nxGlobal > 0) {
+  if (nxGlobal > 0 && numLocalCopies > 0) {
     // sign factor for tripole grids
     int isign(0);
     if (fieldKind == FLAG_POP_FIELD_KIND_SCALAR) {
@@ -1038,7 +1038,7 @@ void pop_halo_update_priority_k (T* const array,
 	// !-----------------------------------------------------------------------
 
 
-  if (nxGlobal > 0) {
+  if (nxGlobal > 0 && numLocalCopies > 0) {
     // sign factor for tripole grids
     int isign(0);
     if (fieldKind == FLAG_POP_FIELD_KIND_SCALAR) {
