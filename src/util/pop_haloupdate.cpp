@@ -1861,6 +1861,216 @@ void gpu_put_halo_transpose_tracer (double* const arrSrc, const ViewDouble4D &vi
               startLayer, lenLayer, lenA, lenB, lenC, max_num_block));
   return ;
 }
+
+void gpu_get_halo_transpose_tracer_overlap (const ViewDouble4D &viewSrc, double* const arrObj,
+    const int &startLayer, const int &lenLayer, const int &lenA, const int &lenB, const int &lenC, const int &nn) {
+
+  using Kokkos::parallel_for;
+  using Kokkos::MDRangePolicy;
+
+  int start_b[4], end_b[4];
+  int start_c[4], end_c[4];
+
+  start_b[0] = startLayer;
+  start_b[1] = startLayer + lenLayer;
+  start_b[2] = startLayer + lenLayer;
+  start_b[3] = lenB - startLayer - lenLayer;
+  end_b[0]   = startLayer + lenLayer;
+  end_b[1]   = lenB - startLayer - lenLayer;
+  end_b[2]   = lenB - startLayer - lenLayer;
+  end_b[3]   = lenB - startLayer;
+  start_c[0] = startLayer;
+  start_c[1] = startLayer;
+  start_c[2] = lenC - startLayer - lenLayer;
+  start_c[3] = startLayer;
+  end_c[0]   = lenC - startLayer;
+  end_c[1]   = startLayer + lenLayer;
+  end_c[2]   = lenC - startLayer;
+  end_c[3]   = lenC - startLayer;
+
+  int num_block[2];
+  num_block[0] = (end_b[0] - start_b[0]) * (end_c[0] - start_c[0]);
+  num_block[1] = (end_b[1] - start_b[1]) * (end_c[1] - start_c[1]);
+
+  const int total_num_block = (num_block[0] << 1) 
+                            + (num_block[1] << 1);
+
+  const int max_num_block = std::max(num_block[0], num_block[1]);
+
+  static auto dev = Kokkos::DefaultExecutionSpace();
+
+  static auto v_halo_buffer_sub = Kokkos::subview(*KokkosTmpVar::p_v_halo_buffer,
+      Kokkos::make_pair(0, lenA * total_num_block));
+
+  static Kokkos::View<double *, Layout, 
+      Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_buffer(halo_buffer, lenA * total_num_block);
+
+  const int team_size   = 128;
+  const int league_size = (lenA * max_num_block + team_size - 1) / team_size;
+
+  parallel_for ("d2h_pop_halo_trans_k", Kokkos::TeamPolicy<>(
+      league_size, team_size),
+          FuncGetHaloTransDouble(viewSrc, v_halo_buffer_sub,
+              startLayer, lenLayer, lenA, lenB, lenC, max_num_block));
+
+  Kokkos::deep_copy (dev, h_v_buffer, v_halo_buffer_sub);
+
+  const int stride_obj = lenC * lenA;
+
+  int len_block_b = lenLayer;
+  int len_block_c = end_c[0] - start_c[0];
+  for (int idx_b = 0; idx_b < len_block_b; ++idx_b) {
+    for (int idx_c = 0; idx_c < len_block_c; ++idx_c) {
+      for (int idx_a = 0; idx_a < lenA; ++idx_a) {
+        arrObj[(start_b[0]+idx_b)*stride_obj + (start_c[0]+idx_c)*lenA + idx_a] =
+            h_v_buffer(idx_a*num_block[0] + idx_b*len_block_c + idx_c);
+      }
+    }
+  }
+
+  int start_buff = lenA * num_block[0];
+  len_block_b = end_b[1] - start_b[1];
+  len_block_c = lenLayer;
+  for (int idx_b = 0; idx_b < len_block_b; ++idx_b) {
+    for (int idx_c = 0; idx_c < len_block_c; ++idx_c) {
+      for (int idx_a = 0; idx_a < lenA; ++idx_a) {
+        arrObj[(start_b[1]+idx_b)*stride_obj + (start_c[1]+idx_c)*lenA + idx_a] =
+            h_v_buffer(start_buff + idx_a*num_block[1] + idx_b*len_block_c + idx_c);
+      }
+    }
+  }
+
+  start_buff += (lenA * num_block[1]);
+  len_block_b = end_b[2] - start_b[2];
+  len_block_c = lenLayer;
+  for (int idx_b = 0; idx_b < len_block_b; ++idx_b) {
+    for (int idx_c = 0; idx_c < len_block_c; ++idx_c) {
+      for (int idx_a = 0; idx_a < lenA; ++idx_a) {
+        arrObj[(start_b[2]+idx_b)*stride_obj + (start_c[2]+idx_c)*lenA + idx_a] =
+            h_v_buffer(start_buff + idx_a*num_block[1] + idx_b*len_block_c + idx_c);
+      }
+    }
+  }
+
+  start_buff += (lenA * num_block[1]);
+  len_block_b = lenLayer;
+  len_block_c = end_c[3] - start_c[3];
+  for (int idx_b = 0; idx_b < len_block_b; ++idx_b) {
+    for (int idx_c = 0; idx_c < len_block_c; ++idx_c) {
+      for (int idx_a = 0; idx_a < lenA; ++idx_a) {
+        arrObj[(start_b[3]+idx_b)*stride_obj + (start_c[3]+idx_c)*lenA + idx_a] =
+            h_v_buffer(start_buff + idx_a*num_block[0] + idx_b*len_block_c + idx_c);
+      }
+    }
+  }
+
+  return ;
+}
+
+void gpu_put_halo_transpose_tracer_overlap (double* const arrSrc, const ViewDouble4D &viewDst, 
+    const int &startLayer, const int &lenLayer, const int &lenA, const int &lenB, const int &lenC, const int &nn) {
+
+  using Kokkos::parallel_for;
+  using Kokkos::MDRangePolicy;
+
+  int start_b[4], end_b[4];
+  int start_c[4], end_c[4];
+
+  start_b[0] = startLayer;
+  start_b[1] = startLayer + lenLayer;
+  start_b[2] = startLayer + lenLayer;
+  start_b[3] = lenB - startLayer - lenLayer;
+  end_b[0]   = startLayer + lenLayer;
+  end_b[1]   = lenB - startLayer - lenLayer;
+  end_b[2]   = lenB - startLayer - lenLayer;
+  end_b[3]   = lenB - startLayer;
+  start_c[0] = startLayer;
+  start_c[1] = startLayer;
+  start_c[2] = lenC - startLayer - lenLayer;
+  start_c[3] = startLayer;
+  end_c[0]   = lenC - startLayer;
+  end_c[1]   = startLayer + lenLayer;
+  end_c[2]   = lenC - startLayer;
+  end_c[3]   = lenC - startLayer;
+
+  int num_block[2];
+  num_block[0] = (end_b[0] - start_b[0]) * (end_c[0] - start_c[0]);
+  num_block[1] = (end_b[1] - start_b[1]) * (end_c[1] - start_c[1]);
+
+  const int total_num_block = (num_block[0] + num_block[1]) << 1;
+
+  const int max_num_block = std::max(num_block[0], num_block[1]);
+
+  static auto dev = Kokkos::DefaultExecutionSpace();
+
+  static auto v_halo_buffer_sub = Kokkos::subview(*KokkosTmpVar::p_v_halo_buffer,
+      Kokkos::make_pair(0, lenA * total_num_block));
+
+  static Kokkos::View<double *, Layout, 
+      Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>> 
+          h_v_buffer(halo_buffer, lenA * total_num_block);
+
+  const int team_size   = 128;
+  const int league_size = (lenA * max_num_block + team_size - 1) / team_size;
+
+  const int stride_src = lenC * lenA;
+
+  int len_block_b = lenLayer;
+  int len_block_c = end_c[0] - start_c[0];
+  for (int idx_b = 0; idx_b < len_block_b; ++idx_b) {
+    for (int idx_c = 0; idx_c < len_block_c; ++idx_c) {
+      for (int idx_a = 0; idx_a < lenA; ++idx_a) {
+        h_v_buffer(idx_a*num_block[0] + idx_b*len_block_c + idx_c) = 
+            arrSrc[(start_b[0]+idx_b)*stride_src + (start_c[0]+idx_c)*lenA + idx_a];
+      }
+    }
+  }
+
+  int start_buff = lenA * num_block[0];
+  len_block_b = end_b[1] - start_b[1];
+  len_block_c = lenLayer;
+  for (int idx_b = 0; idx_b < len_block_b; ++idx_b) {
+    for (int idx_c = 0; idx_c < len_block_c; ++idx_c) {
+      for (int idx_a = 0; idx_a < lenA; ++idx_a) {
+        h_v_buffer(start_buff + idx_a*num_block[1] + idx_b*len_block_c + idx_c) = 
+            arrSrc[(start_b[1]+idx_b)*stride_src + (start_c[1]+idx_c)*lenA + idx_a];
+      }
+    }
+  }
+
+  start_buff += (lenA * num_block[1]);
+  len_block_b = end_b[2] - start_b[2];
+  len_block_c = lenLayer;
+  for (int idx_b = 0; idx_b < len_block_b; ++idx_b) {
+    for (int idx_c = 0; idx_c < len_block_c; ++idx_c) {
+      for (int idx_a = 0; idx_a < lenA; ++idx_a) {
+        h_v_buffer(start_buff + idx_a*num_block[1] + idx_b*len_block_c + idx_c) = 
+            arrSrc[(start_b[2]+idx_b)*stride_src + (start_c[2]+idx_c)*lenA + idx_a];
+      }
+    }
+  }
+
+  start_buff += (lenA * num_block[1]);
+  len_block_b = lenLayer;
+  len_block_c = end_c[3] - start_c[3];
+  for (int idx_b = 0; idx_b < len_block_b; ++idx_b) {
+    for (int idx_c = 0; idx_c < len_block_c; ++idx_c) {
+      for (int idx_a = 0; idx_a < lenA; ++idx_a) {
+        h_v_buffer(start_buff + idx_a*num_block[0] + idx_b*len_block_c + idx_c) = 
+            arrSrc[(start_b[3]+idx_b)*stride_src + (start_c[3]+idx_c)*lenA + idx_a];
+      }
+    }
+  }
+
+  Kokkos::deep_copy (dev, v_halo_buffer_sub, h_v_buffer);
+
+  parallel_for ("h2d_pop_halo_trans_k", Kokkos::TeamPolicy<>(
+      league_size, team_size),
+          FuncPutHaloTransDouble(v_halo_buffer_sub, viewDst,
+              startLayer, lenLayer, lenA, lenB, lenC, max_num_block));
+  return ;
+}
 #endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
 
 #endif // !defined(LICOM_ENABLE_FORTRAN)

@@ -26,7 +26,7 @@ using namespace::std;
 
 namespace CppPOPHaloMod {
 
-double* arrCommPriorK = new double[CppParamMod::KM 
+double* arrCommPriorK = new double[2 * CppParamMod::KM 
 		* CppParamMod::JMT * CppParamMod::IMT];
 
 #ifdef LICOM_ENABLE_FORTRAN_COMPILER_INTEL
@@ -97,6 +97,24 @@ MPI_Request* rcvRequest = nullptr;
 // MPI status flags
 MPI_Status* sndStatus = nullptr;
 MPI_Status* rcvStatus = nullptr;
+
+// overlap
+
+// buffer for use to send max in 3D r8 halo updates
+// [numMsgSend][bufSizeSend * KM]
+double* bufSendOverlap = nullptr;
+// buffer for use to recv max in 3D r8 halo updates
+// [numMsgRecv][bufSizeRecv * KM]
+double* bufRecvOverlap = nullptr;
+// [KM][POP_haloWidth+1][nxGlobal]
+double* bufTripoleOverlap = nullptr;
+// MPI request ids
+MPI_Request* sndRequestOverlap = nullptr;
+MPI_Request* rcvRequestOverlap = nullptr;
+// MPI status flags
+MPI_Status* sndStatusOverlap = nullptr;
+MPI_Status* rcvStatusOverlap = nullptr;
+
 
 // POP_HaloIncrementMsgCount
 void pop_halo_increment_msg_count(
@@ -1790,6 +1808,30 @@ void pop_halo_create_from_fortran(CppPOPHaloMod::POPHalo &halo) {
 	if (bufRecv == nullptr) {
 		bufRecv = new double[bufSizeRecv * halo.numMsgRecv * KM];
 	}
+
+    // Overlap
+    if (CppPOPHaloMod::sndRequestOverlap == nullptr) {
+      CppPOPHaloMod::sndRequestOverlap = new MPI_Request[2 * halo.numMsgSend];
+    }
+    if (CppPOPHaloMod::rcvRequestOverlap == nullptr) {
+      CppPOPHaloMod::rcvRequestOverlap = new MPI_Request[2 * halo.numMsgRecv];
+    }
+    if (CppPOPHaloMod::sndStatusOverlap == nullptr) {
+      CppPOPHaloMod::sndStatusOverlap = new MPI_Status[2 * halo.numMsgSend];
+    }
+    if (CppPOPHaloMod::rcvStatusOverlap == nullptr) {
+      CppPOPHaloMod::rcvStatusOverlap = new MPI_Status[2 * halo.numMsgRecv];
+    }
+
+    if (bufTripoleOverlap == nullptr) {
+      bufTripoleOverlap = new double[2 * (POP_HALO_WIDTH + 1) * IMT_GLOBAL * KM];
+    }
+    if (bufSendOverlap == nullptr) {
+      bufSendOverlap = new double[2 * bufSizeSend * halo.numMsgSend * KM];
+    }
+    if (bufRecvOverlap == nullptr) {
+      bufRecvOverlap = new double[2 * bufSizeRecv * halo.numMsgRecv * KM];
+    }
 
   // printf("c mytid %d, communicator %d, numMsgSend %d, numMsgRecv %d, numLocalCopies %d, bufSizeSend %d, bufSizeRecv %d\n", 
   // CppParamMod::mytid, halo.communicator, halo.numMsgSend, halo.numMsgRecv, halo.numLocalCopies, bufSizeSend, bufSizeRecv);

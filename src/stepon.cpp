@@ -285,6 +285,7 @@ void stepon(const int &mm) {
 #elif defined (LICOM_ENABLE_KOKKOS)
   // tracer_();
   kokkos_tracer();
+  // kokkos_tracer_overlap();
 #endif // LICOM_ENABLE_VERSIONS
 
 #if defined(LICOM_ENABLE_NCU)

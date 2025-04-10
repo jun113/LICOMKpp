@@ -50,6 +50,10 @@ extern void kokkos_tracer();
 extern void kokkos_icesnow();
 extern void kokkos_convadj();
 
+extern void kokkos_barotr_overlap();
+extern void kokkos_bclinc_overlap();
+extern void kokkos_tracer_overlap();
+
 extern void read_jra (const int &start_day, const int &num_day, 
 		const char* fname, float* const val);
 extern void read_jra (const char* fname, double* const buffer, 

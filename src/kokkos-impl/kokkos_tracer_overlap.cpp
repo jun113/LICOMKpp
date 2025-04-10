@@ -6,7 +6,7 @@
 #include <mpi.h>
 
 // TRACER
-void kokkos_tracer() {
+void kokkos_tracer_overlap() {
 
 //   using CppDomain  ::nblocks_clinic;
   using CppParamMod::mytid;
@@ -102,8 +102,10 @@ void kokkos_tracer() {
   parallel_for ("tracer_1", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorTracer1(aa));
 
-  parallel_for ("tracer_2", MDRangePolicy<Kokkos::Rank<3>> (
-      koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracer2(aa));
+  // parallel_for ("tracer_2", MDRangePolicy<Kokkos::Rank<3>> (
+  //     koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracer2(aa));
+  parallel_for ("tracer_overlap_2", MDRangePolicy<Kokkos::Rank<3>> (
+      koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracerOverlap2(aa));
 
   parallel_for ("tracer_3_upwell_1", MDRangePolicy<Kokkos::Rank<2>> (
       koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorTracer3());
@@ -521,8 +523,10 @@ void kokkos_tracer() {
 
     if (flag_adv_tracer == 3) {
 
-      parallel_for ("tracer_30", MDRangePolicy<Kokkos::Rank<3>> (
-          koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorTracer30(n));
+      // parallel_for ("tracer_30", MDRangePolicy<Kokkos::Rank<3>> (
+      //     koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorTracer30(n));
+      parallel_for ("tracer_overlap_30", MDRangePolicy<Kokkos::Rank<3>> (
+          koArr3D{0, 2, 2}, koArr3D{KM, JMT-2, IMT-2}, tile3D), FunctorTracerOverlap30(n));
 
     } else if (flag_adv_tracer == 1) {
 
@@ -537,184 +541,109 @@ void kokkos_tracer() {
       exit(0);
     }
 
-    // Invalid calculation
-    // parallel_for("tracer_31", MDRangePolicy<Kokkos::Rank<3>>
-    //     ({0, 0, 0}, {KM, JMT, IMT}, tile3D), FunctorTracer31());
-
     // invtrit(vtl, stf, wkc, aidif, c2dtts)
-    parallel_for ("tracer_32_invtrit", MDRangePolicy<Kokkos::Rank<2>> (
-        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracer32 (c2dtts));
+    // parallel_for ("tracer_32_invtrit", MDRangePolicy<Kokkos::Rank<2>> (
+    //     koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracer32 (c2dtts));
+    parallel_for ("tracer_overlap_32_invtrit", MDRangePolicy<Kokkos::Rank<2>> (
+        koArr2D{2, 2}, koArr2D{JMT-2, IMT-2}, tile2D), FunctorTracerOverlap32 (n, c2dtts));
     // End invtrit
   
     //--------------------
 #ifdef LICOM_ENABLE_TEST_TRACER
     my_time.testTime_start("tracer haloupdate vtl");
 #endif // LICOM_ENABLE_TEST_TRACER
+
+    if (n == 0) {
 #ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
-    // CUDA HIP memcpy
-    // pop_haloupdate_tracer_2(KM);
-  gpu_get_halo_transpose_tracer (*p_v_vtl, CppPOPHaloMod::arrCommPriorK,
-      2, 3, KM, JMT, IMT);
-  pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
+  gpu_get_halo_transpose_tracer_overlap (*p_v_work_merged, CppPOPHaloMod::arrCommPriorK,
+      2, 3, KM, JMT, IMT, 0);
+  pop_halo_update_priority_k_overlap_isend_irecv (CppPOPHaloMod::arrCommPriorK,
       KM, JMT, IMT, 
       CppDomain::POP_haloClinic_C, 
       CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
-      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
-  gpu_put_halo_transpose_tracer (CppPOPHaloMod::arrCommPriorK, *p_v_vtl,
-      0, 3, KM, JMT, IMT);
-// #elif (defined KOKKOS_ENABLE_ATHREAD)
-
-//   athread_get_halo_transpose_double_host ((*p_v_vtl).data(), CppPOPHaloMod::arrCommPriorK,
-//       2, 3, KM, JMT, IMT);
-
-//   pop_halo_update_priority_k (CppPOPHaloMod::arrCommPriorK,
-//       KM, JMT, IMT, 
-//       CppDomain::POP_haloClinic_C, 
-//       CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
-//       CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
-
-//   athread_put_halo_transpose_double_host (CppPOPHaloMod::arrCommPriorK, (*p_v_vtl).data(), 
-//       0, 3, KM, JMT, IMT);
-
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR, 0);
 #else
-    CppPOPHaloMod::pop_halo_update((*p_v_vtl).data(), KM, JMT, IMT,
-        CppDomain::POP_haloClinic_C, 
-        CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
-        CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR);
+  pop_halo_update_overlap_isend_irecv ((*p_v_work_merged).data(),
+      KM, JMT, IMT, 
+      CppDomain::POP_haloClinic_C, 
+      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR, 0);
 #endif
-
+    }
 #ifdef LICOM_ENABLE_TEST_TRACER
     my_time.testTime_stop("tracer haloupdate vtl");
 #endif // LICOM_ENABLE_TEST_TRACER
     //--------------------
-
-    // Invalid calculation
-    // parallel_for ("tracer_33", MDRangePolicy<Kokkos::Rank<2>> (
-    //     koArr2D{0, 0}, koArr2D{JMT, IMT}, tile2D), FunctorTracer33 (n, c2dtts));
-    // parallel_for ("tracer_34", MDRangePolicy<Kokkos::Rank<3>> (
-    //     koArr3D{1, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracer34 (n, c2dtts));
-
-    //const char* horiz_grid_opt_lat_lon  = "lat_lon";
-    //if (str_trim_cmp(horiz_grid_opt, horiz_grid_opt_lat_lon) == 0) {
-    // wjl 20230328
-    // Needed for 419
-    if (false) {
-      printf ("tracer lat_lon\n");
-      if (ist % 180 == 1) {
-        // smts(vtl, vit, fil_lat2)
-        parallel_for("tracer_smts_1_1", JMT, functor_tracer_smts_1());
-
-        const double fil_lat2 = 63.0;
-        parallel_for("tracer_smts_1_2", 
-            Kokkos::RangePolicy<>(JMT-2, 2), functor_tracer_smts_2(fil_lat2));
-
-        parallel_for("tracer_smts_1_3", MDRangePolicy<Kokkos::Rank<2>>
-            ({2, 0}, {JMT-2, KM}), functor_tracer_smts_3());
-        // End smts(vtl, vit, fil_lat2)
-
-        //============================================
-        // pop haloupdate
-        //--------------------
-        //pop_haloupdate_smts_(&errorCode);
-        //--------------------
-        // End pop haloupdate
-        //============================================
-
-        // End smts
-      } else {
-        if (flag_adv_tracer == 3) {
-          parallel_for("tracer_27", MDRangePolicy<Kokkos::Rank<2>>
-              ({0, 0}, {JMT, IMT}), functor_tracer_27(n));
-
-          parallel_for("tracer_28", MDRangePolicy<Kokkos::Rank<3>>
-              ({1, 0, 0}, {KM, JMT, IMT}), functor_tracer_28(n));
-
-        } else if (flag_adv_tracer == 1) {
-
-          parallel_for("tracer_29", MDRangePolicy<Kokkos::Rank<2>>
-              ({0, 0}, {JMT, IMT}), functor_tracer_29(n, c2dtts));
-
-          parallel_for("tracer_30", MDRangePolicy<Kokkos::Rank<3>>
-              ({1, 0, 0}, {KM, JMT, IMT}), functor_tracer_30(n));
-
-        } else {
-          if (mytid == 0) {
-            printf ("%s, %d\n", __FILE__, __LINE__);
-            printf("The false advection option for tracer\n");
-          }
-          exit(0);
-        }
-        // smts(vtl, vit, fil_lat1)
-        parallel_for("tracer_smts_2_1", JMT, functor_tracer_smts_1());
-
-        const double fil_lat1 = 63.0;
-        parallel_for("tracer_smts_2_2", 
-            Kokkos::RangePolicy<>(2, JMT-2), functor_tracer_smts_2(fil_lat1));
-
-        parallel_for("tracer_smts_2_3", MDRangePolicy<Kokkos::Rank<2>>
-            ({2, 0}, {JMT-2, KM}), functor_tracer_smts_3());
-
-        //============================================
-        // pop haloupdate
-        //--------------------
-        //pop_haloupdate_smts_(&errorCode);
-        //--------------------
-        // End pop haloupdate
-        //============================================
-
-        // End smts
-        if (flag_adv_tracer == 3) {
-
-          parallel_for("tracer_31", MDRangePolicy<Kokkos::Rank<2>>
-              ({0, 0}, {JMT, IMT}), functor_tracer_31(n));
-
-          parallel_for("tracer_32", MDRangePolicy<Kokkos::Rank<3>>
-              ({1, 0, 0}, {KM, JMT, IMT}), functor_tracer_32(n));
-
-        } else if (flag_adv_tracer == 1) {
-
-          parallel_for("tracer_33", MDRangePolicy<Kokkos::Rank<2>>
-              ({0, 0}, {JMT, IMT}), functor_tracer_33(n, c2dtts));
-
-          parallel_for("tracer_34", MDRangePolicy<Kokkos::Rank<3>>
-              ({1, 0, 0}, {KM, JMT, IMT}), functor_tracer_34(n));
-
-        } else {
-          if (mytid == 0) {
-            printf ("%s, %d\n", __FILE__, __LINE__);
-            printf("The false advection option for tracer\n");
-          }
-          exit(0);
-        }
-      }
-    } // false
-    // =============
-
-    if (flag_adv_tracer == 3) {
-      parallel_for ("tracer_35", MDRangePolicy<Kokkos::Rank<3>> (
-          koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracer35(n, c2dtts));
-    } else if (flag_adv_tracer == 1) {
-
-      parallel_for("tracer_35", MDRangePolicy<Kokkos::Rank<3>>
-          (koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), functor_tracer_35(n, c2dtts));
-
-      if (ist >= 1) {
-        parallel_for("tracer_37", MDRangePolicy<Kokkos::Rank<3>>
-            (koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), functor_tracer_37(n));
-      }
-
-      parallel_for("tracer_38", MDRangePolicy<Kokkos::Rank<3>>
-          (koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), functor_tracer_38(n));
-
-    } else {
-      if (mytid == 0) {
-        printf ("%s, %d\n", __FILE__, __LINE__);
-        printf("The false advection option for tracer\n");
-      }
-      exit(0);
-    }
-//-------------------
   } // End Loop N
+
+#ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
+  gpu_get_halo_transpose_tracer_overlap (*p_v_work_merged, CppPOPHaloMod::arrCommPriorK,
+      2, 3, KM, JMT, IMT, 1);
+  pop_halo_update_priority_k_overlap_isend_irecv (&CppPOPHaloMod::arrCommPriorK[KM*JMT*IMT],
+      KM, JMT, IMT, 
+      CppDomain::POP_haloClinic_C, 
+      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR, 1);
+
+  pop_halo_update_priority_k_overlap_wait (CppPOPHaloMod::arrCommPriorK,
+      KM, JMT, IMT, 
+      CppDomain::POP_haloClinic_C, 
+      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR, 0);
+  gpu_put_halo_transpose_tracer_overlap (CppPOPHaloMod::arrCommPriorK, *p_v_work_merged,
+      0, 3, KM, JMT, IMT, 0);
+#else
+  pop_halo_update_overlap_isend_irecv (&((*p_v_work_merged).data()[KM*JMT*IMT]),
+      KM, JMT, IMT, 
+      CppDomain::POP_haloClinic_C, 
+      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR, 1);
+
+  pop_halo_update_overlap_wait ((*p_v_work_merged).data(),
+      KM, JMT, IMT, 
+      CppDomain::POP_haloClinic_C, 
+      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR, 0);
+
+#endif
+
+#if (!defined KOKKOS_ENABLE_ATHREAD)
+  parallel_for ("tracer_overlap_35_at", MDRangePolicy<Kokkos::Rank<3>> (
+      koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracerOverlap35_0());
+#else
+  athread_double_align_memcpy3D_host(KM*JMT*IMT,
+      (*p_v_at).data(), (*p_v_work_merged).data()); 
+  athread_double_align_memcpy3D_host(KM*JMT*IMT,
+      &((*p_v_atb).data()[JMT*IMT]), (*p_v_work_merged).data()); 
+#endif
+#ifdef KOKKOS_ENABLE_DEVICE_MEM_SPACE
+  pop_halo_update_priority_k_overlap_wait (&CppPOPHaloMod::arrCommPriorK[KM*JMT*IMT],
+      KM, JMT, IMT, 
+      CppDomain::POP_haloClinic_C, 
+      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR, 1);
+  gpu_put_halo_transpose_tracer_overlap (CppPOPHaloMod::arrCommPriorK, *p_v_work_merged,
+      0, 3, KM, JMT, IMT, 1);
+#else
+  pop_halo_update_overlap_wait (&((*p_v_work_merged).data()[KM*JMT*IMT]),
+      KM, JMT, IMT, 
+      CppDomain::POP_haloClinic_C, 
+      CppPOPGridHorzMod::FLAG_POP_GRID_HORZ_LOC_CENTER,
+      CppPOPGridHorzMod::FLAG_POP_FIELD_KIND_SCALAR, 1);
+#endif
+#if (!defined KOKKOS_ENABLE_ATHREAD)
+  parallel_for ("tracer_overlap_35", MDRangePolicy<Kokkos::Rank<3>> (
+      koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracerOverlap35_1());
+  // parallel_for ("tracer_overlap_35", MDRangePolicy<Kokkos::Rank<3>> (
+  //     koArr3D{0, 0, 0}, koArr3D{KM, JMT, IMT}, tile3D), FunctorTracerOverlap35());
+#else
+  athread_double_align_memcpy3D_host(KM*JMT*IMT,
+      &((*p_v_at).data()[KM * JMT * IMT]), 
+      &((*p_v_work_merged).data()[KM * JMT * IMT]));
+  athread_double_align_memcpy3D_host(KM*JMT*IMT,
+      &((*p_v_atb).data()[(KM+1) * JMT * IMT + JMT*IMT]), 
+      &((*p_v_work_merged).data()[KM * JMT * IMT]));
+#endif
 
 #else  // NODIAG
   parallel_for("tracer_39", MDRangePolicy<Kokkos::Rank<3>>

@@ -94,6 +94,8 @@ extern double *f2;
 extern double *gradx;
 extern double *grady;
 
+extern double *work_merged;
+
 // POP Halo Update
 extern double *halo_buffer;
 } // namespace CppTmpVar

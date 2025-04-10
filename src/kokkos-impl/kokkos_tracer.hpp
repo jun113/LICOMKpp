@@ -220,6 +220,7 @@ using KokkosTmpVar::p_v_dt2k;
 using KokkosTmpVar::p_v_c_cnsew;
 #endif // BIHAR
 
+using KokkosTmpVar::p_v_work_merged;
 // !---------------------------------------------------------------------
 // !     PREPARATION FOR VERTICAL ADVECTIVE TERM
 // !---------------------------------------------------------------------
@@ -270,6 +271,41 @@ class FunctorTracer2 {
   const ViewDouble4D v_wkb_ = *p_v_wkb;
   const ViewDouble4D v_wkd_ = *p_v_wkd;
 };
+
+class FunctorTracerOverlap2 {
+ public:
+  FunctorTracerOverlap2 (const double &aa) : aa_(aa) {}
+
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    v_utf_(iblock, k, j, i) *= oncc_;
+    v_vtf_(iblock, k, j, i) *= oncc_;
+
+    v_wkd_(iblock, k, j, i) = aa_ * v_utf_(iblock, k, j, i)
+        + (1.0 - aa_) * v_utl_(iblock, k, j, i);
+    v_wkb_(iblock, k, j, i) = aa_ * v_vtf_(iblock, k, j, i)
+        + (1.0 - aa_) * v_vtl_(iblock, k, j, i);
+
+#if (!defined KOKKOS_ENABLE_ATHREAD)
+    v_work_merged_(0, k, j, i) = v_vtl_(iblock, k, j, i);
+    v_work_merged_(1, k, j, i) = v_vtl_(iblock, k, j, i);
+#endif
+    return ;
+  }
+
+ private:
+  const double aa_;
+  const double oncc_ = CppPconstMod::oncc;
+  const ViewDouble4D v_utf_ = *p_v_utf;
+  const ViewDouble4D v_utl_ = *p_v_utl;
+  const ViewDouble4D v_vtf_ = *p_v_vtf;
+  const ViewDouble4D v_vtl_ = *p_v_vtl;
+  const ViewDouble4D v_wkb_ = *p_v_wkb;
+  const ViewDouble4D v_wkd_ = *p_v_wkd;
+  const ViewDouble4D v_work_merged_ = *p_v_work_merged;
+};
+
 class FunctorTracer3 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -1761,6 +1797,29 @@ class FunctorTracer30 {
   const ViewDouble5D v_at_  = *p_v_at;
 };
 
+class FunctorTracerOverlap30 {
+ public:
+  FunctorTracerOverlap30 (const int &n) : n_(n) {}
+
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    v_work_merged_(n_, k, j, i) = v_at_(iblock, n_, k, j, i)
+        + dts_ * v_tf_(iblock, k, j, i);
+    return ;
+  }
+ private:
+
+  const int n_;
+
+  const double dts_ = CppPconstMod::dts;
+
+  const ViewDouble4D v_tf_  = *p_v_tf;
+  const ViewDouble4D v_vtl_ = *p_v_vtl;
+  const ViewDouble4D v_work_merged_ = *p_v_work_merged;
+  const ViewDouble5D v_at_  = *p_v_at;
+};
+
 class FunctorTracer31 {
  public:
   KOKKOS_INLINE_FUNCTION void operator () (
@@ -1863,6 +1922,95 @@ class FunctorTracer32 {
   const ViewDouble4D v_vtl_  = *p_v_vtl;
   const ViewDouble4D v_wkc_  = *p_v_wkc;
 };
+
+class FunctorTracerOverlap32 {
+ public:
+  FunctorTracerOverlap32 (const int &n, const double &c2dtts) : n_(n), c2dtts_(c2dtts) {}
+
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &j, const int &i) const {
+    const double aidif = 0.5;
+
+    invtrit (n_, j, i, v_work_merged_, v_stf_, v_wkc_, aidif, c2dtts_);
+
+    return ;
+  }
+  KOKKOS_INLINE_FUNCTION void invtrit (const int &n, const int &j, const int &i,
+      const ViewDouble4D &v_wk, const ViewDouble3D &v_topbc,
+          const ViewDouble4D &v_dcb, const double &aidif, const double &c2dtts) const {
+
+    const int iblock = 0;
+    double a8[KM], b8[KM], c8[KM], d8[KM];
+    double e8[KM+1], f8[KM+1];
+
+    // const double c2dtts_times_aidif = c2dtts * aidif;
+
+    if (v_kmt_(iblock, j, i) > 0) {
+      const int kz = v_kmt_(iblock, j, i) - 1;
+
+      for (int k = 1; k <= kz; ++k) {
+        a8[k] = v_dcb(iblock, k-1, j, i) * v_odzt_(k  ) * v_odzp_(k)
+            // * c2dtts_times_aidif;
+            * c2dtts * aidif;
+
+        d8[k] = v_wk(n, k, j, i);
+      }
+      for (int k = 1; k <= kz-1; ++k) {
+        c8[k] = v_dcb(iblock, k  , j, i) * v_odzt_(k+1) * v_odzp_(k)
+            // * c2dtts_times_aidif;
+            * c2dtts * aidif;
+
+        b8[k] = 1.0 + a8[k] + c8[k];
+        e8[k] = 0.0;
+        f8[k] = 0.0;
+      }
+      // k = 0
+      // a8[0] = v_odzp_(0) * c2dtts_times_aidif;
+      a8[0] = v_odzp_(0) * c2dtts * aidif;
+      c8[0] = v_dcb(iblock, 0, j, i) * v_odzt_(1) * v_odzp_(0)
+            // * c2dtts_times_aidif;
+            * c2dtts * aidif;
+      b8[0] = 1.0 + c8[0];
+      d8[0] = v_wk(n, 0, j, i);
+      e8[0] = 0.0;
+      f8[0] = 0.0;
+
+      b8[kz] = 1.0 + a8[kz];
+      // c8[kz] = v_odzp_(kz) * c2dtts_times_aidif;
+      c8[kz] = v_odzp_(kz) * c2dtts * aidif;
+
+      e8[kz+1] = 0.0;
+      f8[kz+1] = 0.0;
+
+      for (int k = kz; k >= 0; --k) {
+        const double g0 = 1.0 / (b8[k] - c8[k] * e8[k+1]);
+
+        e8[k] = a8[k] * g0;
+        f8[k] = (d8[k] + c8[k] * f8[k+1]) * g0;
+      }
+
+      double wk;
+      wk = (e8[0] * v_topbc(iblock, j, i) + f8[0])
+          * v_vit_(iblock, 0, j, i);
+      v_wk(n, 0, j, i) = wk;
+      for (int k = 1; k <= kz; ++k) {
+        wk = (e8[k] * wk + f8[k]) * v_vit_(iblock, k, j, i);
+        v_wk(n, k, j, i)= wk;
+      }
+    }
+    return ;
+  }
+ private:
+  const int n_;
+  const double c2dtts_;
+  const ViewInt3D    v_kmt_  = *p_v_kmt;
+  const ViewDouble1D v_odzp_ = *p_v_odzp;
+  const ViewDouble1D v_odzt_ = *p_v_odzt;
+  const ViewDouble3D v_stf_  = *p_v_stf;
+  const ViewDouble4D v_vit_  = *p_v_vit;
+  const ViewDouble4D v_wkc_  = *p_v_wkc;
+  const ViewDouble4D v_work_merged_ = *p_v_work_merged;
+};
 // End invtrit
 
 class FunctorTracer33 {
@@ -1943,6 +2091,35 @@ class FunctorTracer35 {
   const ViewDouble5D v_at_   = *p_v_at;
   const ViewDouble5D v_atb_  = *p_v_atb;
   const ViewDouble5D v_tend_ = *p_v_tend;
+};
+
+class FunctorTracerOverlap35_0 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    v_at_ (iblock, 0, k  , j, i) = v_work_merged_(0, k, j, i);
+    v_atb_(iblock, 0, k+1, j, i) = v_work_merged_(0, k, j, i);
+    return ;
+  }
+ private:
+  const ViewDouble5D v_at_   = *p_v_at;
+  const ViewDouble5D v_atb_  = *p_v_atb;
+  const ViewDouble4D v_work_merged_ = *p_v_work_merged;
+};
+class FunctorTracerOverlap35_1 {
+ public:
+  KOKKOS_INLINE_FUNCTION void operator () (
+      const int &k, const int &j, const int &i) const {
+    const int iblock = 0;
+    v_at_ (iblock, 1, k  , j, i) = v_work_merged_(1, k, j, i);
+    v_atb_(iblock, 1, k+1, j, i) = v_work_merged_(1, k, j, i);
+    return ;
+  }
+ private:
+  const ViewDouble5D v_at_   = *p_v_at;
+  const ViewDouble5D v_atb_  = *p_v_atb;
+  const ViewDouble4D v_work_merged_ = *p_v_work_merged;
 };
 
 //==================================

@@ -88,6 +88,8 @@ double *f2 = nullptr;
 double *gradx = nullptr;
 double *grady = nullptr;
 
+double *work_merged = nullptr;
+
 // POP Halo Update
 double *halo_buffer = nullptr;
 } // namespace CppTmpVar

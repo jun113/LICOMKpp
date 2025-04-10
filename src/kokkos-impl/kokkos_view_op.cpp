@@ -3456,6 +3456,9 @@ static void kokkos_init_tmp_var() {
   p_v_gradx = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
   p_v_grady = (ViewDouble2D *) malloc(sizeof(ViewDouble2D));
 
+// BCLINC
+  p_v_work_merged = (ViewDouble4D *) malloc (sizeof(ViewDouble4D));
+
 // POP Halo Update
   p_v_halo_buffer = (ViewDouble1D *) malloc(sizeof(ViewDouble1D));
 
@@ -3538,6 +3541,8 @@ static void kokkos_init_tmp_var() {
 
   new (p_v_gradx) ViewDouble2D("pointer_view_gradx", JMT, IMT);
   new (p_v_grady) ViewDouble2D("pointer_view_grady", JMT, IMT);
+
+  new (p_v_work_merged) ViewDouble4D("pointer_view_work_merged", 2, KM, JMT, IMT);
 #ifdef ISO
 #ifdef LDD97
   ViewDouble4D v_f1("view_f1", MAX_BLOCKS_CLINIC, KM, JMT, IMT);
@@ -3661,6 +3666,10 @@ static void kokkos_init_tmp_var() {
   grady = new double[JMT * IMT];
   new (p_v_gradx) ViewDouble2D(gradx, JMT, IMT);
   new (p_v_grady) ViewDouble2D(grady, JMT, IMT);
+
+
+  work_merged = new double [2 * KM * JMT * IMT];
+  new (p_v_work_merged) ViewDouble4D(work_merged, 2, KM, JMT, IMT);
 
   halo_buffer = new double[8 * KM * (IMT + JMT)];
   new (p_v_halo_buffer) ViewDouble1D(halo_buffer, 
