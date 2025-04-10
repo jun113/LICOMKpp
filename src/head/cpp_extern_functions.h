@@ -99,6 +99,11 @@ extern void gpu_get_halo_transpose_tracer (const ViewDouble4D &viewSrc, double* 
     const int &startLayer, const int &lenLayer, const int &lenA, const int &lenB, const int &lenC);
 extern void gpu_put_halo_transpose_tracer (double* const arrSrc, const ViewDouble4D &viewDst, 
     const int &startLayer, const int &lenLayer, const int &lenA, const int &lenB, const int &lenC);
+
+extern void gpu_get_halo_transpose_tracer_overlap (const ViewDouble4D &viewSrc, double* const arrObj,
+    const int &startLayer, const int &lenLayer, const int &lenA, const int &lenB, const int &lenC, const int &n);
+extern void gpu_put_halo_transpose_tracer_overlap (double* const arrSrc, const ViewDouble4D &viewDst, 
+    const int &startLayer, const int &lenLayer, const int &lenA, const int &lenB, const int &lenC, const int &n);
 #endif // (defined LICOM_ENABLE_KOKKOS)
 
 #ifdef LOWRES 

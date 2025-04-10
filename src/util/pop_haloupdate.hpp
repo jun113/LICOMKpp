@@ -497,6 +497,108 @@ class FuncGetHaloTransDouble {
   const int max_num_block_;
 };
 
+class FuncGetHaloTransOverlapDouble {
+ public:
+  FuncGetHaloTransOverlapDouble (const ViewDouble4D &v_src, 
+      const ViewDouble1D &v_buff, const int &startLayer, const int &lenLayer,
+          const int &lenA, const int &lenB, const int &lenC, const int &maxNumBlock, const int &nn)
+    : v_src_(v_src), v_buff_(v_buff), start_layer_(startLayer), len_layer_(lenLayer),
+        len_a_(lenA), len_b_(lenB), len_c_(lenC), max_num_block_(maxNumBlock), nn_(nn) {}
+  KOKKOS_INLINE_FUNCTION void operator () (const TeamHandle& team_member) const {
+
+    // using ScratchView = Kokkos::View<double*, 
+    //     Kokkos::DefaultExecutionSpace::scratch_memory_space>;
+
+    // team_member.league_rank();
+    // team_member.team_rank();
+    // team_member.team_barrier();
+    const int tid = team_member.league_rank() * team_member.team_size() + team_member.team_rank();
+    const int idx_a = tid / max_num_block_;
+
+    if (idx_a >= len_a_) {
+      return ;
+    }
+  //   ScratchView v_tile(team_member.team_scratch(0), 
+  //       team_member.team_size());
+
+    const int idx_bc = tid % max_num_block_;
+
+    const int len_blk_c0 = len_c_ - (start_layer_ << 1);
+    const int len_blk_c1 = len_layer_;
+
+    const int idx_b0 = idx_bc / len_blk_c0;
+    const int idx_b1 = idx_bc / len_blk_c1;
+
+    const int idx_c0 = idx_bc % len_blk_c0;
+    const int idx_c1 = idx_bc % len_blk_c1;
+
+    // Block 0
+    int sb = start_layer_;
+    int eb = start_layer_ + len_layer_;
+    int sc = start_layer_;
+    int ec = len_c_ - start_layer_;
+
+    int num_block = len_layer_ * len_blk_c0;
+
+    if (((sb + idx_b0) < eb) && ((sc + idx_c0) < ec)) {
+      v_buff_(idx_a*num_block + idx_b0*len_blk_c0 + idx_c0) = 
+          v_src_(nn_, idx_a, sb+idx_b0, sc+idx_c0);
+    }
+
+    // Block 1
+    int start_buf = num_block * len_a_;
+
+    sb = start_layer_ + len_layer_;
+    eb = len_b_ - start_layer_ - len_layer_;
+    sc = start_layer_;
+    ec = start_layer_ + len_layer_;
+
+    num_block = (eb - sb) * len_blk_c1;
+  
+    if (((sb + idx_b1) < eb) && ((sc + idx_c1) < ec)) {
+      v_buff_(start_buf + idx_a*num_block + idx_b1*len_blk_c1 + idx_c1) = 
+          v_src_(nn_, idx_a, sb+idx_b1, sc+idx_c1);
+    }
+ 
+    // Block 2
+    start_buf += (num_block * len_a_);
+
+    sb = start_layer_ + len_layer_;
+    eb = len_b_ - start_layer_ - len_layer_;
+    sc = len_c_ - start_layer_ - len_layer_;
+    ec = len_c_ - start_layer_;
+
+    num_block = (eb - sb) * len_blk_c1;
+  
+    if (((sb + idx_b1) < eb) && ((sc + idx_c1) < ec)) {
+      v_buff_(start_buf + idx_a*num_block + idx_b1*len_blk_c1 + idx_c1) = 
+          v_src_(nn_, idx_a, sb+idx_b1, sc+idx_c1);
+    }
+ 
+    // Block 3
+    start_buf += (num_block * len_a_);
+
+    sb = len_b_ - start_layer_ - len_layer_;
+    eb = len_b_ - start_layer_;
+    sc = start_layer_;
+    ec = len_c_ - start_layer_;
+
+    num_block = len_layer_ * len_blk_c0;
+  
+    if (((sb + idx_b0) < eb) && ((sc + idx_c0) < ec)) {
+      v_buff_(start_buf + idx_a*num_block + idx_b0*len_blk_c0 + idx_c0) = 
+          v_src_(nn_, idx_a, sb+idx_b0, sc+idx_c0);
+    }
+    return ;
+  }
+ private:
+  const ViewDouble4D v_src_;
+  const ViewDouble1D v_buff_;
+  const int start_layer_, len_layer_;
+  const int len_a_, len_b_, len_c_;
+  const int max_num_block_, nn_;
+};
+
 // class FuncGetHaloTransDouble {
 //  public:
 //   FuncGetHaloTransDouble (const ViewDouble4D &v_src, 
@@ -946,22 +1048,198 @@ class FuncPutHaloTransDouble {
   const int max_num_block_;
 };
 
+class FuncPutHaloTransOverlapDouble {
+ public:
+  FuncPutHaloTransOverlapDouble (const ViewDouble1D &v_buff, 
+      const ViewDouble4D &v_dst,  const int &startLayer, const int &lenLayer,
+          const int &lenA, const int &lenB, const int &lenC, const int &maxNumBlock, const int &nn)
+    : v_buff_(v_buff), v_dst_(v_dst), start_layer_(startLayer), len_layer_(lenLayer),
+        len_a_(lenA), len_b_(lenB), len_c_(lenC), max_num_block_(maxNumBlock), nn_(nn) {}
+
+  // KOKKOS_INLINE_FUNCTION void operator () (const TeamHandle& team_member) const {
+
+  //   using ScratchView = Kokkos::View<double*, 
+  //       Kokkos::DefaultExecutionSpace::scratch_memory_space>;
+
+  //   ScratchView v_tile(team_member.team_scratch(0), 
+  //       team_member.team_size());
+
+  //   int tid = team_member.league_rank() * team_member.team_size() + team_member.team_rank();
+  //   int idx_a = tid / max_num_block_;
+
+  //   if (idx_a >= len_a_) {
+  //     return ;
+  //   }
+
+  //   Kokkos::parallel_for (Kokkos::TeamThreadRange (team_member, max_num_block_), 
+  //       [&](const int &idx_bc) {
+  //     int sb = start_layer_;
+  //     int eb = start_layer_ + len_layer_;
+  //     int sc = start_layer_;
+  //     int ec = len_c_ - start_layer_;
+  //     int len_block_c = ec - sc;
+
+  //     int idx_b = idx_bc / len_block_c;
+  //     int idx_c = idx_bc % len_block_c;
+
+  //     int num_block = (eb - sb) * len_block_c;
+   
+  //     if (((sb + idx_b) < eb) && ((sc + idx_c) < ec)) {
+  //       v_dst_(0, idx_a, sb+idx_b, sc+idx_c) =
+  //           v_buff_(idx_a*num_block + idx_b*len_block_c + idx_c);
+  //     }
+   
+  //     // Block 1
+  //     int start_buf = num_block * len_a_;
+  //     sb = start_layer_ + len_layer_;
+  //     eb = len_b_ - start_layer_ - len_layer_;
+  //     sc = start_layer_;
+  //     ec = start_layer_ + len_layer_;
+  //     len_block_c = ec - sc;
+
+  //     idx_b = idx_bc / len_block_c;
+  //     idx_c = idx_bc % len_block_c;
+
+  //     num_block = (eb - sb) * len_block_c;
+   
+  //     if (((sb + idx_b) < eb) && ((sc + idx_c) < ec)) {
+  //       v_dst_(0, idx_a, sb+idx_b, sc+idx_c) =
+  //           v_buff_(start_buf + idx_a*num_block + idx_b*len_block_c + idx_c);
+  //     }
+   
+  //     // Block 2
+  //     start_buf += (num_block * len_a_);
+  //     sb = start_layer_ + len_layer_;
+  //     eb = len_b_ - start_layer_ - len_layer_;
+  //     sc = len_c_ - start_layer_ - len_layer_;
+  //     ec = len_c_ - start_layer_;
+  //     len_block_c = ec - sc;
+
+  //     idx_b = idx_bc / len_block_c;
+  //     idx_c = idx_bc % len_block_c;
+
+  //     num_block = (eb - sb) * len_block_c;
+   
+  //     if (((sb + idx_b) < eb) && ((sc + idx_c) < ec)) {
+  //       v_dst_(0, idx_a, sb+idx_b, sc+idx_c) =
+  //           v_buff_(start_buf + idx_a*num_block + idx_b*len_block_c + idx_c);
+  //     }
+   
+  //     // // Block 3
+  //     start_buf += (num_block * len_a_);
+  //     sb = len_b_ - start_layer_ - len_layer_;
+  //     eb = len_b_ - start_layer_;
+  //     sc = start_layer_;
+  //     ec = len_c_ - start_layer_;
+  //     len_block_c = ec - sc;
+
+  //     idx_b = idx_bc / len_block_c;
+  //     idx_c = idx_bc % len_block_c;
+
+  //     num_block = (eb - sb) * len_block_c;
+   
+  //     if (((sb + idx_b) < eb) && ((sc + idx_c) < ec)) {
+  //       v_dst_(0, idx_a, sb+idx_b, sc+idx_c) =
+  //           v_buff_(start_buf + idx_a*num_block + idx_b*len_block_c + idx_c);
+  //     }
+
+  //     return ;
+  //   });
+
+  //   return ;
+  // }
+
+  KOKKOS_INLINE_FUNCTION void operator () (const TeamHandle& team_member) const {
+
+    const int tid = team_member.league_rank() * team_member.team_size() + team_member.team_rank();
+    const int idx_a = tid / max_num_block_;
+
+    if (idx_a >= len_a_) {
+      return ;
+    }
+
+    const int idx_bc = tid % max_num_block_;
+
+    const int len_blk_c0 = len_c_ - (start_layer_ << 1);
+    const int len_blk_c1 = len_layer_;
+
+    const int idx_b0 = idx_bc / len_blk_c0;
+    const int idx_b1 = idx_bc / len_blk_c1;
+
+    const int idx_c0 = idx_bc % len_blk_c0;
+    const int idx_c1 = idx_bc % len_blk_c1;
+
+    // Block 0
+    int sb = start_layer_;
+    int eb = start_layer_ + len_layer_;
+    int sc = start_layer_;
+    int ec = len_c_ - start_layer_;
+
+    int num_block = len_layer_ * len_blk_c0;
+
+    if (((sb + idx_b0) < eb) && ((sc + idx_c0) < ec)) {
+      v_dst_(nn_, idx_a, sb+idx_b0, sc+idx_c0) =
+          v_buff_(idx_a*num_block + idx_b0*len_blk_c0 + idx_c0);
+    }
+
+    // Block 1
+    int start_buf = num_block * len_a_;
+
+    sb = start_layer_ + len_layer_;
+    eb = len_b_ - start_layer_ - len_layer_;
+    sc = start_layer_;
+    ec = start_layer_ + len_layer_;
+
+    num_block = (eb - sb) * len_blk_c1;
+  
+    if (((sb + idx_b1) < eb) && ((sc + idx_c1) < ec)) {
+      v_dst_(nn_, idx_a, sb+idx_b1, sc+idx_c1) =
+          v_buff_(start_buf + idx_a*num_block + idx_b1*len_blk_c1 + idx_c1);
+    }
+ 
+    // Block 2
+    start_buf += (num_block * len_a_);
+
+    sb = start_layer_ + len_layer_;
+    eb = len_b_ - start_layer_ - len_layer_;
+    sc = len_c_ - start_layer_ - len_layer_;
+    ec = len_c_ - start_layer_;
+
+    num_block = (eb - sb) * len_blk_c1;
+
+    if (((sb + idx_b1) < eb) && ((sc + idx_c1) < ec)) {
+      v_dst_(nn_, idx_a, sb+idx_b1, sc+idx_c1) =
+          v_buff_(start_buf + idx_a*num_block + idx_b1*len_blk_c1 + idx_c1);
+    }
+ 
+    // Block 3
+    start_buf += (num_block * len_a_);
+
+    sb = len_b_ - start_layer_ - len_layer_;
+    eb = len_b_ - start_layer_;
+    sc = start_layer_;
+    ec = len_c_ - start_layer_;
+
+    num_block = len_layer_ * len_blk_c0;
+  
+    if (((sb + idx_b0) < eb) && ((sc + idx_c0) < ec)) {
+      v_dst_(nn_, idx_a, sb+idx_b0, sc+idx_c0) =
+          v_buff_(start_buf + idx_a*num_block + idx_b0*len_blk_c0 + idx_c0);
+    }
+
+    return ;
+  }
+
+ private:
+  const ViewDouble1D v_buff_;
+  const ViewDouble4D v_dst_;
+  const int start_layer_, len_layer_;
+  const int len_a_, len_b_, len_c_;
+  const int max_num_block_, nn_;
+};
+
 #endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
 
-// KOKKOS_REGISTER_FOR_1D(functor_haloupdate_d2h_i,  functor_haloupdate_d2h_i)
-// KOKKOS_REGISTER_FOR_1D(functor_haloupdate_d2h_j,  functor_haloupdate_d2h_j)
-// KOKKOS_REGISTER_FOR_1D(functor_haloupdate_h2d_i,  functor_haloupdate_h2d_i)
-// KOKKOS_REGISTER_FOR_1D(functor_haloupdate_h2d_j,  functor_haloupdate_h2d_j)
-
-// KOKKOS_REGISTER_FOR_2D(functor_haloupdate_d2h_i,  functor_haloupdate_d2h_i)
-// KOKKOS_REGISTER_FOR_2D(functor_haloupdate_d2h_j,  functor_haloupdate_d2h_j)
-// KOKKOS_REGISTER_FOR_2D(functor_haloupdate_h2d_i,  functor_haloupdate_h2d_i)
-// KOKKOS_REGISTER_FOR_2D(functor_haloupdate_h2d_j,  functor_haloupdate_h2d_j)
-
-// KOKKOS_REGISTER_FOR_2D(FuncHaloUpdateD2HTracVtlI, FuncHaloUpdateD2HTracVtlI)
-// KOKKOS_REGISTER_FOR_2D(FuncHaloUpdateD2HTracVtlJ, FuncHaloUpdateD2HTracVtlJ)
-// KOKKOS_REGISTER_FOR_2D(FuncHaloUpdateH2DTracVtlI, FuncHaloUpdateH2DTracVtlI)
-// KOKKOS_REGISTER_FOR_2D(FuncHaloUpdateH2DTracVtlJ, FuncHaloUpdateH2DTracVtlJ)
 #endif // LICOM_ENABLE_KOKKOS
 
 #endif // LICOM3_KOKKKOS_SRC_UTIL_POP_HALOUPDATE_HPP_

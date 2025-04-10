@@ -1862,7 +1862,7 @@ void gpu_put_halo_transpose_tracer (double* const arrSrc, const ViewDouble4D &vi
   return ;
 }
 
-void gpu_get_halo_transpose_tracer_overlap (const ViewDouble4D &viewSrc, double* const arrObj,
+void gpu_get_halo_transpose_tracer_overlap (const ViewDouble4D &viewSrc, double* const arrObjIn,
     const int &startLayer, const int &lenLayer, const int &lenA, const int &lenB, const int &lenC, const int &nn) {
 
   using Kokkos::parallel_for;
@@ -1870,6 +1870,9 @@ void gpu_get_halo_transpose_tracer_overlap (const ViewDouble4D &viewSrc, double*
 
   int start_b[4], end_b[4];
   int start_c[4], end_c[4];
+
+  // double const *arrObj = &arrObj_in[nn * lenA * lenB * lenC];
+  double *arrObj = &arrObjIn[nn * lenA * lenB * lenC];
 
   start_b[0] = startLayer;
   start_b[1] = startLayer + lenLayer;
@@ -1911,8 +1914,8 @@ void gpu_get_halo_transpose_tracer_overlap (const ViewDouble4D &viewSrc, double*
 
   parallel_for ("d2h_pop_halo_trans_k", Kokkos::TeamPolicy<>(
       league_size, team_size),
-          FuncGetHaloTransDouble(viewSrc, v_halo_buffer_sub,
-              startLayer, lenLayer, lenA, lenB, lenC, max_num_block));
+          FuncGetHaloTransOverlapDouble(viewSrc, v_halo_buffer_sub,
+              startLayer, lenLayer, lenA, lenB, lenC, max_num_block, nn));
 
   Kokkos::deep_copy (dev, h_v_buffer, v_halo_buffer_sub);
 
@@ -1968,11 +1971,13 @@ void gpu_get_halo_transpose_tracer_overlap (const ViewDouble4D &viewSrc, double*
   return ;
 }
 
-void gpu_put_halo_transpose_tracer_overlap (double* const arrSrc, const ViewDouble4D &viewDst, 
+void gpu_put_halo_transpose_tracer_overlap (double* const arrSrcIn, const ViewDouble4D &viewDst, 
     const int &startLayer, const int &lenLayer, const int &lenA, const int &lenB, const int &lenC, const int &nn) {
 
   using Kokkos::parallel_for;
   using Kokkos::MDRangePolicy;
+
+  double *arrSrc = &arrSrcIn[nn * lenA * lenB * lenC];
 
   int start_b[4], end_b[4];
   int start_c[4], end_c[4];
@@ -2065,10 +2070,10 @@ void gpu_put_halo_transpose_tracer_overlap (double* const arrSrc, const ViewDoub
 
   Kokkos::deep_copy (dev, v_halo_buffer_sub, h_v_buffer);
 
-  parallel_for ("h2d_pop_halo_trans_k", Kokkos::TeamPolicy<>(
+  parallel_for ("h2d_pop_halo_overlap_trans_k", Kokkos::TeamPolicy<>(
       league_size, team_size),
-          FuncPutHaloTransDouble(v_halo_buffer_sub, viewDst,
-              startLayer, lenLayer, lenA, lenB, lenC, max_num_block));
+          FuncPutHaloTransOverlapDouble(v_halo_buffer_sub, viewDst,
+              startLayer, lenLayer, lenA, lenB, lenC, max_num_block, nn));
   return ;
 }
 #endif // KOKKOS_ENABLE_DEVICE_MEM_SPACE
