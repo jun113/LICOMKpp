@@ -1,4 +1,4 @@
-# LICOMK++: A performance-portable ocean general circulation model (LICOM) using Kokkos, to facilitate global Kilometer-scale oceansimulations
+# LICOMK++: A performance-portable ocean general circulation model (LICOM) using Kokkos, to facilitate global Kilometer-scale ocean simulations
 
 **ACM Gordon Bell Prize Finalist for Climate Modelling'2024**
 
