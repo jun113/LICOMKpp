@@ -22,6 +22,12 @@ A Performance-Portable Kilometer-Scale Global Ocean Model on ORISE and New Sunwa
 | ARM CPUs | OpenMP | ✅ Supported |
 | Sunway Many-cores | Athread | ✅ Supported |
 
+**⭐ Star this repository if you find it useful!**
+
+**🔗 Related Projects:**
+- [Kokkos](https://github.com/kokkos/kokkos)
+- [swKokkos](https://github.com/jun113/swKokkos)
+
 ## 📄 Citation
 
 If you use LICOMK++ in your research, please cite:
