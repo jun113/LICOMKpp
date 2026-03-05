@@ -44,17 +44,22 @@ series = {SC '24}
 }
 ```
 ```bibtex
-@article{WEI2024901,
+@article{10.1016/j.future.2024.06.029,
+author = {Wei, Junlin and Lin, Pengfei and Jiang, Jinrong and Liu, Hailong and Zhao, Lian and Zhang, Yehong and Han, Xiang and Zhang, Feng and Huang, Jian and Wang, Yuzhu and Li, Youyun and Yu, Yue and Chi, Xuebin},
 title = {Accelerating LASG/IAP climate system ocean model version 3 for performance portability using Kokkos},
-journal = {Future Generation Computer Systems},
-volume = {160},
-pages = {901-917},
 year = {2024},
+issue_date = {Nov 2024},
+publisher = {Elsevier Science Publishers B. V.},
+address = {NLD},
+volume = {160},
+number = {C},
 issn = {0167-739X},
-doi = {https://doi.org/10.1016/j.future.2024.06.029},
-url = {https://www.sciencedirect.com/science/article/pii/S0167739X24003285},
-author = {Junlin Wei and Pengfei Lin and Jinrong Jiang and Hailong Liu and Lian Zhao and Yehong Zhang and Xiang Han and Feng Zhang and Jian Huang and Yuzhu Wang and Youyun Li and Yue Yu and Xuebin Chi},
-keywords = {High-performance computing, Ocean general circulation model, Performance portability},
-abstract = {In this paper, the performance portability of the LASG/IAP Climate System Ocean Model version 3 (LICOM3) is demonstrated based on the C++ library Kokkos. Kokkos enables application execution in various High-Performance Computing (HPC) architectures for on-node parallelism. This study employs Kokkos to expose on-node parallelism and reuses pre-existing Message-Passing Interface (MPI) for internode parallelism. By porting to Kokkos, the single-source code LICOM3 is successfully executed on ARM CPUs, Tesla V100, and HIP-based GPUs. To this end, the characteristics and mechanisms of LICOM3 and Kokkos are considered, and the model is then optimized comprehensively in terms of data management, computation, and memory transmission. The proposed Kokkos optimization code at a 1∘ resolution accelerates operation by factors of 1.9, 1.2, and 1.1 compared to the raw Compute Unified Device Architecture (CUDA), Heterogeneous Interface for Portable (HIP) and OpenMP codes, respectively. Further, it exhibits 3.4 Simulated Years Per Day (SYPD) at a resolution of 0.05∘ when executed on 4096 HIP-based GPUs for large-scale simulations.}
+url = {https://doi.org/10.1016/j.future.2024.06.029},
+doi = {10.1016/j.future.2024.06.029},
+journal = {Future Gener. Comput. Syst.},
+month = nov,
+pages = {901–917},
+numpages = {17},
+keywords = {High-performance computing, Ocean general circulation model, Performance portability}
 }
 ```
